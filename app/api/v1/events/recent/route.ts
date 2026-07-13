@@ -1,0 +1,1 @@
+import { events } from '@/lib/intelligence'; import { ok } from '@/lib/api'; export async function GET(req:Request){const key=new URL(req.url).searchParams.get('projectKey')??'pk_local_demo';const list=(await events()).filter(e=>e.projectKey===key).sort((a,b)=>b.occurredAt.localeCompare(a.occurredAt)).slice(0,20);return ok({events:list})}

@@ -1,0 +1,1 @@
+import { events,save } from '@/lib/intelligence'; import { ok } from '@/lib/api'; export async function POST(){const all=await events();await save(all.filter(e=>e.projectKey!=='pk_local_demo'));return ok({reset:true})}

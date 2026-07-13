@@ -1,0 +1,1 @@
+import { getStore, recommended } from '@/lib/store'; import { ok } from '@/lib/api'; export async function GET() { const store = await getStore(); return ok({ users: [{ ...store.user, latestEvent: store.events[0], recommended: recommended(store.user) }] }); }

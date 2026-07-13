@@ -1,0 +1,20 @@
+[
+  {
+    "id": "proj_1083aa0d18",
+    "name": "My SaaS",
+    "testKey": "pk_test_1083aa0d1835434f85",
+    "liveKey": "pk_live_1083aa0d1835434f85",
+    "secret": "sk_2056e994f4cd48fda1b59fbfda8d55ce",
+    "webhookSecret": "whsec_ca3d43102af643f59a4ce99c016324f4",
+    "createdAt": "2026-07-13T09:46:41.352Z"
+  },
+  {
+    "id": "proj_32ad1edceb",
+    "name": "fella",
+    "testKey": "pk_test_32ad1edcebc5422bac",
+    "liveKey": "pk_live_32ad1edcebc5422bac",
+    "secret": "sk_b8c4a50369364c4f8981d88ccb1321d6",
+    "webhookSecret": "whsec_c22558119d0349058ea20692c19e59fd",
+    "createdAt": "2026-07-13T09:48:10.222Z"
+  }
+]

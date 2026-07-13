@@ -1,0 +1,24 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+:where(main > section:first-child h1) { font-family: Georgia, "Times New Roman", serif; font-weight: 500; }
+/* Editorial landing polish: motion is subtle and disabled when requested. */
+:where(main > section:first-child h1) { font-family: "Iowan Old Style", Baskerville, "Times New Roman", serif; letter-spacing: -.065em; font-weight: 400; }
+main > section:first-child > div > div:last-child { animation: editorial-enter .7s cubic-bezier(.2,.8,.2,1) both; }
+main > section:first-child > div > div:last-child:hover { transform: translateY(-3px); box-shadow: 0 18px 45px rgba(57,40,25,.10); }
+main > section:first-child button { transition: color .18s ease, transform .18s ease; }
+main > section:first-child button:hover { transform: translateX(3px); }
+main > section:nth-of-type(3) > div > div:last-child { transition: transform .25s ease, box-shadow .25s ease; }
+main > section:nth-of-type(3) > div > div:last-child:hover { transform: translateY(-4px); box-shadow: 0 18px 42px rgba(57,40,25,.08); }
+@keyframes editorial-enter { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+main > section:first-child { position: relative; overflow: hidden; }
+main > section:first-child::after { content:""; position:absolute; right:2%; top:8%; width:230px; height:230px; border:1px solid rgba(79,70,229,.18); border-radius:48% 52% 43% 57%; transform:rotate(18deg); pointer-events:none; animation: contour-drift 8s ease-in-out infinite; }
+@keyframes contour-drift { 50% { transform: rotate(28deg) translateY(10px); border-radius:57% 43% 55% 45%; } }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+.landing-display { font-family: "Newsreader", "Instrument Serif", "Iowan Old Style", Baskerville, Georgia, serif; font-weight: 400; letter-spacing: -.055em; }
+main > section:first-child::after { content: none; }
+.trace-surface { transition: box-shadow .2s ease, transform .2s ease; }
+.trace-surface:hover { box-shadow: 0 16px 42px rgba(57,40,25,.09); }
+table tbody tr { transition: background-color .16s ease; }
+table tbody tr:hover { background: rgba(255,253,249,.75); }
+input,select { transition: border-color .16s ease, box-shadow .16s ease; }
+input:focus,select:focus { border-color:#4F46E5; box-shadow:0 0 0 3px rgba(79,70,229,.10); outline:none; }
+:root { color: #18181B; background:#F7F3EC } * { box-sizing:border-box } body { margin:0; background:#F7F3EC; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif } button { font:inherit } .surface { background:#FFFDF9; border:1px solid #E7E2DA; box-shadow:0 8px 30px rgba(57,40,25,.05) } .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; border-radius:.7rem; padding:.7rem 1rem; font-size:.875rem; font-weight:600; cursor:pointer; border:1px solid #E7E2DA; background:#FFFDF9; transition:transform .16s ease,box-shadow .16s ease } .btn:hover { transform:translateY(-1px); box-shadow:0 5px 12px rgba(57,40,25,.08) } .btn:focus-visible,button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible { outline:2px solid #4F46E5; outline-offset:2px } .btn-primary { color:white; background:#29221D; border-color:#29221D } .btn:disabled { opacity:.45; cursor:not-allowed } .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace } .editorial-title { font-family:Georgia,"Times New Roman",serif; font-weight:500; letter-spacing:-.055em; } .editorial-kicker { letter-spacing:.12em; text-transform:uppercase; font-size:.68rem; font-weight:700 }

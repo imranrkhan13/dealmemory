@@ -1,0 +1,2 @@
+import { getStore } from '@/lib/store'; import { retrieveSupermemory } from '@/lib/memory'; import { error, ok } from '@/lib/api';
+export async function POST() { const store = await getStore(); try { const provider = await retrieveSupermemory(store.user.id); return ok({ provider, localMemories: store.memories.slice(0, 8), events: store.events.slice(0, 8) }); } catch (e) { return error(e instanceof Error ? e.message : 'Memory retrieval failed.', 502); } }
