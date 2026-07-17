@@ -1,6 +1,6 @@
-# Activation Memory
+# DealMemory
 
-Activation Memory is a project-scoped activation intelligence platform. Install the SDK, send explicit trial events, and inspect real incoming events and journeys in the dashboard. No data is seeded automatically.
+DealMemory is a project-scoped activation intelligence platform. Install the SDK, send explicit trial events, and inspect real incoming events and journeys in the dashboard. No data is seeded automatically.
 
 ## Quick start
 

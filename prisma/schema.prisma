@@ -1,0 +1,136 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String            @id @default(cuid())
+  name           String?
+  email          String            @unique
+  emailVerified  DateTime?
+  passwordHash   String
+  image          String?
+  projects       Project[]
+  subscriptions  Subscription[]    @relation("UserSubscriptions")
+  sessions       Session[]
+  accounts       Account[]
+  createdAt      DateTime          @default(now())
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  user              User     @relation(fields: [userId], references: [id])
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  expires      DateTime
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Project {
+  id                   String          @id @default(cuid())
+  owner                User            @relation(fields: [ownerId], references: [id])
+  ownerId              String
+  name                 String
+  slug                 String          @unique
+  activationEventName  String          @default("first_map_generated")
+  createdAt            DateTime        @default(now())
+  apiKeys              ProjectApiKey[]
+  trialUsers           TrialUser[]
+  activationEvents     ActivationEvent[]
+}
+
+model ProjectApiKey {
+  id         String   @id @default(cuid())
+  project    Project  @relation(fields: [projectId], references: [id])
+  projectId  String
+  keyPrefix  String
+  keyHash    String
+  createdAt  DateTime @default(now())
+  revokedAt  DateTime?
+
+  @@unique([projectId, keyPrefix])
+}
+
+model TrialUser {
+  id             String             @id @default(cuid())
+  project        Project            @relation(fields: [projectId], references: [id])
+  projectId      String
+  externalUserId String
+  email          String?
+  attributes     String?
+  createdAt      DateTime           @default(now())
+  activationEvents ActivationEvent[]
+
+  @@unique([projectId, externalUserId])
+}
+
+model ActivationEvent {
+  id            String   @id @default(cuid())
+  eventId       String
+  project       Project  @relation(fields: [projectId], references: [id])
+  projectId     String
+  trialUser     TrialUser @relation(fields: [trialUserId], references: [id])
+  trialUserId   String
+  sessionId     String
+  name          String
+  properties    String
+  occurredAt    DateTime
+  receivedAt    DateTime @default(now())
+  isValid       Boolean  @default(true)
+  invalidReason String?
+
+  @@unique([projectId, eventId])
+}
+
+model Subscription {
+  id                 String   @id @default(cuid())
+  user               User     @relation("UserSubscriptions", fields: [userId], references: [id])
+  userId             String
+  dodoCustomerId     String?
+  dodoSubscriptionId String?
+  dodoProductId      String?
+  status             String
+  currentPeriodEnd   DateTime?
+  createdAt          DateTime @default(now())
+}
+
+model DodoWebhookEvent {
+  id          String   @id @default(cuid())
+  eventId     String   @unique
+  payload     String
+  verifiedAt  DateTime @default(now())
+  processedAt DateTime?
+}
+
+generator typegraphql {
+  provider = "prisma-client-js"
+}

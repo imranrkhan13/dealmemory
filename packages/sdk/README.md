@@ -1,6 +1,6 @@
 # activationmemory
 
-Browser SDK for Activation Memory. It batches explicit activation events without blocking the host product.
+Browser SDK for DealMemory. It batches explicit activation events without blocking the host product.
 
 ```bash
 npm install activationmemory

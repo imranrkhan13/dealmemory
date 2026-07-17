@@ -53,7 +53,7 @@ export class ActivationMemory {
     const batch = this.queue.splice(0, 20);
     try {
       const response = await fetch(`${this.options.apiUrl.replace(/\/$/, '')}/v1/events/batch`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-project-key': this.options.projectKey }, body: JSON.stringify({ events: batch }) });
-      if (!response.ok) throw new Error('Activation Memory ingestion failed.');
+      if (!response.ok) throw new Error('DealMemory ingestion failed.');
       this.persist();
     } catch { this.queue.unshift(...batch); this.persist(); }
   }
