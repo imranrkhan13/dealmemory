@@ -331,19 +331,23 @@ export async function journeys(projectKey?: string) {
     Array.from(group.values()).map(async (eventsForUser) => {
       const journey = buildCanonicalJourney(eventsForUser);
 
-      const memories = await retrieveSupermemory(journey.userId);
+      let memoryResults: string[] = [];
 
-      console.log("Journey User:", journey.userId);
-      console.log("Memories:", memories);
+      try {
+        const memories = await retrieveSupermemory(journey.userId);
+        console.log("Journey User:", journey.userId);
+        console.log("Memories:", memories);
 
-      const insights = analyzeJourney(
-        journey,
-        memories.results
-      );
+        memoryResults = memories?.results ?? [];
+      } catch (err) {
+        console.error("Supermemory error:", err);
+      }
+
+      const insights = analyzeJourney(journey, memoryResults);
 
       return {
         ...journey,
-        memories: memories.results,
+        memories: memoryResults,
         insights,
         recommendation: recommendation(journey),
         currentState: state(journey),

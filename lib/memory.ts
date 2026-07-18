@@ -27,6 +27,17 @@ export
 subscription
 churn
 `, containerTags: [userId], limit: 8 }) });
-  if (!response.ok) throw new Error(`Supermemory retrieval failed (${response.status}).`);
-  const data = await response.json() as { results?: Array<{ content?: string }> }; return { configured: true as const, results: (data.results ?? []).map(x => x.content ?? '').filter(Boolean) };
+  if (!response.ok) {
+    console.error("Supermemory retrieval failed:", response.status);
+
+    return {
+      results: [],
+    };
+  }
+  const data = await response.json();
+
+  return {
+    results: data.results ?? [],
+  }; 
 }
+  

@@ -20,9 +20,22 @@ export default function Journeys() {
         }
 
         fetch(`/api/v1/journeys?projectKey=${project.testKey}`)
-            .then((r) => r.json())
+            .then(async (r) => {
+                if (!r.ok) {
+                    const text = await r.text();
+                    console.error("Journeys API failed:", r.status, text);
+                    return { journeys: [] };
+                }
+
+                return r.json();
+            })
             .then((data) => {
                 setJourneys(data.journeys ?? []);
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error(err);
+                setJourneys([]);
                 setLoading(false);
             });
     }, []);
@@ -131,8 +144,18 @@ export default function Journeys() {
 
                                                 <ul className="mt-2 list-disc ml-5 text-sm text-gray-600">
 
-                                                    {journey.memories.slice(0, 3).map((m: string, i: number) => (
-                                                        <li key={i}>{m}</li>
+                                                    {journey.memories.slice(0, 3).map((m: any, i: number) => (
+                                                        <li key={i}>
+                                                            <div className="font-medium">
+                                                                {m.title}
+                                                            </div>
+
+                                                            <div className="text-xs text-gray-500">
+                                                                {m.chunks?.[0]?.text ??
+                                                                    m.chunks?.[0]?.content ??
+                                                                    "No content"}
+                                                            </div>
+                                                        </li>
                                                     ))}
 
                                                 </ul>

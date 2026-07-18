@@ -37,24 +37,50 @@ export default function OverviewProduct() {
     const [dashboard, setDashboard] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
-
     useEffect(() => {
-        const selected = JSON.parse(
-            localStorage.getItem('activation-memory-project') ?? 'null'
-        );
+        async function init() {
+            let selected = JSON.parse(
+                localStorage.getItem("activation-memory-project") ?? "null"
+            );
 
-        setProject(selected);
+            if (!selected) {
+                const r = await fetch("/api/projects");
+                const d = await r.json();
 
-        if (!selected) {
+                if (d.projects?.length) {
+                    const p = d.projects[0];
+
+                    selected = {
+                        id: p.id,
+                        name: p.name,
+
+                        // CHANGE THIS IF YOUR API RETURNS ANOTHER FIELD
+                        testKey: p.rawKey ?? p.testKey ?? p.apiKeys?.[0]?.keyPrefix,
+                    };
+
+                    localStorage.setItem(
+                        "activation-memory-project",
+                        JSON.stringify(selected)
+                    );
+                }
+            }
+
+            setProject(selected);
+
+            if (!selected?.testKey) {
+                setLoading(false);
+                return;
+            }
+
+            const dashboard = await fetch(
+                `/api/v1/journeys?projectKey=${selected.testKey}`
+            ).then(r => r.json());
+
+            setDashboard(dashboard);
             setLoading(false);
-            return;
         }
 
-        fetch(`/api/v1/journeys?projectKey=${selected.testKey}`)
-            .then((r) => r.json())
-            .then(setDashboard)
-            .catch(console.error)
-            .finally(() => setLoading(false));
+        init().catch(console.error);
     }, []);
 
     // Memoize all complex data calculations to optimize render performance

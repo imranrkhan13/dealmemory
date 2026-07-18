@@ -3,3 +3,22 @@ node_modules
 .env.local
 .env
 data/store.json
+# Supermemory local runtime
+.supermemory/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Next.js
+.next/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
