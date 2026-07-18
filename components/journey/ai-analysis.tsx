@@ -55,7 +55,7 @@ export default function AIAnalysis({ journey }: Props) {
                     </h2>
 
                     <p className="text-sm text-gray-500">
-                        AI explanation of this customer's journey
+                        AI explanation of this customer&apos;s journey
                     </p>
 
                 </div>

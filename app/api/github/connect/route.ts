@@ -1,3 +1,9 @@
-import { z } from 'zod'; import { addEvent, getStore, patchUser } from '@/lib/store'; import { writeSupermemory } from '@/lib/memory'; import { error, ok } from '@/lib/api';
-const schema = z.object({ attempt: z.number().int().min(1) });
-export async function POST(req: Request) { const p = schema.safeParse(await req.json()); if (!p.success) return error('A connection attempt is required.'); await addEvent('githubconnectionstarted', 'Started GitHub connection.'); const store = await getStore(); if (p.data.attempt === 1) { const result = await addEvent('githuboauthfailed', 'OAuth callback could not be verified.', { category: 'blocker', content: 'GitHub authorization failed at the callback step.', source: 'productevent' }); await patchUser({ currentBlocker: 'OAuth callback could not be verified.' }); try { await writeSupermemory(store.user.id, result.store.memories[0]); } catch (e) { return error(e instanceof Error ? e.message : 'Memory write failed.', 502); } return error('OAuth callback could not be verified.', 409); } const updated = await patchUser({ githubConnected: true, currentBlocker: undefined }); const result = await addEvent('githubconnected', 'Connected agentlens repository.', { category: 'setupstate', content: 'GitHub repository agentlens is connected.', source: 'productevent' }); try { await writeSupermemory(updated.user.id, result.store.memories[0]); } catch (e) { return error(e instanceof Error ? e.message : 'Memory write failed.', 502); } return ok({ user: updated.user }); }
+import { error } from '@/lib/api';
+
+/**
+ * Deprecated demo endpoint that modified a local store.json and simulated GitHub connect.
+ * This path has been removed in the secure multi-tenant model.
+ */
+export async function POST() {
+  return error('This demo endpoint has been removed.', 410);
+}

@@ -406,3 +406,47 @@ export function inactiveHours(j: Journey) {
   const e = j.rawEvents[j.rawEvents.length - 1];
   return e ? Math.max(0, Math.round((Date.now() - new Date(e.occurredAt).getTime()) / 3600000)) : 0;
 }
+
+export async function journeysForPrefixes(prefixes: string[]) {
+  const all = (await events()).filter((e) => {
+    const prefix = (e.projectKey ?? '').split('_')[0];
+    return prefixes.includes(prefix);
+  });
+
+  const normalized = normalizeEvents(all);
+  const group = new Map<string, ActivationEvent[]>();
+
+  for (const event of normalized) {
+    const id = event.userId ?? event.anonymousId;
+    const current = group.get(id) ?? [];
+    current.push(event);
+    group.set(id, current);
+  }
+
+  return Promise.all(
+    Array.from(group.values()).map(async (eventsForUser) => {
+      const journey = buildCanonicalJourney(eventsForUser);
+
+      let memoryResults: string[] = [];
+
+      try {
+        const memories = await retrieveSupermemory(journey.userId);
+        memoryResults = memories?.results ?? [];
+      } catch (err) {
+        console.error("Supermemory error:", err);
+      }
+
+      const insights = analyzeJourney(journey, memoryResults);
+
+      return {
+        ...journey,
+        memories: memoryResults,
+        insights,
+        recommendation: recommendation(journey),
+        currentState: state(journey),
+        blocker: blocker(journey),
+        inactiveHours: inactiveHours(journey),
+      };
+    })
+  );
+}

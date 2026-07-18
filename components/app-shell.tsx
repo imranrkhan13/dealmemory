@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { Activity, Menu, X } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +15,8 @@ export function Navbar() {
     console.log("session", session);
 
     const toggleMenu = () => setIsOpen(!isOpen);
+    const pathname = usePathname();
+    const signInHref = `/auth/signin?callbackUrl=${encodeURIComponent(pathname || '/overview')}`;
 
     useEffect(() => {
         setHasProject(Boolean(localStorage.getItem('activation-memory-project')));
@@ -67,7 +70,7 @@ export function Navbar() {
                     ) : (
                         <Link
                             className="rounded-lg bg-[#29221D] px-3.5 py-1.5 text-sm text-white"
-                            href="/login"
+                            href={signInHref}
                         >
                             Sign in
                         </Link>
@@ -120,7 +123,7 @@ export function Navbar() {
                         ) : (
                             <Link
                                 className="rounded-lg bg-[#29221D] px-3.5 py-1.5 text-sm text-white"
-                                href="/login"
+                                href={signInHref}
                             >
                                 Sign in
                             </Link>

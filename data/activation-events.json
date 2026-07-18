@@ -2403,5 +2403,81 @@
     "url": "http://localhost:3001/",
     "referrer": "",
     "properties": {}
+  },
+  {
+    "id": "27156c04-667f-40f4-ab60-089815ebe1aa",
+    "projectKey": "pk_test_32ad1edcebc5422bac",
+    "name": "trial_started",
+    "userId": "demo_user_001",
+    "anonymousId": "2c232a5a-d85e-4b0d-98ad-85cf0624db0f",
+    "sessionId": "b5c3e533-6d11-4ab6-aeb9-21e1e75ae0f4",
+    "occurredAt": "2026-07-18T14:09:07.420Z",
+    "url": "http://localhost:3000/demo",
+    "referrer": "",
+    "properties": {}
+  },
+  {
+    "id": "01544287-f739-4a90-807f-b06a92a2ff79",
+    "projectKey": "pk_test_32ad1edcebc5422bac",
+    "name": "goal_set",
+    "userId": "demo_user_001",
+    "anonymousId": "2c232a5a-d85e-4b0d-98ad-85cf0624db0f",
+    "sessionId": "b5c3e533-6d11-4ab6-aeb9-21e1e75ae0f4",
+    "occurredAt": "2026-07-18T14:09:08.420Z",
+    "url": "http://localhost:3000/demo",
+    "referrer": "",
+    "properties": {
+      "goal": "Generate my first map"
+    }
+  },
+  {
+    "id": "ccb10b29-d941-4824-a8a9-d327aa0e9430",
+    "projectKey": "pk_test_32ad1edcebc5422bac",
+    "name": "integration_connection_failed",
+    "userId": "demo_user_001",
+    "anonymousId": "2c232a5a-d85e-4b0d-98ad-85cf0624db0f",
+    "sessionId": "b5c3e533-6d11-4ab6-aeb9-21e1e75ae0f4",
+    "occurredAt": "2026-07-18T14:09:09.420Z",
+    "url": "http://localhost:3000/demo",
+    "referrer": "",
+    "properties": {
+      "error": "OAuth callback failed"
+    }
+  },
+  {
+    "id": "443fb1b5-3216-4a35-b46a-ffae9055c2fb",
+    "projectKey": "pk_test_32ad1edcebc5422bac",
+    "name": "session_returned",
+    "userId": "demo_user_001",
+    "anonymousId": "2c232a5a-d85e-4b0d-98ad-85cf0624db0f",
+    "sessionId": "b5c3e533-6d11-4ab6-aeb9-21e1e75ae0f4",
+    "occurredAt": "2026-07-18T14:09:10.420Z",
+    "url": "http://localhost:3000/demo",
+    "referrer": "",
+    "properties": {}
+  },
+  {
+    "id": "f44d2902-8771-4c3c-9675-8520dd0f4224",
+    "projectKey": "pk_test_32ad1edcebc5422bac",
+    "name": "repository_connected",
+    "userId": "demo_user_001",
+    "anonymousId": "2c232a5a-d85e-4b0d-98ad-85cf0624db0f",
+    "sessionId": "b5c3e533-6d11-4ab6-aeb9-21e1e75ae0f4",
+    "occurredAt": "2026-07-18T14:09:11.420Z",
+    "url": "http://localhost:3000/demo",
+    "referrer": "",
+    "properties": {}
+  },
+  {
+    "id": "dd17162e-8c21-4f4c-8801-fd362cb675fe",
+    "projectKey": "pk_test_32ad1edcebc5422bac",
+    "name": "first_map_generated",
+    "userId": "demo_user_001",
+    "anonymousId": "2c232a5a-d85e-4b0d-98ad-85cf0624db0f",
+    "sessionId": "b5c3e533-6d11-4ab6-aeb9-21e1e75ae0f4",
+    "occurredAt": "2026-07-18T14:09:12.420Z",
+    "url": "http://localhost:3000/demo",
+    "referrer": "",
+    "properties": {}
   }
 ]

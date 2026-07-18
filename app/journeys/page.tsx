@@ -10,34 +10,25 @@ export default function Journeys() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const project = JSON.parse(
-            localStorage.getItem('activation-memory-project') ?? 'null'
-        );
+        setLoading(true);
 
-        if (!project) {
-            setLoading(false);
-            return;
-        }
-
-        fetch(`/api/v1/journeys?projectKey=${project.testKey}`)
+        fetch(`/api/v1/journeys`, { cache: 'no-store' })
             .then(async (r) => {
                 if (!r.ok) {
-                    const text = await r.text();
+                    const text = await r.text().catch(() => '');
                     console.error("Journeys API failed:", r.status, text);
                     return { journeys: [] };
                 }
-
                 return r.json();
             })
             .then((data) => {
-                setJourneys(data.journeys ?? []);
-                setLoading(false);
+                setJourneys(Array.isArray(data?.journeys) ? data.journeys : []);
             })
             .catch((err) => {
                 console.error(err);
                 setJourneys([]);
-                setLoading(false);
-            });
+            })
+            .finally(() => setLoading(false));
     }, []);
 
     return (

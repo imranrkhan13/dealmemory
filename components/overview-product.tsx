@@ -39,47 +39,24 @@ export default function OverviewProduct() {
     const [copied, setCopied] = useState(false);
     useEffect(() => {
         async function init() {
-            let selected = JSON.parse(
-                localStorage.getItem("activation-memory-project") ?? "null"
-            );
+            try {
+                setLoading(true);
 
-            if (!selected) {
-                const r = await fetch("/api/projects");
-                const d = await r.json();
+                const projectsRes = await fetch('/api/projects', { cache: 'no-store' });
+                const projectsData = await projectsRes.json();
+                const first = Array.isArray(projectsData?.projects) ? projectsData.projects[0] : null;
+                setProject(first ?? null);
 
-                if (d.projects?.length) {
-                    const p = d.projects[0];
-
-                    selected = {
-                        id: p.id,
-                        name: p.name,
-
-                        // CHANGE THIS IF YOUR API RETURNS ANOTHER FIELD
-                        testKey: p.rawKey ?? p.testKey ?? p.apiKeys?.[0]?.keyPrefix,
-                    };
-
-                    localStorage.setItem(
-                        "activation-memory-project",
-                        JSON.stringify(selected)
-                    );
-                }
-            }
-
-            setProject(selected);
-
-            if (!selected?.testKey) {
+                const journeysRes = await fetch('/api/v1/journeys', { cache: 'no-store' });
+                const journeysData = await journeysRes.json();
+                setDashboard(journeysData);
+            } catch (e) {
+                setProject(null);
+                setDashboard({ journeys: [] });
+            } finally {
                 setLoading(false);
-                return;
             }
-
-            const dashboard = await fetch(
-                `/api/v1/journeys?projectKey=${selected.testKey}`
-            ).then(r => r.json());
-
-            setDashboard(dashboard);
-            setLoading(false);
         }
-
         init().catch(console.error);
     }, []);
 
@@ -178,12 +155,7 @@ export default function OverviewProduct() {
         organizationInsights
     ]);
 
-    const handleCopyKey = () => {
-        if (!project?.testKey) return;
-        navigator.clipboard.writeText(project.testKey);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
+    // Removed copy key behavior; keys are never exposed client-side
 
     if (!project) return null;
 
@@ -218,13 +190,6 @@ export default function OverviewProduct() {
                     automatically build journeys, identify blockers, and recommend the next best action.
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3 justify-center sm:justify-start">
-                    <button
-                        onClick={handleCopyKey}
-                        className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
-                    >
-                        <Copy size={15} />
-                        {copied ? 'Copied!' : 'Copy Project Key'}
-                    </button>
                     <Link
                         href="/sdk"
                         className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500"

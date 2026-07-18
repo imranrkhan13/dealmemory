@@ -37,7 +37,7 @@ export default function JourneyReplay({
                             </h1>
 
                             <p className="mt-1 text-gray-500">
-                                AI explanation of this customer's complete journey.
+                                AI explanation of this customer&apos;s complete journey.
                             </p>
 
                         </div>

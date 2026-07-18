@@ -1,2 +1,16 @@
-import { getStore } from '@/lib/store'; import { retrieveSupermemory } from '@/lib/memory'; import { error, ok } from '@/lib/api';
-export async function POST() { const store = await getStore(); try { const provider = await retrieveSupermemory(store.user.id); return ok({ provider, localMemories: store.memories.slice(0, 8), events: store.events.slice(0, 8) }); } catch (e) { return error(e instanceof Error ? e.message : 'Memory retrieval failed.', 502); } }
+import { retrieveSupermemory } from '@/lib/memory';
+import { error, ok } from '@/lib/api';
+import { requireAuth } from '@/lib/auth';
+
+export async function POST() {
+  try {
+    const { userId } = await requireAuth();
+    const provider = await retrieveSupermemory(userId);
+    return ok({ provider, results: provider?.results ?? [] });
+  } catch (e) {
+    if (e instanceof Error && (e as any).status === 401) {
+      return error('Authentication required', 401);
+    }
+    return error(e instanceof Error ? e.message : 'Memory retrieval failed.', 502);
+  }
+}
