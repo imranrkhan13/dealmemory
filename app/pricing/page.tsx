@@ -62,7 +62,7 @@ export default function PricingPage() {
           </ul>
           <UpgradeButton className="mt-6" />
           <p className="mt-2 text-xs text-[#6B7280]">
-            You'll be redirected to a secure Dodo Payments checkout. After payment, you'll return to Dashboard → Settings.
+            You&#39;ll be redirected to a secure Dodo Payments checkout. After payment, you&#39;ll return to Dashboard → Settings.
           </p>
         </div>
       </div>
