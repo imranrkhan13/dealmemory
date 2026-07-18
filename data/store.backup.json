@@ -1,0 +1,52 @@
+{
+  "user": {
+    "id": "trial-user-001",
+    "name": "Maya Chen",
+    "email": "maya@agentlens.dev",
+    "planStatus": "trial",
+    "activationMilestone": "firstarchitecture_map",
+    "githubConnected": false,
+    "firstMapGenerated": false,
+    "createdAt": "2026-07-13T04:27:37.854Z",
+    "updatedAt": "2026-07-13T04:27:41.634Z",
+    "goal": "Connect my GitHub repository and generate an architecture map.",
+    "currentBlocker": "OAuth callback could not be verified."
+  },
+  "events": [
+    {
+      "id": "f400fbcf-ae7d-4186-bccb-c2eae0fa1181",
+      "userId": "trial-user-001",
+      "type": "githuboauthfailed",
+      "detail": "OAuth callback could not be verified.",
+      "createdAt": "2026-07-13T04:27:41.634Z"
+    },
+    {
+      "id": "419c7ae3-2fce-4d5c-93d4-1566f814582a",
+      "userId": "trial-user-001",
+      "type": "githubconnectionstarted",
+      "detail": "Started GitHub connection.",
+      "createdAt": "2026-07-13T04:27:41.634Z"
+    },
+    {
+      "id": "c36d6ca3-02d3-473f-880e-f17e5a4bff7b",
+      "userId": "trial-user-001",
+      "type": "goalset",
+      "detail": "Wants to connect GitHub and generate an architecture map.",
+      "createdAt": "2026-07-13T04:27:39.717Z"
+    }
+  ],
+  "memories": [
+    {
+      "category": "blocker",
+      "content": "GitHub authorization failed at the callback step.",
+      "source": "productevent",
+      "createdAt": "2026-07-13T04:27:41.634Z"
+    },
+    {
+      "category": "goal",
+      "content": "I want to connect my GitHub repository and generate an architecture map.",
+      "source": "usermessage",
+      "createdAt": "2026-07-13T04:27:39.717Z"
+    }
+  ]
+}

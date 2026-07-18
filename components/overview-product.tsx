@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import AIInsights from "./dashboard/ai-insights";
+import { analyzeOrganization } from '@/lib/organization-intelligence';
 import Link from 'next/link';
 import {
     ArrowRight,
@@ -86,7 +88,6 @@ export default function OverviewProduct() {
             inactiveHours: j.inactiveHours ?? 0,
             recommendation: j.recommendation,
         }));
-
         const liveEvents = [...events]
             .sort((a: any, b: any) => b.occurredAt.localeCompare(a.occurredAt))
             .slice(0, 10)
@@ -113,6 +114,43 @@ export default function OverviewProduct() {
             liveEvents
         };
     }, [dashboard]);
+    const {
+        journeys,
+        events,
+        stuckUsers,
+        activatedUsers,
+        checkoutUsers,
+        paidUsers,
+        connectedUsers,
+        activationRate,
+        recoveryRate,
+        revenueOpportunity,
+        topBlocker,
+        attentionUsers,
+        liveEvents
+    } = processedData;
+    const organizationInsights = useMemo(() => {
+
+        return analyzeOrganization(journeys);
+
+    }, [journeys]);
+
+    const productHealth = useMemo(() => {
+
+        let score = 100;
+
+        score -= stuckUsers.length * 3;
+
+        score -= organizationInsights.length * 2;
+
+        if (score < 0) score = 0;
+
+        return score;
+
+    }, [
+        stuckUsers,
+        organizationInsights
+    ]);
 
     const handleCopyKey = () => {
         if (!project?.testKey) return;
@@ -138,21 +176,6 @@ export default function OverviewProduct() {
         );
     }
 
-    const {
-        journeys,
-        events,
-        stuckUsers,
-        activatedUsers,
-        checkoutUsers,
-        paidUsers,
-        connectedUsers,
-        activationRate,
-        recoveryRate,
-        revenueOpportunity,
-        topBlocker,
-        attentionUsers,
-        liveEvents
-    } = processedData;
 
     // Empty state view
     if (!events.length) {
@@ -215,10 +238,14 @@ export default function OverviewProduct() {
                         Activation Health
                     </p>
                     <p className="mt-1 text-4xl font-black text-green-600">
-                        92%
+                        {productHealth}%
                     </p>
                     <p className="text-xs font-medium text-green-700 mt-0.5">
-                        Excellent Status
+                        {productHealth > 80
+                            ? "Excellent"
+                            : productHealth > 60
+                                ? "Healthy"
+                                : "Needs Attention"}
                     </p>
                 </div>
             </div>
@@ -294,26 +321,7 @@ export default function OverviewProduct() {
 
                 {/* Side Insights Panels */}
                 <div className="space-y-6">
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                        <p className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                            AI Insights
-                        </p>
-                        <h2 className="mt-2 text-xl font-bold text-gray-900">
-                            Biggest Opportunity
-                        </h2>
-                        <p className="mt-3 text-sm leading-relaxed text-gray-500">
-                            {stuckUsers.length} users are currently blocked at{' '}
-                            <span className="font-semibold text-gray-900">{topBlocker}</span>.
-                        </p>
-                        <div className="mt-4 rounded-xl bg-indigo-50/70 p-4 border border-indigo-100/50">
-                            <p className="text-xs font-bold text-indigo-800 uppercase tracking-wide">
-                                Recommended Action
-                            </p>
-                            <p className="mt-2 text-sm leading-relaxed text-indigo-950">
-                                Detect the step anomalies contextually and drop native inline help triggers before they drop out.
-                            </p>
-                        </div>
-                    </div>
+                    <AIInsights insights={organizationInsights} />
 
                     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
                         <p className="text-xs font-bold uppercase tracking-wider text-indigo-600">

@@ -1,1 +1,197 @@
-'use client'; import { useEffect,useState } from 'react'; import Link from 'next/link'; import { AppShell } from '@/components/app-shell'; import ProjectGate from '@/components/project-gate'; export default function Journeys(){const [js,setJs]=useState<any[]>([]);useEffect(()=>{const p=JSON.parse(localStorage.getItem('activation-memory-project')??'null');if(p)fetch(`/api/v1/journeys?projectKey=${p.testKey}`).then(r=>r.json()).then(d=>setJs(d.journeys))},[]);return <AppShell><ProjectGate><main className="mx-auto max-w-5xl px-5 py-10"><p className="text-sm font-semibold text-[#4F46E5]">Journeys</p><h1 className="mt-2 text-3xl font-bold tracking-tight">User paths from real SDK events</h1>{js.length?<div className="mt-7 divide-y divide-[#E7E2DA] border-y border-[#E7E2DA] bg-[#FFFDF9]">{js.map(j=><Link href={`/journeys/${j.userId}`} className="block p-5 hover:bg-[#F7F3EC]" key={j.userId}><p className="font-medium">{j.userId}</p><p className="mt-1 text-sm text-[#6B7280]">{j.events.length} events · {j.state}</p></Link>)}</div>:<p className="mt-7 border-y border-[#E7E2DA] py-10 text-sm text-[#6B7280]">No journeys exist until SDK events arrive.</p>}</main></ProjectGate></AppShell>}
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { AppShell } from '@/components/app-shell';
+import ProjectGate from '@/components/project-gate';
+
+export default function Journeys() {
+    const [journeys, setJourneys] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const project = JSON.parse(
+            localStorage.getItem('activation-memory-project') ?? 'null'
+        );
+
+        if (!project) {
+            setLoading(false);
+            return;
+        }
+
+        fetch(`/api/v1/journeys?projectKey=${project.testKey}`)
+            .then((r) => r.json())
+            .then((data) => {
+                setJourneys(data.journeys ?? []);
+                setLoading(false);
+            });
+    }, []);
+
+    return (
+        <AppShell>
+            <ProjectGate>
+                <main className="mx-auto max-w-7xl px-6 py-10">
+
+                    <p className="text-sm font-semibold text-[#4F46E5]">
+                        DealMemory Intelligence
+                    </p>
+
+                    <h1 className="mt-2 text-4xl font-bold">
+                        AI Product Analytics
+                    </h1>
+
+                    <p className="mt-3 text-gray-500">
+                        Understand why users activate, struggle, convert and churn.
+                    </p>
+
+                    {loading && (
+                        <div className="mt-10">
+                            Loading journeys...
+                        </div>
+                    )}
+
+                    {!loading && journeys.length === 0 && (
+                        <div className="mt-10 rounded-xl border p-10 bg-white">
+                            No activation events yet.
+                        </div>
+                    )}
+
+                    {!loading && journeys.length > 0 && (
+
+                        <div className="mt-10 grid gap-6">
+
+                            {journeys.map((journey) => (
+
+                                <Link
+                                    key={journey.userId}
+                                    href={`/journeys/${journey.userId}`}
+                                >
+
+                                    <div className="rounded-xl border bg-white p-6 hover:shadow-lg transition">
+
+                                        <div className="flex justify-between">
+
+                                            <div>
+
+                                                <h2 className="text-lg font-semibold">
+                                                    {journey.userId}
+                                                </h2>
+
+                                                <p className="text-sm text-gray-500 mt-1">
+                                                    {journey.events.length} events
+                                                </p>
+
+                                            </div>
+
+                                            <div className="text-right">
+
+                                                <div className="text-sm font-medium">
+                                                    {journey.currentState}
+                                                </div>
+
+                                                <div className="text-xs text-gray-500">
+                                                    {journey.inactiveHours} hrs inactive
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div className="mt-5">
+
+                                            <div className="font-medium">
+                                                Current Blocker
+                                            </div>
+
+                                            <div className="text-gray-600 mt-1">
+                                                {journey.blocker ?? "None"}
+                                            </div>
+
+                                        </div>
+
+                                        <div className="mt-5">
+
+                                            <div className="font-medium">
+                                                AI Recommendation
+                                            </div>
+
+                                            <div className="text-gray-600 mt-1">
+                                                {journey.recommendation ?? "Everything looks healthy."}
+                                            </div>
+
+                                        </div>
+
+                                        {journey.memories?.length > 0 && (
+
+                                            <div className="mt-5">
+
+                                                <div className="font-medium">
+                                                    Supermemory
+                                                </div>
+
+                                                <ul className="mt-2 list-disc ml-5 text-sm text-gray-600">
+
+                                                    {journey.memories.slice(0, 3).map((m: string, i: number) => (
+                                                        <li key={i}>{m}</li>
+                                                    ))}
+
+                                                </ul>
+
+                                            </div>
+
+                                        )}
+
+                                        {journey.insights?.length > 0 && (
+
+                                            <div className="mt-5">
+
+                                                <div className="font-medium">
+                                                    AI Insights
+                                                </div>
+
+                                                <div className="mt-3 space-y-3">
+
+                                                    {journey.insights.map((insight: any, index: number) => (
+
+                                                        <div
+                                                            key={index}
+                                                            className="rounded-lg bg-indigo-50 p-3"
+                                                        >
+
+                                                            <div className="font-semibold">
+                                                                {insight.title}
+                                                            </div>
+
+                                                            <div className="text-sm mt-1">
+                                                                {insight.description}
+                                                            </div>
+
+                                                            <div className="text-xs mt-2 text-indigo-700">
+                                                                Recommendation: {insight.recommendation}
+                                                            </div>
+
+                                                        </div>
+
+                                                    ))}
+
+                                                </div>
+
+                                            </div>
+
+                                        )}
+
+                                    </div>
+
+                                </Link>
+
+                            ))}
+
+                        </div>
+
+                    )}
+
+                </main>
+            </ProjectGate>
+        </AppShell>
+    );
+}

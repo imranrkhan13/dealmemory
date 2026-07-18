@@ -1,13 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { Activity, Menu, X } from 'lucide-react';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [hasProject, setHasProject] = useState(false);
-    const session = null;
+    const { data: session, status } = useSession();
+
+    console.log("status", status);
+    console.log("session", session);
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -15,7 +19,7 @@ export function Navbar() {
         setHasProject(Boolean(localStorage.getItem('activation-memory-project')));
     }, []);
 
-    const homeHref = hasProject ? '/overview' : '/';
+    const homeHref = '/';
     const navLinks = [
         { href: '/overview', label: 'Overview' },
         { href: '/journeys', label: 'Journeys' },
@@ -43,15 +47,26 @@ export function Navbar() {
                         </Link>
                     ))}
                     {session ? (
-                        <Link
-                            className="rounded-lg bg-[#29221D] px-3.5 py-1.5 text-sm text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
-                            href="/signup"
-                        >
-                            Create project
-                        </Link>
+                        <div className="flex items-center gap-3">
+                            <div className="text-right">
+                                <p className="text-sm font-semibold text-[#29221D]">
+                                    {session.user?.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                    {session.user?.email}
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => signOut()}
+                                className="rounded-lg bg-[#29221D] px-3 py-2 text-sm text-white"
+                            >
+                                Logout
+                            </button>
+                        </div>
                     ) : (
                         <Link
-                            className="rounded-lg bg-[#29221D] px-3.5 py-1.5 text-sm text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                            className="rounded-lg bg-[#29221D] px-3.5 py-1.5 text-sm text-white"
                             href="/login"
                         >
                             Sign in
@@ -85,18 +100,27 @@ export function Navbar() {
                         ))}
                         <hr className="my-1 border-[#E7E2DA]" />
                         {session ? (
-                            <Link
-                                className="block rounded-lg bg-[#29221D] py-2.5 text-center text-white font-medium"
-                                href="/signup"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                Create project
-                            </Link>
+                            <div className="flex items-center gap-3">
+                                <div className="text-right">
+                                    <p className="text-sm font-semibold">
+                                        {session.user?.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {session.user?.email}
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={() => signOut()}
+                                    className="rounded-lg bg-[#29221D] px-3 py-1.5 text-sm text-white"
+                                >
+                                    Logout
+                                </button>
+                            </div>
                         ) : (
                             <Link
-                                className="block rounded-lg bg-[#29221D] py-2.5 text-center text-white font-medium"
+                                className="rounded-lg bg-[#29221D] px-3.5 py-1.5 text-sm text-white"
                                 href="/login"
-                                onClick={() => setIsOpen(false)}
                             >
                                 Sign in
                             </Link>

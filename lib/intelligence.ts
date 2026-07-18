@@ -1,6 +1,12 @@
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { ActivationEvent } from '@/packages/shared/src/events';
+import {
+  writeSupermemory,
+  retrieveSupermemory,
+} from "@/lib/memory";
+import Journeys from '@/app/journeys/page';
+import { analyzeJourney } from "./product-intelligence";
 
 export type Journey = {
   userId: string;
@@ -26,8 +32,6 @@ export async function save(value: ActivationEvent[]) {
   await mkdir(path.dirname(file), { recursive: true });
   await writeFile(file, JSON.stringify(value, null, 2));
 }
-
-import { writeSupermemory } from "@/lib/memory";
 export async function ingest(items: ActivationEvent[]) {
     const all = await events();
 
@@ -48,7 +52,7 @@ export async function ingest(items: ActivationEvent[]) {
                 case "goal_set":
                     await writeSupermemory(event.userId!, {
                         category: "goal",
-                        content: String(event.properties?.goal ?? ""),
+                      content: `User goal: ${event.properties?.goal ?? ""}`,
                         source: "productevent",
                         createdAt: event.occurredAt,
                     });
@@ -63,10 +67,8 @@ export async function ingest(items: ActivationEvent[]) {
                 case "repository_connection_failed":
                     await writeSupermemory(event.userId!, {
                         category: "blocker",
-                        content: JSON.stringify({
-                            blocker: "Repository connection failed",
-                            errorCode: event.properties?.errorCode,
-                        }),
+                      content:
+                        "GitHub repository connection failed. User should retry connecting the repository.",
                         source: "productevent",
                         createdAt: event.occurredAt,
                     });
@@ -96,11 +98,87 @@ export async function ingest(items: ActivationEvent[]) {
                 case "first_map_generated":
                     await writeSupermemory(event.userId!, {
                         category: "progress",
-                        content: "User reached first map generated.",
+                      content: "User successfully generated their first architecture map.",
                         source: "productevent",
                         createdAt: event.occurredAt,
                     });
+                memoryResults.push({
+                  event: event.name,
+                  success: true,
+                });
 
+                break;
+              case "summary_viewed":
+
+                await writeSupermemory(event.userId!, {
+                  category: "behavior",
+                  content:
+                    `User viewed the Summary page for ${event.properties?.duration ?? 0} seconds without opening AI Chat.`,
+                  source: "productevent",
+                  createdAt: event.occurredAt,
+                });
+
+                break;
+
+              case "upload_failed":
+
+                await writeSupermemory(event.userId!, {
+                  category: "blocker",
+                  content:
+                    `Upload failed ${event.properties?.retries ?? 1} time(s). Reason: ${event.properties?.reason ?? "Unknown"}.`,
+                  source: "productevent",
+                  createdAt: event.occurredAt,
+                });
+
+                break;
+
+              case "pricing_opened":
+
+                await writeSupermemory(event.userId!, {
+                  category: "behavior",
+                  content:
+                    `User visited the Pricing page and stayed for ${event.properties?.duration ?? 0} seconds.`,
+                  source: "productevent",
+                  createdAt: event.occurredAt,
+                });
+
+                break;
+
+              case "subscription_cancelled":
+
+                await writeSupermemory(event.userId!, {
+                  category: "churn",
+                  content:
+                    `User cancelled the subscription. Reason: ${event.properties?.reason ?? "Unknown"}.`,
+                  source: "productevent",
+                  createdAt: event.occurredAt,
+                });
+
+                break;
+
+              case "chat_opened":
+
+                await writeSupermemory(event.userId!, {
+                  category: "progress",
+                  content:
+                    "User discovered and started using AI Chat.",
+                  source: "productevent",
+                  createdAt: event.occurredAt,
+                });
+
+                break;
+
+              case "export_clicked":
+
+                await writeSupermemory(event.userId!, {
+                  category: "progress",
+                  content:
+                    "User exported generated content.",
+                  source: "productevent",
+                  createdAt: event.occurredAt,
+                });
+
+                break;
                     memoryResults.push({
                         event: event.name,
                         success: true,
@@ -234,18 +312,46 @@ export function buildCanonicalJourney(events: ActivationEvent[]): Journey {
 }
 
 export async function journeys(projectKey?: string) {
-  const all = (await events()).filter((e) => !projectKey || e.projectKey === projectKey);
+  const all = (await events()).filter(
+    (e) => !projectKey || e.projectKey === projectKey
+  );
   const normalized = normalizeEvents(all);
+
   const group = new Map<string, ActivationEvent[]>();
 
   for (const event of normalized) {
     const id = event.userId ?? event.anonymousId;
+
     const current = group.get(id) ?? [];
     current.push(event);
     group.set(id, current);
   }
 
-  return Array.from(group.values()).map((eventsForUser) => buildCanonicalJourney(eventsForUser));
+  return Promise.all(
+    Array.from(group.values()).map(async (eventsForUser) => {
+      const journey = buildCanonicalJourney(eventsForUser);
+
+      const memories = await retrieveSupermemory(journey.userId);
+
+      console.log("Journey User:", journey.userId);
+      console.log("Memories:", memories);
+
+      const insights = analyzeJourney(
+        journey,
+        memories.results
+      );
+
+      return {
+        ...journey,
+        memories: memories.results,
+        insights,
+        recommendation: recommendation(journey),
+        currentState: state(journey),
+        blocker: blocker(journey),
+        inactiveHours: inactiveHours(journey),
+      };
+    })
+  );
 }
 
 export function state(j: Journey) {
