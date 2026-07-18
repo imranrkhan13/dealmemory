@@ -255,7 +255,7 @@ const founderSteps: StepItem[] = [
 },
 {
     step: "Open",
-    title: "Click into one user's path",
+    title: "Click into one user&#39;s path",
     desc: "Every event, in order, with timestamps — including the day they left and the day they came back.",
     icon: Eye,
 },
@@ -306,7 +306,7 @@ activation.track("github_connect_succeeded");
 activation.track("first_architecture_map_generated");
 // -> user is now activated
 
-activation.setGoal("Understand my team's codebase");
+activation.setGoal("Understand my team&#39;s codebase");
 
 if (activation.isActivated(user.id)) {
 showDodoCheckout();
@@ -329,7 +329,7 @@ const metrics = [
 
 /* ─────────────────────────────────────────────────────────────
 JOURNEY GRAPH — the signature element.
-A literal, labeled reconstruction of the RepoMap demo user's
+A literal, labeled reconstruction of the RepoMap demo user&#39;s
 path, drawn as connected nodes rather than a generic stat
 dashboard. This is what "the SDK records what happened" looks
 like, made concrete.
@@ -590,7 +590,7 @@ return (
                         font: "font-display",
                         title: "Remembered",
                         headline: "Memory explains why it mattered",
-                        desc: "Supermemory holds the user's goal, what blocked them, and how support resolved it — across sessions, even four days apart.",
+                        desc: "Supermemory holds the user&#39;s goal, what blocked them, and how support resolved it — across sessions, even four days apart.",
                         accent: THEME.memory,
                         bg: THEME.memorySoft,
                     },
@@ -863,7 +863,7 @@ return (
                     </div>
                     <div className="space-y-5">
                         {[
-                            ["Goal", "Understand my team's codebase before onboarding new engineers"],
+                            ["Goal", "Understand my team&#39;s codebase before onboarding new engineers"],
                             ["Blocker", "GitHub OAuth failed on the first connection attempt"],
                             ["Support outcome", "No ticket filed — user simply left and returned on their own"],
                             ["What memory changed", "On return, RepoMap greeted them at the reconnect step, not the start"],
@@ -942,7 +942,7 @@ return (
                         </div>
                         <div className="space-y-1">
                             {[
-                                ["Goal", "Understand my team's codebase"],
+                                ["Goal", "Understand my team&#39;s codebase"],
                                 ["Blocker", "GitHub OAuth rejected on first attempt"],
                                 ["Outcome", "Reconnected without contacting support"],
                             ].map(([title, value]) => (

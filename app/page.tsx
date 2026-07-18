@@ -361,7 +361,7 @@ const dm = new DealMemory({ projectKey: "${k}" })`;
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
-            className="group relative mx-auto mt-8 w/full max-w-5xl"
+            className="group relative mx-auto mt-8 w-full max-w-5xl"
           >
             {/* Glow ring */}
             <motion.div
