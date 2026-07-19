@@ -9,6 +9,7 @@ export default function LoginClient() {
   const [email, setEmail] = useState('demo@dealmemory.local');
   const [password, setPassword] = useState('demo1234');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawCallback = searchParams.get('callbackUrl') || '/overview';
@@ -32,17 +33,22 @@ export default function LoginClient() {
 
   const submit = async () => {
     setError('');
-    const res: any = await signIn('credentials', {
-      redirect: false,
-      email,
-      password,
-      callbackUrl,
-    });
-    if (res?.error) {
-      setError('Invalid email or password. If you are new, create an account below.');
-      return;
+    setLoading(true);
+    try {
+      const res: any = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+        callbackUrl,
+      });
+      if (res?.error) {
+        setError('Invalid email or password. If you are new, create an account below.');
+        return;
+      }
+      router.push(res?.url ?? callbackUrl);
+    } finally {
+      setLoading(false);
     }
-    router.push(res?.url ?? callbackUrl);
   };
 
   return (
@@ -73,8 +79,13 @@ export default function LoginClient() {
             />
           </label>
 
-          <button className="btn btn-primary mt-6" onClick={submit}>
-            Sign in
+          <button
+            className="btn btn-primary mt-6"
+            onClick={submit}
+            disabled={loading}
+            aria-busy={loading}
+          >
+            {loading ? 'Signing in…' : 'Sign in'}
           </button>
           {error && <p className="mt-3 text-sm text-[#B91C1C]">{error}</p>}
           <div className="mt-6 text-sm text-[#6B7280]">
