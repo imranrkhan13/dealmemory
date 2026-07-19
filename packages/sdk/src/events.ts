@@ -44,6 +44,8 @@ export const activationEvents = {
 
   // Generic
   errorOccurred: "error_occurred",
+  apiError: "api_error",
+  teamInvited: "team_invited",
 
   // Legacy (keep compatibility)
   integrationConnected: "repository_connected",
