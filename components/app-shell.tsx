@@ -11,9 +11,6 @@ export function Navbar() {
     const [hasProject, setHasProject] = useState(false);
     const { data: session, status } = useSession();
 
-    console.log("status", status);
-    console.log("session", session);
-
     const toggleMenu = () => setIsOpen(!isOpen);
     const pathname = usePathname();
     const signInHref = `/auth/signin?callbackUrl=${encodeURIComponent(pathname || '/overview')}`;
