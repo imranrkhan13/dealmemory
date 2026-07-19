@@ -7,8 +7,9 @@ import { z } from 'zod';
 import { error } from '@/lib/api';
 
 const schema = z.object({
-  email: z.string().email(),
-  name: z.string().min(1).max(80).optional(),
+  email: z.string().email().transform((v) => v.trim().toLowerCase()),
+  // Allow empty string or omit; we will derive a sensible default later
+  name: z.union([z.string().max(80), z.literal('')]).optional(),
   password: z.string().min(8),
 });
 
@@ -25,9 +26,11 @@ export async function POST(req: NextRequest) {
 
   const { hash } = await import('bcryptjs');
   const passwordHash = await hash(password, 10);
-  const user = await prisma.user.create({ data: { email, name, passwordHash } });
+  const safeName = (name ?? '').trim();
+  const user = await prisma.user.create({ data: { email, name: safeName || null, passwordHash } });
 
-  const baseName = name || email.split('@')[0] || 'My Project';
+  const derived = safeName || email.split('@')[0] || 'My Project';
+  const baseName = derived.trim();
   const slugBase = baseName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const slug = `${slugBase || 'project'}-${Math.random().toString(36).slice(2, 6)}`;
 
