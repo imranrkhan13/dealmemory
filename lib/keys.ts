@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt';
 import { prisma } from '@/lib/db';
 
 export type ResolvedProjectKey = {
@@ -7,14 +6,16 @@ export type ResolvedProjectKey = {
   keyPrefix: string;
 };
 
-function randomId(len = 32) {
-  return crypto.randomUUID().replaceAll('-', '').slice(0, len);
+async function randomId(len = 32) {
+  const { randomUUID } = await import('node:crypto');
+  return randomUUID().replaceAll('-', '').slice(0, len);
 }
 
 // Generate a raw key and its stored prefix/hash for pk_live or sk_live
 export async function generateProjectKey(kind: 'pk_live' | 'sk_live') {
-  const prefix = `${kind}_${randomId(10)}`;
-  const raw = `${prefix}_${randomId(24)}`;
+  const prefix = `${kind}_${await randomId(10)}`;
+  const raw = `${prefix}_${await randomId(24)}`;
+  const { default: bcrypt } = await import('bcrypt');
   const keyHash = await bcrypt.hash(raw, 10);
   return { prefix, raw, keyHash };
 }
@@ -30,6 +31,7 @@ export async function resolveProjectByRawKey(rawKey: string): Promise<ResolvedPr
 
   if (!apiKey || apiKey.revokedAt) return null;
 
+  const { default: bcrypt } = await import('bcrypt');
   const ok = await bcrypt.compare(rawKey, apiKey.keyHash);
   if (!ok) return null;
 

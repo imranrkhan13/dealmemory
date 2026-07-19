@@ -4,7 +4,6 @@ export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import bcrypt from 'bcrypt';
 import { prisma } from '@/lib/db';
 import { error } from '@/lib/api';
 import { generateProjectKey } from '@/lib/keys';
@@ -24,6 +23,7 @@ export async function POST(req: NextRequest) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return error('User already exists', 409);
 
+  const { default: bcrypt } = await import('bcrypt');
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({ data: { email, name, passwordHash } });
 
