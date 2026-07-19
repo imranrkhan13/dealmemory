@@ -5,6 +5,7 @@ import Providers from "./providers";
 export const metadata: Metadata = {
     title: "Dealmemory · RepoMap",
     description: "Remembered activation for AI SaaS trials.",
+    icons: { icon: "/favicon.svg" }
 };
 
 export default function RootLayout({

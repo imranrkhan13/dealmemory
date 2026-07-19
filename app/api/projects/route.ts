@@ -24,8 +24,8 @@ export async function POST(req: Request) {
 	const { randomUUID } = await import('node:crypto');
 	const prefix = `pk_${randomUUID().replaceAll('-', '').slice(0,10)}`;
 	const rawKey = `${prefix}_${randomUUID().replaceAll('-', '')}`;
-	const { default: bcrypt } = await import('bcrypt');
-	const keyHash = await bcrypt.hash(rawKey, 10);
+	const { hash } = await import('bcryptjs');
+	const keyHash = await hash(rawKey, 10);
 
 	const project = await prisma.project.create({
 		data: {
