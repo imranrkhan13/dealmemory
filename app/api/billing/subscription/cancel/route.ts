@@ -4,11 +4,9 @@ export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/nextauth';
-import { prisma } from '@/lib/db';
-import { getDodoClient } from '@/lib/dodo';
 
 export async function POST(req: Request) {
+  const { authOptions } = await import('@/lib/nextauth');
   const session = (await getServerSession(authOptions as any)) as any;
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -23,6 +21,12 @@ export async function POST(req: Request) {
     // ignore parse errors, default to immediate cancel
   }
 
+  const [{ prisma }, dodo] = await Promise.all([
+    import('@/lib/db'),
+    import('@/lib/dodo'),
+  ]);
+  const { getDodoClient } = dodo as typeof import('@/lib/dodo');
+
   // Find the latest subscription for this user
   const sub = await prisma.subscription.findFirst({
     where: { userId: session.user.id as string },
@@ -35,7 +39,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const client = getDodoClient();
+    const client = await getDodoClient();
 
     if (cancelAtPeriodEnd) {
       await client.subscriptions.update(sub.dodoSubscriptionId, {
