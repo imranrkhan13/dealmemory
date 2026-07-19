@@ -1,3 +1,7 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { z } from 'zod';
 import { writeSupermemory } from '@/lib/memory';
 import { error, ok } from '@/lib/api';
