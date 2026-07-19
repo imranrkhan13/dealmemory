@@ -39,6 +39,21 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // If user is already authenticated, do not show the sign-in page — redirect to callback or overview
+  if (pathname === '/auth/signin' || pathname.startsWith('/auth/signin')) {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (token) {
+      const cb = req.nextUrl.searchParams.get('callbackUrl');
+      const safe =
+        cb && cb.startsWith('/') && !cb.startsWith('/auth') ? cb : '/overview';
+      const url = req.nextUrl.clone();
+      url.pathname = safe;
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
   // API handling
   if (pathname.startsWith('/api')) {
     // Allow specific public API endpoints (ingestion + webhooks + next-auth)
