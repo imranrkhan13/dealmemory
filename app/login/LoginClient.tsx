@@ -39,7 +39,8 @@ export default function LoginClient() {
       callbackUrl,
     });
     if (res?.error) {
-      return setError(res.error);
+      setError('Invalid email or password. If you are new, create an account below.');
+      return;
     }
     router.push(res?.url ?? callbackUrl);
   };
@@ -76,6 +77,16 @@ export default function LoginClient() {
             Sign in
           </button>
           {error && <p className="mt-3 text-sm text-[#B91C1C]">{error}</p>}
+          <div className="mt-6 text-sm text-[#6B7280]">
+            <span>Don't have an account?</span>
+            <button
+              type="button"
+              className="ml-2 underline text-[#4F46E5]"
+              onClick={() => router.push('/signup')}
+            >
+              Create account
+            </button>
+          </div>
         </div>
       </main>
     </AppShell>
