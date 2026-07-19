@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import { hash } from 'bcryptjs';
 
 process.env.DATABASE_URL ??= 'file:./dev.db';
 
@@ -7,7 +7,7 @@ const prisma = new PrismaClient({});
 
 async function main() {
   const password = 'demo1234';
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await hash(password, 10);
 
   const user = await prisma.user.upsert({
     where: { email: 'demo@dealmemory.local' },
@@ -25,7 +25,7 @@ async function main() {
               create: [
                 {
                   keyPrefix: 'pk_demo_repomap',
-                  keyHash: await bcrypt.hash('pk_demo_repomap_unsafe', 10),
+                  keyHash: await hash('pk_demo_repomap_unsafe', 10),
                 },
               ],
             },

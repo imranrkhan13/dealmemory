@@ -15,8 +15,8 @@ async function randomId(len = 32) {
 export async function generateProjectKey(kind: 'pk_live' | 'sk_live') {
   const prefix = `${kind}_${await randomId(10)}`;
   const raw = `${prefix}_${await randomId(24)}`;
-  const { default: bcrypt } = await import('bcrypt');
-  const keyHash = await bcrypt.hash(raw, 10);
+  const { hash } = await import('bcryptjs');
+  const keyHash = await hash(raw, 10);
   return { prefix, raw, keyHash };
 }
 
@@ -31,8 +31,8 @@ export async function resolveProjectByRawKey(rawKey: string): Promise<ResolvedPr
 
   if (!apiKey || apiKey.revokedAt) return null;
 
-  const { default: bcrypt } = await import('bcrypt');
-  const ok = await bcrypt.compare(rawKey, apiKey.keyHash);
+  const { compare } = await import('bcryptjs');
+  const ok = await compare(rawKey, apiKey.keyHash);
   if (!ok) return null;
 
   return {

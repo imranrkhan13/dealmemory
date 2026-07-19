@@ -1,12 +1,12 @@
 import { prisma } from '../lib/db';
-import bcrypt from 'bcrypt';
+import { hash, compare } from 'bcryptjs';
 import { randomUUID } from 'crypto';
 
 async function main() {
   const email = 'tester@dealmemory.local';
   const name = 'Tester Founder';
   const password = 'testpass';
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await hash(password, 10);
 
   const user = await prisma.user.upsert({
     where: { email },
@@ -16,7 +16,7 @@ async function main() {
 
   const prefix = `pk_${randomUUID().replaceAll('-', '').slice(0, 10)}`;
   const rawKey = `${prefix}_${randomUUID().replaceAll('-', '')}`;
-  const keyHash = await bcrypt.hash(rawKey, 10);
+  const keyHash = await hash(rawKey, 10);
 
   const project = await prisma.project.create({
     data: {
@@ -33,7 +33,7 @@ async function main() {
   console.log('Raw Key (show ONCE):', rawKey);
 
   const stored = await prisma.projectApiKey.findUnique({ where: { id: project.apiKeys[0].id } });
-  const ok = await bcrypt.compare(rawKey, stored!.keyHash);
+  const ok = await compare(rawKey, stored!.keyHash);
   console.log('Raw key matches stored hash?', ok);
 }
 
