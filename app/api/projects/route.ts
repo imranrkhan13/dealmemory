@@ -5,7 +5,6 @@ export const revalidate = 0;
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { error, ok } from '@/lib/api';
-import bcrypt from 'bcrypt';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/nextauth';
 import { NextResponse } from 'next/server';
@@ -22,8 +21,10 @@ export async function POST(req: Request) {
 	if (!user) return error('Authenticated user not found', 401);
 
 	// create project and a single test API key, returning the raw key once
-	const prefix = `pk_${crypto.randomUUID().replaceAll('-', '').slice(0,10)}`;
-	const rawKey = `${prefix}_${crypto.randomUUID().replaceAll('-', '')}`;
+	const { randomUUID } = await import('node:crypto');
+	const prefix = `pk_${randomUUID().replaceAll('-', '').slice(0,10)}`;
+	const rawKey = `${prefix}_${randomUUID().replaceAll('-', '')}`;
+	const { default: bcrypt } = await import('bcrypt');
 	const keyHash = await bcrypt.hash(rawKey, 10);
 
 	const project = await prisma.project.create({

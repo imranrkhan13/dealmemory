@@ -4,9 +4,7 @@ export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { prisma } from '@/lib/db';
 import { error } from '@/lib/api';
-import { generateProjectKey } from '@/lib/keys';
 
 const schema = z.object({
   email: z.string().email(),
@@ -19,6 +17,8 @@ export async function POST(req: NextRequest) {
   if (!body.success) return error(body.error.issues[0].message, 400);
 
   const { email, name, password } = body.data;
+
+  const { prisma } = await import('@/lib/db');
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return error('User already exists', 409);
@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  const { generateProjectKey } = await import('@/lib/keys');
   const pub = await generateProjectKey('pk_live');
   const sec = await generateProjectKey('sk_live');
 
