@@ -1,5 +1,3 @@
-import DodoPayments from 'dodopayments';
-
 export type DodoEnv = 'test_mode' | 'live_mode';
 
 export function getEnvironment(): DodoEnv {
@@ -16,11 +14,12 @@ export function getReturnUrl(): string {
   return `${appUrl()}/dashboard/settings`;
 }
 
-export function getDodoClient() {
+export async function getDodoClient() {
   const apiKey = process.env.DODO_API_KEY || process.env.DODOPAYMENTSAPIKEY || process.env.DODO_PAYMENTS_API_KEY;
   if (!apiKey) {
     throw new Error('Missing DODO_API_KEY');
   }
+  const { default: DodoPayments } = await import('dodopayments');
   return new DodoPayments({
     bearerToken: apiKey,
     environment: getEnvironment(),

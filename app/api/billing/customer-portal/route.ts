@@ -4,15 +4,19 @@ export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/nextauth';
-import { prisma } from '@/lib/db';
-import { getDodoClient } from '@/lib/dodo';
 
 export async function GET(req: Request) {
+  const { authOptions } = await import('@/lib/nextauth');
   const session = (await getServerSession(authOptions as any)) as any;
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const [{ prisma }, dodo] = await Promise.all([
+    import('@/lib/db'),
+    import('@/lib/dodo'),
+  ]);
+  const { getDodoClient } = dodo as typeof import('@/lib/dodo');
 
   // Find the user's latest subscription
   const sub = await prisma.subscription.findFirst({
@@ -29,7 +33,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const client = getDodoClient();
+    const client = await getDodoClient();
     const portal = await client.customers.customerPortal.create(sub.dodoCustomerId);
     if (!portal?.link) {
       return NextResponse.json({ error: 'Failed to create customer portal session' }, { status: 502 });

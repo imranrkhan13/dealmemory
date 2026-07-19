@@ -4,15 +4,20 @@ export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/nextauth';
-import { prisma } from '@/lib/db';
-import { getDodoClient, getReturnUrl } from '@/lib/dodo';
 
 export async function POST() {
+  const { authOptions } = await import('@/lib/nextauth');
   const session = (await getServerSession(authOptions as any)) as any;
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // Lazy import prisma and dodo client to avoid build-time evaluation
+  const [{ prisma }, dodo] = await Promise.all([
+    import('@/lib/db'),
+    import('@/lib/dodo'),
+  ]);
+  const { getDodoClient, getReturnUrl } = dodo as typeof import('@/lib/dodo');
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id as string },
@@ -31,9 +36,8 @@ export async function POST() {
   }
 
   try {
-    const client = getDodoClient();
+    const client = await getDodoClient();
 
-    // Prefer product_cart with product_id (per official docs)
     if (productId) {
       const sessionResp = await client.checkoutSessions.create({
         product_cart: [{ product_id: productId, quantity: 1 }],
@@ -53,7 +57,6 @@ export async function POST() {
       return NextResponse.json({ checkout_url: sessionResp.checkout_url, session_id: sessionResp.session_id });
     }
 
-    // Fallback: if only priceId is present and supported by your product configuration
     const sessionResp = await client.checkoutSessions.create({
       price_id: priceId as string,
       quantity: 1,
