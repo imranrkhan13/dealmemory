@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { error, ok } from '@/lib/api';
 import bcrypt from 'bcrypt';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/nextauth';
 import { NextResponse } from 'next/server';
 
 const bodySchema = z.object({ name: z.string().min(2).max(80) });

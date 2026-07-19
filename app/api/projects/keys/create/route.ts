@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/nextauth';
 import { prisma } from '@/lib/db';
 import { error } from '@/lib/api';
 import { generateProjectKey } from '@/lib/keys';
