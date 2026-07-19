@@ -1,6 +1,4 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/nextauth";
-import { prisma } from "@/lib/db";
 
 export class UnauthorizedError extends Error {
   status = 401 as const;
@@ -19,18 +17,22 @@ export class ForbiddenError extends Error {
 }
 
 export async function getCurrentSession() {
+  const { authOptions } = await import("@/lib/nextauth");
   return (await getServerSession(authOptions as any)) as any;
 }
 
 export async function getCurrentUser() {
+  const { authOptions } = await import("@/lib/nextauth");
   const session = await getServerSession(authOptions as any);
   const userId = (session as any)?.user?.id as string | undefined;
   if (!userId) return null;
+  const { prisma } = await import("@/lib/db");
   const user = await prisma.user.findUnique({ where: { id: userId } });
   return user;
 }
 
 export async function requireAuth() {
+  const { authOptions } = await import("@/lib/nextauth");
   const session = await getServerSession(authOptions as any);
   const userId = (session as any)?.user?.id as string | undefined;
   if (!userId) throw new UnauthorizedError();
@@ -39,6 +41,7 @@ export async function requireAuth() {
 
 export async function requireProjectAccess(projectId: string) {
   const { userId } = await requireAuth();
+  const { prisma } = await import("@/lib/db");
   const project = await prisma.project.findFirst({
     where: { id: projectId, ownerId: userId },
     select: { id: true, ownerId: true, name: true, slug: true, createdAt: true },
