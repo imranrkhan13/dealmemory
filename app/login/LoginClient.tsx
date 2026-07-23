@@ -6,8 +6,8 @@ import { signIn, useSession } from 'next-auth/react';
 import { AppShell } from '@/components/app-shell';
 
 export default function LoginClient() {
-  const [email, setEmail] = useState('demo@dealmemory.local');
-  const [password, setPassword] = useState('demo1234');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -66,6 +66,8 @@ export default function LoginClient() {
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              autoComplete="email"
               className="mt-3 w-full rounded-lg border border-[#E7E2DA] bg-[#FFFDF9] px-3 py-2.5"
             />
           </label>
@@ -75,6 +77,7 @@ export default function LoginClient() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
+              autoComplete="current-password"
               className="mt-3 w-full rounded-lg border border-[#E7E2DA] bg-[#FFFDF9] px-3 py-2.5"
             />
           </label>
@@ -89,7 +92,7 @@ export default function LoginClient() {
           </button>
           {error && <p className="mt-3 text-sm text-[#B91C1C]">{error}</p>}
           <div className="mt-6 text-sm text-[#6B7280]">
-            <span>Don't have an account?</span>
+            <span>Don&apos;t have an account?</span>
             <button
               type="button"
               className="ml-2 underline text-[#4F46E5]"

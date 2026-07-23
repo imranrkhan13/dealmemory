@@ -203,7 +203,7 @@ const developerSteps: StepItem[] = [
     title: "Add the SDK",
     desc: "One package, framework-agnostic, TypeScript-native. RepoMap dropped it into their onboarding flow in an afternoon.",
     icon: Terminal,
-    code: `npm install @activation-memory/sdk`,
+    code: `npm install activationmemory`,
 },
 {
     step: "Identify",
@@ -283,9 +283,9 @@ const journey: JourneyNode[] = [
 { id: "checkout", time: "Day 5 · 09:07", label: "Eligible for checkout", detail: "SDK flips isActivated(user.id) to true; Dodo checkout renders.", kind: "checkout" },
 ];
 
-const codeSnippet = `npm install @activation-memory/sdk
+const codeSnippet = `npm install activationmemory
 
-import { ActivationMemory } from "@activation-memory/sdk";
+import { ActivationMemory } from "activationmemory";
 
 const activation = new ActivationMemory({
 projectKey: "pk_live_repomap",

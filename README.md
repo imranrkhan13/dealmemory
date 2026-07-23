@@ -1,6 +1,6 @@
-# DealMemory
+# AgentLens
 
-DealMemory is a project-scoped activation intelligence platform. Install the SDK, send explicit trial events, and inspect real incoming events and journeys in the dashboard. No data is seeded automatically.
+AgentLens is a founder-friendly product action dashboard. Sign in, copy the npm or pip setup from Settings, and watch real user actions arrive in Events and Journeys. No data is seeded automatically.
 
 ## Quick start
 
@@ -9,26 +9,39 @@ npm install
 npm run dev
 ```
 
-1. Open `/signup` and create a project.
-2. Copy its test project key.
-3. Install and initialize the SDK:
+1. Open `/signup` and create a workspace.
+2. Open `/settings` and create or reveal a public `pk_` project key.
+3. Copy the ready-to-use npm or pip snippet into your app.
+
+JavaScript:
 
 ```ts
-import { ActivationMemory } from '@activationmemory/sdk';
-const activation = new ActivationMemory({ projectKey: 'pk_test_…', apiUrl: 'http://localhost:3000/api' });
-activation.identify(user.id);
-activation.track('trial_started');
-activation.page('/onboarding');
-activation.setGoal('Create my first project');
+import { AgentLens } from 'agentlens';
+
+const agentlens = new AgentLens({ projectKey: 'pk_live_…', apiUrl: 'http://localhost:3000/api' });
+agentlens.identify(user.id);
+agentlens.track('trial_started');
 ```
 
-4. Open `/dashboard` to see only events for that project.
+Python:
+
+```py
+from agentlens import AgentLens
+
+agentlens = AgentLens(project_key='pk_live_…', api_url='http://localhost:3000/api')
+agentlens.identify(user.id)
+agentlens.track('report_exported', {'format': 'pdf'})
+```
+
+4. Open `/events` to see actions arriving, or `/journeys` to see them grouped by user.
+
+For a browser app hosted on another domain, set `SDK_CORS_ORIGINS` to a comma-separated list of allowed app origins, such as `https://app.example.com`.
 
 ## Product model
 
 - `/` is the marketing site.
-- `/dashboard` is project-gated and contains real incoming event data.
-- `/events` lists every received SDK event.
+- `/overview` is project-gated and summarizes real incoming data.
+- `/events` lists up to 500 recent SDK actions, with their safe metadata.
 - `/journeys` reconstructs user paths from ordered events.
 - `/settings` exposes project keys and webhook configuration.
 
@@ -132,7 +145,7 @@ Troubleshooting:
 
 ## Privacy
 
-Track only explicit activation events. The SDK filters sensitive property names and does not capture passwords, arbitrary form contents, or session replay data.
+The browser SDK automatically records page views, clicks, and form submissions, plus the explicit product events you add. It filters sensitive property names and never captures passwords, form values, arbitrary page text, screen recordings, or session replay data.
 
 ## Honest limitations
 

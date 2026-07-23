@@ -6,6 +6,27 @@ export type ResolvedProjectKey = {
   keyPrefix: string;
 };
 
+/**
+ * Returns the stored, non-secret prefix of a project key.
+ *
+ * Current keys look like `pk_live_<id>_<secret>` (or `sk_live_…`). The
+ * earliest project endpoint issued `pk_<id>_<secret>` keys, so we keep that
+ * format working as well. Splitting at the first underscore is not enough:
+ * it turns every `pk_live` key into `pk` and makes a valid key impossible to
+ * resolve or use for project-scoped reads.
+ */
+export function projectKeyPrefix(rawKey: string): string | null {
+  const parts = rawKey.split('_');
+  if (parts.length < 3 || (parts[0] !== 'pk' && parts[0] !== 'sk')) return null;
+
+  if ((parts[1] === 'live' || parts[1] === 'test') && parts.length >= 3) {
+    return parts.slice(0, 3).join('_');
+  }
+
+  // Legacy format: pk_<prefix>_<secret>
+  return parts.slice(0, 2).join('_');
+}
+
 async function randomId(len = 32) {
   const { randomUUID } = await import('node:crypto');
   return randomUUID().replaceAll('-', '').slice(0, len);
@@ -21,8 +42,8 @@ export async function generateProjectKey(kind: 'pk_live' | 'sk_live') {
 }
 
 export async function resolveProjectByRawKey(rawKey: string): Promise<ResolvedProjectKey | null> {
-  if (!rawKey || !rawKey.includes('_')) return null;
-  const prefix = rawKey.split('_')[0];
+  const prefix = projectKeyPrefix(rawKey);
+  if (!prefix) return null;
 
   const apiKey = await prisma.projectApiKey.findFirst({
     where: { keyPrefix: prefix },
@@ -62,7 +83,6 @@ export async function prefixesForUserProject(userId: string, projectId: string):
 }
 
 export function projectKeyHasAnyPrefix(projectKey: string, prefixes: string[]): boolean {
-  if (!projectKey || !prefixes.length) return false;
-  const pkPrefix = projectKey.split('_')[0];
-  return prefixes.includes(pkPrefix);
+  const prefix = projectKeyPrefix(projectKey);
+  return Boolean(prefix && prefixes.includes(prefix));
 }

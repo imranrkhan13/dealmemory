@@ -11,6 +11,8 @@ export type ActivationOptions = {
   apiUrl: string;
   privacy?: PrivacyOptions;
   flushIntervalMs?: number;
+  /** Capture page views, clicks, and form submissions without collecting form values. Defaults to true. */
+  autoCapture?: boolean;
 };
 
 export type QueuedEvent = {

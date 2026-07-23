@@ -3,8 +3,8 @@ import "./globals.css";
 import Providers from "./providers";
 
 export const metadata: Metadata = {
-    title: "Dealmemory · RepoMap",
-    description: "Remembered activation for AI SaaS trials.",
+    title: "AgentLens · Product actions for founders",
+    description: "See privacy-safe product actions without wrestling with analytics tooling.",
     icons: { icon: "/favicon.svg" }
 };
 

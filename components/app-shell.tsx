@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { Activity, Menu, X } from 'lucide-react';
@@ -8,23 +8,19 @@ import { usePathname } from 'next/navigation';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
-    const [hasProject, setHasProject] = useState(false);
-    const { data: session, status } = useSession();
+    const { data: session } = useSession();
 
     const toggleMenu = () => setIsOpen(!isOpen);
     const pathname = usePathname();
     const signInHref = `/auth/signin?callbackUrl=${encodeURIComponent(pathname || '/overview')}`;
 
-    useEffect(() => {
-        setHasProject(Boolean(localStorage.getItem('activation-memory-project')));
-    }, []);
-
     const homeHref = '/';
     const navLinks = [
         { href: '/overview', label: 'Overview' },
+        { href: '/events', label: 'Events' },
         { href: '/journeys', label: 'Journeys' },
-        { href: '/sdk', label: 'SDK Setup' },
-        { href: '/settings', label: 'Settings' },
+        { href: '/sdk', label: 'Install' },
+        { href: '/settings', label: 'Connect app' },
     ];
 
     return (
@@ -36,7 +32,7 @@ export function Navbar() {
                     <span className="grid h-7 w-7 place-items-center rounded-md bg-[#29221D] text-white">
                         <Activity size={16} />
                     </span>
-                    DealMemory
+                    AgentLens
                 </Link>
 
                 {/* Desktop Navigation */}

@@ -1,5 +1,6 @@
 import assert from 'assert';
 import { buildCanonicalJourney, blocker, normalizeEvents, recommendation, state } from '../lib/intelligence';
+import { projectKeyHasAnyPrefix, projectKeyPrefix } from '../lib/keys';
 import type { ActivationEvent } from '@/packages/shared/src/events';
 
 function buildEvent(partial: Partial<ActivationEvent>): ActivationEvent {
@@ -94,4 +95,21 @@ runTest('returns no recommendation when there is no blocker', () => {
 
   assert.strictEqual(blocker(journey), undefined);
   assert.strictEqual(recommendation(journey), undefined);
+});
+
+runTest('extracts the complete prefix from current project keys', () => {
+  const rawKey = 'pk_live_project123_secretvalue';
+
+  assert.strictEqual(projectKeyPrefix(rawKey), 'pk_live_project123');
+  assert.strictEqual(projectKeyPrefix('pk_live_project123'), 'pk_live_project123');
+  assert.strictEqual(projectKeyHasAnyPrefix(rawKey, ['pk_live_project123']), true);
+  assert.strictEqual(projectKeyHasAnyPrefix('pk_live_project123', ['pk_live_project123']), true);
+  assert.strictEqual(projectKeyHasAnyPrefix(rawKey, ['pk']), false);
+});
+
+runTest('keeps legacy project keys compatible with scoped filtering', () => {
+  const rawKey = 'pk_project123_secretvalue';
+
+  assert.strictEqual(projectKeyPrefix(rawKey), 'pk_project123');
+  assert.strictEqual(projectKeyHasAnyPrefix(rawKey, ['pk_project123']), true);
 });

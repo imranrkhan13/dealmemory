@@ -18,6 +18,7 @@ const PUBLIC_API_PREFIXES = [
 
 const PROTECTED_PAGE_PREFIXES = [
   '/overview',
+  '/demo',
   '/journeys',
   '/settings',
   '/sdk',

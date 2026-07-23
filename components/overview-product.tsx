@@ -6,14 +6,12 @@ import { analyzeOrganization } from '@/lib/organization-intelligence';
 import Link from 'next/link';
 import {
     ArrowRight,
-    Activity,
     AlertTriangle,
     DollarSign,
     Link2,
     TrendingUp,
     Users,
     CheckCircle2,
-    Copy,
 } from 'lucide-react';
 
 import MetricCard from './dashboard/metric-card';
@@ -36,7 +34,6 @@ export default function OverviewProduct() {
     const [project, setProject] = useState<any>(null);
     const [dashboard, setDashboard] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [copied, setCopied] = useState(false);
     useEffect(() => {
         async function init() {
             try {
@@ -47,9 +44,15 @@ export default function OverviewProduct() {
                 const first = Array.isArray(projectsData?.projects) ? projectsData.projects[0] : null;
                 setProject(first ?? null);
 
-                const journeysRes = await fetch('/api/v1/journeys', { cache: 'no-store' });
+                if (!first?.id) {
+                    setDashboard({ journeys: [] });
+                    return;
+                }
+
+                const journeysRes = await fetch(`/api/v1/journeys?projectId=${encodeURIComponent(first.id)}`, { cache: 'no-store' });
                 const journeysData = await journeysRes.json();
-                setDashboard(journeysData);
+                if (!journeysRes.ok) throw new Error(journeysData?.error ?? 'Could not load journeys');
+                setDashboard({ journeys: Array.isArray(journeysData?.journeys) ? journeysData.journeys : [] });
             } catch (e) {
                 setProject(null);
                 setDashboard({ journeys: [] });
@@ -66,8 +69,11 @@ export default function OverviewProduct() {
         const events = journeys.flatMap((j) => j.events);
 
         const stuckUsers = journeys.filter((j) => j.state === 'stuck');
-        const activatedUsers = journeys.filter((j) => j.state === 'activated');
-        const checkoutUsers = journeys.filter((j) => j.state === 'checkout_started');
+        // Funnel stages are cumulative: a paid user has also activated and
+        // started checkout. Counting only the current state made later stages
+        // appear larger than activation on an otherwise healthy funnel.
+        const activatedUsers = journeys.filter((j) => ['activated', 'checkout_started', 'paid'].includes(j.state));
+        const checkoutUsers = journeys.filter((j) => ['checkout_started', 'paid'].includes(j.state));
         const paidUsers = journeys.filter((j) => j.state === 'paid');
 
         const connectedUsers = journeys.filter((j) =>
@@ -78,7 +84,7 @@ export default function OverviewProduct() {
 
         const total = journeys.length;
         const activationRate = total ? Math.round((activatedUsers.length / total) * 100) : 0;
-        const recoveryRate = total ? Math.round(((activatedUsers.length + paidUsers.length) / total) * 100) : 0;
+        const recoveryRate = total ? Math.round((activatedUsers.length / total) * 100) : 0;
         const revenueOpportunity = stuckUsers.length * 49;
         const topBlocker = stuckUsers[0]?.blocker ?? 'No blocker detected';
 
@@ -157,8 +163,6 @@ export default function OverviewProduct() {
 
     // Removed copy key behavior; keys are never exposed client-side
 
-    if (!project) return null;
-
     if (loading) {
         return (
             <main className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
@@ -170,6 +174,14 @@ export default function OverviewProduct() {
                         ))}
                     </div>
                 </div>
+            </main>
+        );
+    }
+
+    if (!project) {
+        return (
+            <main className="mx-auto max-w-4xl px-4 py-20">
+                <p className="text-sm text-[#6B6B6B]">No project is available yet.</p>
             </main>
         );
     }
@@ -186,15 +198,14 @@ export default function OverviewProduct() {
                     No activation events yet
                 </h1>
                 <p className="mt-4 max-w-2xl text-lg text-gray-500 leading-relaxed">
-                    Install the SDK and send your first activation event.  Dealmemory will
-                    automatically build journeys, identify blockers, and recommend the next best action.
+                    Copy the ready-to-use setup from Settings. AgentLens will start building journeys from the product actions your users take.
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3 justify-center sm:justify-start">
                     <Link
                         href="/sdk"
                         className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500"
                     >
-                        Install SDK
+                        Connect your app
                         <ArrowRight size={15} />
                     </Link>
                     <Link
@@ -342,7 +353,7 @@ export default function OverviewProduct() {
 
                     <div className="rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-6 text-white shadow-md">
                         <p className="text-xs font-semibold uppercase tracking-widest opacity-75">
-                            DealMemory AI
+                            AgentLens insights
                         </p>
                         <h2 className="mt-2 text-2xl font-bold">
                             Daily Summary
@@ -367,7 +378,7 @@ export default function OverviewProduct() {
                             Watching every milestone execution.
                         </h2>
                         <p className="max-w-3xl text-sm leading-relaxed text-gray-600">
-                            Every single telemetry event adds context to consumer behavior. DealMemory weaves ongoing runtime interactions with foundational trial metadata to extract transparent dropout indicators before your users consider churn.
+                            Every product action adds context. AgentLens turns those actions into a clear view of what users complete, where they stop, and who may need attention.
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-3 shrink-0">

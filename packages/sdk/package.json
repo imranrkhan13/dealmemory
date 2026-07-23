@@ -1,7 +1,7 @@
 {
-  "name": "activationmemory",
+  "name": "agentlens",
   "version": "0.1.0",
-  "description": "Privacy-conscious activation intelligence SDK for SaaS products.",
+  "description": "Privacy-safe product action tracking for founders.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

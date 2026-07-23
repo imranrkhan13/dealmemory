@@ -6,9 +6,9 @@ import { signIn } from "next-auth/react";
 import { AppShell } from '@/components/app-shell';
 
 export default function Signup() {
-  const [email, setEmail] = useState('demo@dealmemory.local');
-  const [name, setName] = useState('Demo Founder');
-  const [password, setPassword] = useState('demo1234');
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const router = useRouter();
@@ -50,13 +50,13 @@ export default function Signup() {
 
         <div className="mt-9 border-y border-[#E7E2DA] py-7">
           <label className="block text-sm font-medium">Email
-            <input value={email} onChange={(e) => setEmail(e.target.value)} className="mt-3 w-full rounded-lg border border-[#E7E2DA] bg-[#FFFDF9] px-3 py-2.5" />
+            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" required className="mt-3 w-full rounded-lg border border-[#E7E2DA] bg-[#FFFDF9] px-3 py-2.5" />
           </label>
           <label className="block text-sm font-medium mt-4">Name
-            <input value={name} onChange={(e) => setName(e.target.value)} className="mt-3 w-full rounded-lg border border-[#E7E2DA] bg-[#FFFDF9] px-3 py-2.5" />
+            <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" className="mt-3 w-full rounded-lg border border-[#E7E2DA] bg-[#FFFDF9] px-3 py-2.5" />
           </label>
           <label className="block text-sm font-medium mt-4">Password
-            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" className="mt-3 w-full rounded-lg border border-[#E7E2DA] bg-[#FFFDF9] px-3 py-2.5" />
+            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" autoComplete="new-password" minLength={8} required className="mt-3 w-full rounded-lg border border-[#E7E2DA] bg-[#FFFDF9] px-3 py-2.5" />
           </label>
 
           <button className="btn btn-primary mt-6" onClick={create} disabled={busy}>

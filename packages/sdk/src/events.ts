@@ -39,6 +39,8 @@ export const activationEvents = {
   // Product
   featureClicked: "feature_clicked",
   pageViewed: "page_viewed",
+  actionClicked: "action_clicked",
+  formSubmitted: "form_submitted",
   pageLeft: "page_left",
   sessionReturned: "session_returned",
 

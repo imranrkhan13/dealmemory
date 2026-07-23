@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentlens"
+version = "0.1.0"
+description = "Privacy-safe product action tracking for AgentLens"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "AgentLens" }]
+keywords = ["analytics", "events", "product", "saas"]
+
+[tool.setuptools]
+packages = ["agentlens"]

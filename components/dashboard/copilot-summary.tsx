@@ -33,7 +33,7 @@ export default function CopilotSummary({
 
                     <div>
                         <p className="text-sm font-medium opacity-90">
-                            DealMemory AI
+                            AgentLens insights
                         </p>
 
                         <h2 className="text-3xl font-bold">

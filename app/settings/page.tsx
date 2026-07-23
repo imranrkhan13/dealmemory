@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppShell } from '@/components/app-shell';
 import ProjectGate from '@/components/project-gate';
 import CustomerPortalButton from '@/components/customer-portal-button';
+import InstallationGuide from '@/components/installation-guide';
 
 type NormalizedSubscription = {
   dodo_customer_id: string | null;
@@ -44,7 +45,10 @@ export default function Settings() {
     if (!raw) return null;
     const parts = raw.split('_');
     if (parts.length < 3) return null;
-    return `${parts[0]}_${parts[1]}`; // e.g., sk_live_xxxxxxxxxx
+    if ((parts[1] === 'live' || parts[1] === 'test') && parts.length >= 3) {
+      return parts.slice(0, 3).join('_'); // e.g., sk_live_xxxxxxxxxx
+    }
+    return parts.slice(0, 2).join('_'); // legacy pk_xxxxxxxxxx
   }, []);
 
   useEffect(() => {
@@ -187,13 +191,17 @@ export default function Settings() {
   };
 
   const projectId = project?.id as string | undefined;
+  const installationPublicKey = onboard?.publicKey ?? keys
+    .filter((key) => key.type === 'public' && !key.revokedAt)
+    .map((key) => revealed[key.prefix])
+    .find(Boolean) ?? null;
 
   return (
     <AppShell>
       <ProjectGate>
         <main className="mx-auto max-w-4xl px-5 py-10">
-          <p className="text-sm font-semibold text-[#4F46E5]">API Keys</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight">Manage your API keys</h1>
+          <p className="text-sm font-semibold text-[#4F46E5]">Connect your app</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">Start seeing product actions.</h1>
 
           {project && (
             <div className="mt-6 rounded-xl border border-[#E7E2DA] bg-[#FFFDF9]">
@@ -209,6 +217,12 @@ export default function Settings() {
               </div>
             </div>
           )}
+
+          <InstallationGuide
+            publicKey={installationPublicKey}
+            creatingKey={keysBusy}
+            onCreatePublicKey={() => void createKey('pk_live')}
+          />
 
           {/* Keys table */}
           <section className="mt-8 rounded-xl border border-[#E7E2DA] bg-white p-5">

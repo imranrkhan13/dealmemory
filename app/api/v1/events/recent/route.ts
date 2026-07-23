@@ -8,6 +8,7 @@ import { authOptions } from '@/lib/nextauth';
 import { prisma } from '@/lib/db';
 import { events } from '@/lib/intelligence';
 import { ok, error } from '@/lib/api';
+import { projectKeyHasAnyPrefix } from '@/lib/keys';
 
 export async function GET(req: NextRequest) {
   const session = (await getServerSession(authOptions as any)) as any;
@@ -15,6 +16,8 @@ export async function GET(req: NextRequest) {
 
   const url = new URL(req.url);
   const projectId = url.searchParams.get('projectId') ?? undefined;
+  const requestedLimit = Number(url.searchParams.get('limit') ?? '20');
+  const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(Math.floor(requestedLimit), 1), 500) : 20;
 
   let prefixes: string[] = [];
 
@@ -38,12 +41,9 @@ export async function GET(req: NextRequest) {
   }
 
   const list = (await events())
-    .filter((e) => {
-      const prefix = (e.projectKey ?? '').split('_')[0];
-      return prefixes.includes(prefix);
-    })
+    .filter((event) => projectKeyHasAnyPrefix(event.projectKey, prefixes))
     .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
-    .slice(0, 20);
+    .slice(0, limit);
 
   return ok({ events: list });
 }

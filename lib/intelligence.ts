@@ -5,8 +5,8 @@ import {
   writeSupermemory,
   retrieveSupermemory,
 } from "@/lib/memory";
-import Journeys from '@/app/journeys/page';
 import { analyzeJourney } from "./product-intelligence";
+import { projectKeyHasAnyPrefix } from './keys';
 
 export type Journey = {
   userId: string;
@@ -408,10 +408,7 @@ export function inactiveHours(j: Journey) {
 }
 
 export async function journeysForPrefixes(prefixes: string[]) {
-  const all = (await events()).filter((e) => {
-    const prefix = (e.projectKey ?? '').split('_')[0];
-    return prefixes.includes(prefix);
-  });
+  const all = (await events()).filter((event) => projectKeyHasAnyPrefix(event.projectKey, prefixes));
 
   const normalized = normalizeEvents(all);
   const group = new Map<string, ActivationEvent[]>();
@@ -443,6 +440,9 @@ export async function journeysForPrefixes(prefixes: string[]) {
         memories: memoryResults,
         insights,
         recommendation: recommendation(journey),
+        state: state(journey),
+        // Kept temporarily so integrations built against the earlier response
+        // continue to render while clients move to the canonical `state` key.
         currentState: state(journey),
         blocker: blocker(journey),
         inactiveHours: inactiveHours(journey),

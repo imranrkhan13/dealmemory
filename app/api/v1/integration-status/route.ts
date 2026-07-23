@@ -8,6 +8,7 @@ import { authOptions } from '@/lib/nextauth';
 import { prisma } from '@/lib/db';
 import { events } from '@/lib/intelligence';
 import { ok, error } from '@/lib/api';
+import { projectKeyHasAnyPrefix } from '@/lib/keys';
 
 export async function GET(req: NextRequest) {
   const session = (await getServerSession(authOptions as any)) as any;
@@ -38,10 +39,7 @@ export async function GET(req: NextRequest) {
   }
 
   const list = (await events())
-    .filter((e) => {
-      const prefix = (e.projectKey ?? '').split('_')[0];
-      return prefixes.includes(prefix);
-    })
+    .filter((event) => projectKeyHasAnyPrefix(event.projectKey, prefixes))
     .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
 
   return ok({

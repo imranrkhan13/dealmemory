@@ -20,24 +20,22 @@ export async function POST(req: Request) {
 	const user = await prisma.user.findUnique({ where: { email: session.user.email } });
 	if (!user) return error('Authenticated user not found', 401);
 
-	// create project and a single test API key, returning the raw key once
-	const { randomUUID } = await import('node:crypto');
-	const prefix = `pk_${randomUUID().replaceAll('-', '').slice(0,10)}`;
-	const rawKey = `${prefix}_${randomUUID().replaceAll('-', '')}`;
-	const { hash } = await import('bcryptjs');
-	const keyHash = await hash(rawKey, 10);
+	const { generateProjectKey } = await import('@/lib/keys');
+	const publicKey = await generateProjectKey('pk_live');
+	const slugBase = body.data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+	const slug = `${slugBase || 'project'}-${Math.random().toString(36).slice(2, 8)}`;
 
 	const project = await prisma.project.create({
 		data: {
 			name: body.data.name,
-			slug: body.data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+			slug,
 			ownerId: user.id,
-			apiKeys: { create: { keyPrefix: prefix, keyHash } },
+			apiKeys: { create: { keyPrefix: publicKey.prefix, keyHash: publicKey.keyHash } },
 		},
 		include: { apiKeys: true },
 	});
 
-	return ok({ project: { id: project.id, name: project.name, slug: project.slug }, rawKey });
+	return ok({ project: { id: project.id, name: project.name, slug: project.slug }, rawKey: publicKey.raw });
 }
 
 export async function GET(req: Request) {

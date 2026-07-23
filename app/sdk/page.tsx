@@ -1,50 +1,40 @@
+import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
+import ProjectGate from '@/components/project-gate';
 
-export default function Sdk() {
-  const code = `import { ActivationMemory } from '@activation-memory/sdk'
-
-const activation = new ActivationMemory({
-  projectKey: '<YOUR_PROJECT_KEY>', // obtain from your backend after project creation
-  apiUrl: process.env.NEXT_PUBLIC_ACTIVATION_API_URL
-})
-
-// Identify a user and track key activation events
-activation.identify('user_123', { plan: 'trial' })
-activation.track('trial_started')
-activation.setGoal('Generate my first architecture map')
-activation.track('repository_connected')
-activation.track('first_map_generated')`;
-
+export default function SdkPage() {
   return (
     <AppShell>
-      <main className="mx-auto max-w-4xl px-5 py-10">
-        <p className="text-sm font-semibold text-[#4F46E5]">Developer experience</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight">Install activation intelligence in minutes.</h1>
-        <pre className="mono mt-8 overflow-x-auto rounded-xl border border-[#E8E7E3] bg-[#171717] p-5 text-sm leading-6 text-[#F4F4F2]">
-          {code}
-        </pre>
-        <div className="mt-8 grid gap-7 md:grid-cols-2">
-          <section>
-            <h2 className="font-semibold">Product truth, not replay</h2>
-            <p className="mt-2 text-sm leading-6 text-[#6B6B6B]">
-              Track only explicit activation events. Never send passwords, form contents, or arbitrary page text.
-            </p>
-          </section>
-          <section>
-            <h2 className="font-semibold">Context stays separate</h2>
-            <p className="mt-2 text-sm leading-6 text-[#6B6B6B]">
-              Supermemory stores meaningful user context; SDK events remain the source of truth for product behavior.
-            </p>
-          </section>
-        </div>
-        <section className="mt-9 border-t border-[#E8E7E3] pt-6">
-          <h2 className="font-semibold">Supported methods</h2>
-          <p className="mt-2 text-sm text-[#6B6B6B]">
-            <code>init</code>, <code>identify</code>, <code>track</code>, <code>page</code>, <code>setGoal</code>,{' '}
-            <code>reset</code>, <code>flush</code>. Dodo checkout can be gated by a configured activation event.
+      <ProjectGate>
+        <main className="mx-auto max-w-4xl px-5 py-10">
+          <p className="text-sm font-semibold text-[#4F46E5]">AgentLens SDK</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">Install once. See what users do.</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B6B6B]">
+            AgentLens is built for founders: use the ready-to-copy setup in Settings, then return to Events and Journeys as your users move through the product.
           </p>
-        </section>
-      </main>
+
+          <div className="mt-8 grid gap-5 md:grid-cols-2">
+            <section className="rounded-xl border border-[#E8E7E3] bg-white p-6">
+              <p className="mono text-sm font-semibold text-[#4F46E5]">JavaScript</p>
+              <pre className="mono mt-4 overflow-x-auto rounded-lg bg-[#171717] p-4 text-sm text-[#F4F4F2]">npm install agentlens</pre>
+              <p className="mt-4 text-sm leading-6 text-[#6B6B6B]">Automatically captures safe page, click, and form-submission events. Add custom events for important product milestones.</p>
+            </section>
+            <section className="rounded-xl border border-[#E8E7E3] bg-white p-6">
+              <p className="mono text-sm font-semibold text-[#4F46E5]">Python</p>
+              <pre className="mono mt-4 overflow-x-auto rounded-lg bg-[#171717] p-4 text-sm text-[#F4F4F2]">pip install agentlens</pre>
+              <p className="mt-4 text-sm leading-6 text-[#6B6B6B]">Use it from a backend or worker to send meaningful server-side product events.</p>
+            </section>
+          </div>
+
+          <section className="mt-8 rounded-xl border border-[#E8E7E3] bg-white p-6">
+            <h2 className="font-semibold">What AgentLens records</h2>
+            <p className="mt-2 text-sm leading-6 text-[#6B6B6B]">
+              Page views, clicks, form submissions, and the explicit events you choose. It does not capture passwords, form values, arbitrary page text, screen recordings, or session replay.
+            </p>
+            <Link className="btn btn-primary mt-5" href="/settings">Open my ready-to-copy setup</Link>
+          </section>
+        </main>
+      </ProjectGate>
     </AppShell>
   );
 }

@@ -1,27 +1,43 @@
 import { activationEvents } from './events.js';
 import type { ActivationOptions, ActivationProperties, QueuedEvent } from './types.js';
 
-const storageKey = (name: string) => `activation-memory:${name}`;
+const storageKey = (name: string) => `agentlens:${name}`;
 const createId = () => crypto.randomUUID();
 
-export class ActivationMemory {
+export class AgentLens {
   private readonly options: ActivationOptions;
   private userId?: string;
   private anonymousId: string;
   private sessionId: string;
   private queue: QueuedEvent[];
   private timer?: number;
+  private clickHandler?: (event: MouseEvent) => void;
+  private submitHandler?: (event: SubmitEvent) => void;
 
   constructor(options: ActivationOptions) {
     this.options = options;
     this.anonymousId = localStorage.getItem(storageKey('anonymous')) ?? createId();
     this.sessionId = createId();
-    this.queue = JSON.parse(localStorage.getItem(storageKey('queue')) ?? '[]') as QueuedEvent[];
+    this.userId = localStorage.getItem(storageKey('user')) ?? undefined;
+    try {
+      this.queue = JSON.parse(localStorage.getItem(storageKey('queue')) ?? '[]') as QueuedEvent[];
+    } catch {
+      this.queue = [];
+    }
     localStorage.setItem(storageKey('anonymous'), this.anonymousId);
     this.timer = window.setInterval(() => void this.flush(), options.flushIntervalMs ?? 5000);
+
+    if (options.autoCapture !== false) {
+      this.enableAutoCapture();
+      this.track('page_view');
+    }
   }
 
-  identify(userId: string, traits: ActivationProperties = {}) { this.userId = userId; this.track('identified', traits); }
+  identify(userId: string, traits: ActivationProperties = {}) {
+    this.userId = userId;
+    localStorage.setItem(storageKey('user'), userId);
+    this.track('identified', traits);
+  }
   setGoal(goal: string) { this.track('goal_set', { goal }); }
   page(name?: string) { this.track('page_view', { name: name ?? document.title }); }
 
@@ -58,7 +74,58 @@ export class ActivationMemory {
     } catch { this.queue.unshift(...batch); this.persist(); }
   }
 
-  reset() { this.userId = undefined; this.sessionId = createId(); this.anonymousId = createId(); localStorage.setItem(storageKey('anonymous'), this.anonymousId); }
-  destroy() { if (this.timer) window.clearInterval(this.timer); void this.flush(); }
+  reset() {
+    this.userId = undefined;
+    this.sessionId = createId();
+    this.anonymousId = createId();
+    localStorage.removeItem(storageKey('user'));
+    localStorage.setItem(storageKey('anonymous'), this.anonymousId);
+  }
+
+  destroy() {
+    if (this.timer) window.clearInterval(this.timer);
+    if (this.clickHandler) document.removeEventListener('click', this.clickHandler, true);
+    if (this.submitHandler) document.removeEventListener('submit', this.submitHandler, true);
+    void this.flush();
+  }
+
+  private enableAutoCapture() {
+    this.clickHandler = (event) => {
+      const source = event.target;
+      if (!(source instanceof Element)) return;
+      const control = source.closest('button, a, [role="button"], input[type="submit"]');
+      if (!control) return;
+
+      this.track('action_clicked', {
+        element: control.tagName.toLowerCase(),
+        action:
+          control.getAttribute('data-agentlens-action') ??
+          control.getAttribute('name') ??
+          control.id ??
+          'unlabeled',
+      });
+    };
+
+    this.submitHandler = (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+
+      this.track('form_submitted', {
+        form:
+          form.getAttribute('data-agentlens-form') ??
+          form.getAttribute('name') ??
+          form.id ??
+          'unlabeled',
+      });
+    };
+
+    // Capture phase observes an action without changing the host app's events.
+    document.addEventListener('click', this.clickHandler, true);
+    document.addEventListener('submit', this.submitHandler, true);
+  }
+
   private persist() { localStorage.setItem(storageKey('queue'), JSON.stringify(this.queue)); }
 }
+
+/** @deprecated Use AgentLens. Kept so existing integrations continue to work. */
+export const ActivationMemory = AgentLens;

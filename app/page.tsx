@@ -34,18 +34,17 @@ export default function Page() {
     <main>
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-5 pb-16 pt-20 text-center md:pt-28">
-        <p className="text-sm font-semibold text-[#4F46E5]">The activation layer for AI SaaS</p>
+        <p className="text-sm font-semibold text-[#4F46E5]">Product actions, made clear</p>
         <h1 className="mx-auto mt-5 max-w-4xl text-4xl font-bold tracking-[-.045em] md:text-6xl">
-          Help trial users reach value, then ask them to pay.
+          See what users do in your product — without becoming an analytics expert.
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#666]">
-          DealMemory remembers a user’s goal and where they got stuck, so they can resume progress
-          instead of restarting from zero.
+          AgentLens turns real user actions into a calm, founder-friendly view of what is working, where people stop, and what to do next.
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link className="btn btn-primary" href="/signup">
-            Get started — Free
+            Create my workspace
           </Link>
           <Link className="btn" href="/auth/signin">
             Sign in
@@ -65,18 +64,18 @@ export default function Page() {
             <div className="mt-8 space-y-6">
               <Step
                 n="01"
-                title="Sign up and create your first project"
-                text="Start with a founder account and an auto-created project. You’ll receive one-time onboarding keys to integrate quickly."
+                title="Create your workspace"
+                text="Sign in and AgentLens creates a project with a public key ready for your product."
               />
               <Step
                 n="02"
-                title="Integrate the SDK and start remembering"
-                text="Send user goals and key events. DealMemory captures intent and blockers so users can resume from where they left off."
+                title="Copy the setup into your app"
+                text="Choose npm or pip in Settings. Your project key and a ready-to-copy snippet are waiting there."
               />
               <Step
                 n="03"
-                title="Guide users to first success — then monetize"
-                text="Gate paywalls behind real outcomes. Once a user achieves their first success, prompt a contextual upgrade."
+                title="Watch actions arrive"
+                text="See page views, clicks, forms, and the important events you choose — organized into user journeys."
               />
             </div>
           </div>
@@ -91,14 +90,14 @@ export default function Page() {
                   </span>
                 </div>
                 <p className="mt-5 text-sm leading-6">
-                  “I want to generate an architecture map from my GitHub repository.”
+                  “I opened the report builder and exported my first report.”
                 </p>
                 <div className="mt-4 rounded-lg border-l-2 border-[#F59E0B] bg-[#FFFBEB] p-3 text-sm">
-                  <b className="text-[#B45309]">Blocker:</b>{" "}
-                  OAuth callback could not be verified.
+                  <b className="text-[#B45309]">Signal:</b>{" "}
+                  Export completed after a second visit.
                 </div>
                 <Link className="btn btn-primary mt-4 w-full" href="/demo">
-                  Resume setup
+                  See a live example
                 </Link>
               </div>
             </div>
@@ -113,38 +112,34 @@ export default function Page() {
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           <FAQItem
-            q="How does DealMemory remember a user’s goal?"
+            q="Do I need to be technical to use AgentLens?"
             a={
               <>
-                You can send the initial user intent (goal) and key onboarding events via our SDK.
-                If a session is interrupted, the goal and most recent blocker are recalled on return.
+                No. Create a workspace, then give the ready-to-copy npm or pip snippet to whoever maintains your app. Once it is installed, your dashboard starts filling with real actions.
               </>
             }
           />
           <FAQItem
-            q="Is authentication required to integrate?"
+            q="How does my app connect?"
             a={
               <>
-                Yes. All dashboard and project APIs require an authenticated session. SDK ingestion
-                uses project keys that are verified server-side; never trust client-provided IDs.
+                AgentLens gives each project a public <code>pk_</code> key. Paste that key into the setup snippet in Settings. Your dashboard login and project key are kept separate.
               </>
             }
           />
           <FAQItem
-            q="What if a user gets stuck during OAuth or setup?"
+            q="Will it record private customer data?"
             a={
               <>
-                DealMemory records the failed step as a blocker and surfaces the exact next action
-                to resume — no need to start over.
+                No. It does not collect passwords, form values, arbitrary page text, screen recordings, or session replay. It records safe action metadata and the events you explicitly send.
               </>
             }
           />
           <FAQItem
-            q="When should I show pricing or a paywall?"
+            q="What can I see after installation?"
             a={
               <>
-                After the first successful outcome. The upgrade prompt appears contextually once a
-                user reaches value.
+                A live feed of incoming actions, every user’s chronological journey, activation signals, and the users who may need attention.
               </>
             }
           />
@@ -152,12 +147,12 @@ export default function Page() {
 
         <div className="mt-10 flex flex-wrap items-center gap-3">
           <Link className="btn btn-primary" href="/signup">
-            Create founder account
+            Create my workspace
           </Link>
           <Link className="btn" href="/auth/signin">
             I already have an account
           </Link>
-          <span className="text-sm text-[#666]">Questions? See Pricing or start the guided demo.</span>
+          <span className="text-sm text-[#666]">No analytics setup project required.</span>
         </div>
       </section>
     </main>
