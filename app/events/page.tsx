@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { AppShell } from '@/components/app-shell';
 import ProjectGate from '@/components/project-gate';
-import { Activity, Search, Filter, Clock3, User, Globe, ChevronDown, ChevronRight, Copy, Check, Terminal } from 'lucide-react';
+import { Activity, Search, Globe, ChevronDown, ChevronRight, Copy, Check, Terminal } from 'lucide-react';
 
 type Event = {
   id: string;
@@ -97,34 +97,34 @@ function EventsView() {
             <span className="eyebrow">
               <Activity size={13} /> Telemetry Log
             </span>
-            <span className="text-xs font-mono text-zinc-500">Live Stream</span>
+            <span className="text-xs font-mono text-slate-400">Live Stream</span>
           </div>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
             Event Explorer
           </h1>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-slate-600">
             Real-time feed of captured user actions, milestones, and property payloads.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto rounded-xl border border-white/[0.08] bg-zinc-900/60 px-4 py-2 backdrop-blur">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs font-semibold text-zinc-300 tabular-nums">
+        <div className="flex items-center gap-2 self-start sm:self-auto rounded-xl border border-sky-100 bg-white px-4 py-2 shadow-xs">
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs font-semibold text-slate-700 tabular-nums">
             {events.length} observed events
           </span>
         </div>
       </div>
 
       {/* Controls: Search & Category Chips */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-zinc-900/60 p-4 shadow-xl backdrop-blur-xl">
+      <div className="flex flex-col gap-3 rounded-2xl border border-sky-100 bg-white p-4 shadow-sm">
         <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Search events by name, user ID, anonymous ID, or URL..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full !pl-10 !pr-4 !py-2.5 text-xs !bg-zinc-950/70 border border-white/[0.08] rounded-xl text-white placeholder-zinc-500 focus:border-indigo-500"
+            className="w-full !pl-10 !pr-4 !py-2.5 text-xs !bg-slate-50/70 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-sky-500"
           />
         </div>
 
@@ -134,8 +134,8 @@ function EventsView() {
               onClick={() => setSelectedFilter('all')}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                 selectedFilter === 'all'
-                  ? 'bg-white text-zinc-950 font-semibold'
-                  : 'bg-zinc-950/60 text-zinc-400 hover:text-white border border-white/[0.06]'
+                  ? 'bg-sky-600 text-white font-semibold shadow-xs'
+                  : 'bg-slate-50 text-slate-600 hover:text-sky-700 hover:bg-sky-50 border border-slate-200'
               }`}
             >
               All ({events.length})
@@ -148,8 +148,8 @@ function EventsView() {
                   onClick={() => setSelectedFilter(type)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                     selectedFilter === type
-                      ? 'bg-indigo-600 text-white font-semibold shadow-xs'
-                      : 'bg-zinc-950/60 text-zinc-400 hover:text-white border border-white/[0.06]'
+                      ? 'bg-sky-600 text-white font-semibold shadow-xs'
+                      : 'bg-slate-50 text-slate-600 hover:text-sky-700 hover:bg-sky-50 border border-slate-200'
                   }`}
                 >
                   {type.replace(/_/g, ' ')} ({count})
@@ -162,14 +162,14 @@ function EventsView() {
 
       {/* Status Messages */}
       {loading && (
-        <div className="py-20 text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+        <div className="py-20 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
           Loading recent event telemetry…
         </div>
       )}
 
       {error && (
-        <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-5 text-sm text-rose-300">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
           {error}
         </div>
       )}
@@ -185,30 +185,30 @@ function EventsView() {
             return (
               <div
                 key={event.id}
-                className="overflow-hidden rounded-2xl border border-white/[0.08] bg-zinc-900/60 shadow-xl backdrop-blur-xl transition hover:border-white/[0.14]"
+                className="overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm transition hover:border-sky-300"
               >
                 <div
                   onClick={() => setExpandedId(isExpanded ? null : event.id)}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 cursor-pointer hover:bg-sky-50/30 transition-colors"
                 >
                   <div className="flex items-start gap-3 min-w-0">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500/20 to-violet-500/20 border border-indigo-500/30 text-indigo-400">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sky-50 border border-sky-200 text-sky-600">
                       <Activity size={15} />
                     </div>
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm text-white capitalize">
+                        <span className="font-semibold text-sm text-slate-900 capitalize">
                           {event.name.replace(/_/g, ' ')}
                         </span>
-                        <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-mono text-zinc-400">
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-slate-600">
                           {userIdentifier}
                         </span>
                       </div>
 
-                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-400 font-mono">
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 font-mono">
                         {event.url && (
-                          <span className="flex items-center gap-1 text-zinc-500 truncate max-w-sm">
+                          <span className="flex items-center gap-1 text-slate-500 truncate max-w-sm">
                             <Globe size={11} /> {event.url}
                           </span>
                         )}
@@ -218,11 +218,11 @@ function EventsView() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-3 text-xs text-zinc-400 shrink-0">
-                    <time className="font-mono text-[11px] text-zinc-500">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 text-xs text-slate-500 shrink-0">
+                    <time className="font-mono text-[11px] text-slate-500">
                       {new Date(event.occurredAt).toLocaleString()}
                     </time>
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-950/60 text-zinc-400">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
                       {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     </div>
                   </div>
@@ -230,9 +230,9 @@ function EventsView() {
 
                 {/* Expanded Details Drawer */}
                 {isExpanded && (
-                  <div className="border-t border-white/[0.06] bg-zinc-950/80 p-5 space-y-4 animate-in fade-in duration-150">
+                  <div className="border-t border-slate-100 bg-slate-50/70 p-5 space-y-4 animate-in fade-in duration-150">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-600 font-mono">
                         Event Payload JSON
                       </p>
                       <button
@@ -244,7 +244,7 @@ function EventsView() {
                       >
                         {copiedId === event.id ? (
                           <>
-                            <Check size={12} className="text-emerald-400" /> Copied
+                            <Check size={12} className="text-emerald-600" /> Copied
                           </>
                         ) : (
                           <>
@@ -254,7 +254,7 @@ function EventsView() {
                       </button>
                     </div>
 
-                    <pre className="rounded-xl border border-white/[0.06] bg-zinc-900/90 p-4 font-mono text-xs text-indigo-200 overflow-x-auto leading-relaxed">
+                    <pre className="rounded-xl border border-slate-800 bg-slate-900 p-4 font-mono text-xs text-sky-200 overflow-x-auto leading-relaxed shadow-inner">
                       {JSON.stringify(event, null, 2)}
                     </pre>
                   </div>
@@ -266,10 +266,10 @@ function EventsView() {
       )}
 
       {!loading && !error && filteredEvents.length === 0 && (
-        <div className="rounded-2xl border border-white/[0.08] bg-zinc-900/40 p-12 text-center">
-          <Terminal size={32} className="mx-auto text-zinc-600 mb-3" />
-          <h3 className="font-semibold text-white text-base">No matching events</h3>
-          <p className="mt-1 text-xs text-zinc-400 max-w-md mx-auto">
+        <div className="rounded-2xl border border-sky-100 bg-white p-12 text-center shadow-sm">
+          <Terminal size={32} className="mx-auto text-slate-300 mb-3" />
+          <h3 className="font-semibold text-slate-900 text-base">No matching events</h3>
+          <p className="mt-1 text-xs text-slate-500 max-w-md mx-auto">
             {events.length === 0
               ? "No events have been captured yet. Install the SDK snippet in your product to begin recording user milestones."
               : "No events matched your current search filters. Try clearing your search query."}

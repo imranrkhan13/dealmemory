@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Check, Copy, Terminal, Sparkles, KeyRound } from 'lucide-react';
-import { sdkInstall, installSnippet, SnippetRuntime } from '@/lib/sdk-install';
+import { Check, Copy, Terminal, KeyRound } from 'lucide-react';
+import { installSnippet, SnippetRuntime } from '@/lib/sdk-install';
 
 export default function InstallationGuide({
   publicKey,
@@ -36,7 +36,7 @@ export default function InstallationGuide({
   };
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-zinc-900/60 shadow-xl backdrop-blur-xl">
+    <section className="relative overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
       <div className="p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -44,12 +44,12 @@ export default function InstallationGuide({
               <span className="eyebrow">
                 <Terminal size={13} /> Quick Integration
               </span>
-              <span className="text-[11px] font-mono text-zinc-500">Zero Dependencies</span>
+              <span className="text-[11px] font-mono text-slate-400">Zero Dependencies</span>
             </div>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-white">
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
               Connect in 3 lines of code
             </h2>
-            <p className="mt-1 text-xs text-zinc-400">
+            <p className="mt-1 text-xs text-slate-600">
               Send privacy-safe product actions directly over HTTP. No heavy tracking bundles required.
             </p>
           </div>
@@ -74,8 +74,8 @@ export default function InstallationGuide({
               aria-pressed={runtime === t}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium transition ${
                 runtime === t
-                  ? 'bg-white text-zinc-950 font-semibold shadow-xs'
-                  : 'bg-zinc-950/60 text-zinc-400 hover:text-white border border-white/[0.06]'
+                  ? 'bg-sky-600 text-white font-semibold shadow-xs'
+                  : 'bg-slate-50 text-slate-600 hover:text-sky-700 hover:bg-sky-50 border border-slate-200'
               }`}
               onClick={() => setRuntime(t)}
             >
@@ -86,20 +86,20 @@ export default function InstallationGuide({
       </div>
 
       {/* Terminal Code Window */}
-      <div className="relative border-t border-white/[0.06] bg-[#0c0d12]">
+      <div className="relative border-t border-slate-800 bg-slate-950">
         {/* Terminal Header Bar */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04] bg-zinc-950/50">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-slate-900">
           <div className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full bg-rose-500/80" />
             <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
-            <span className="ml-2 font-mono text-[11px] text-zinc-500">
+            <span className="ml-2 font-mono text-[11px] text-slate-400">
               {runtime === 'fetch' ? 'agentlens.ts' : runtime === 'curl' ? 'curl.sh' : 'agentlens.py'}
             </span>
           </div>
 
           <button
-            className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-zinc-900/80 px-2.5 py-1 text-xs text-zinc-300 hover:text-white hover:border-white/[0.15] transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-xs text-slate-300 hover:text-white transition-colors"
             onClick={copyCode}
           >
             {copied ? (
@@ -116,12 +116,12 @@ export default function InstallationGuide({
           </button>
         </div>
 
-        <pre className="overflow-x-auto p-5 font-mono text-xs leading-relaxed text-indigo-200">
+        <pre className="overflow-x-auto p-5 font-mono text-xs leading-relaxed text-sky-200">
           {code}
         </pre>
       </div>
 
-      <div className="px-6 py-3.5 border-t border-white/[0.04] bg-zinc-950/40 text-[11px] text-zinc-500 flex items-center justify-between">
+      <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50 text-[11px] text-slate-500 flex items-center justify-between">
         <span>
           {copyError
             ? 'Copy unavailable. Select and copy snippet manually.'
@@ -129,7 +129,7 @@ export default function InstallationGuide({
             ? 'Generate a public key above to pre-fill your credential.'
             : 'Your active public key is embedded in the snippet above.'}
         </span>
-        <span className="font-mono text-zinc-600">HTTPS only · 4 KB cap</span>
+        <span className="font-mono text-slate-400">HTTPS only · 4 KB cap</span>
       </div>
     </section>
   );

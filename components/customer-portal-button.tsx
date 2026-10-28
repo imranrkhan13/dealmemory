@@ -25,26 +25,26 @@ export default function CustomerPortalButton({ className }: { className?: string
   return (
     <div className={className}>
       <button
-        className="btn w-full flex items-center justify-center gap-2 border border-white/[0.08] bg-zinc-900/80 hover:bg-zinc-800 text-zinc-200 hover:text-white py-2.5 text-sm font-medium transition-all"
+        className="btn w-full flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-sky-50 text-slate-700 hover:text-sky-700 py-2.5 text-sm font-medium transition-all shadow-xs"
         onClick={openPortal}
         disabled={loading}
         aria-busy={loading}
       >
         {loading ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
             <span>Opening billing portal…</span>
           </>
         ) : (
           <>
-            <CreditCard className="h-4 w-4 text-zinc-400" />
+            <CreditCard className="h-4 w-4 text-slate-500" />
             <span>Manage subscription</span>
           </>
         )}
       </button>
       {err ? (
-        <div className="mt-3 flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-400">
-          <AlertCircle className="h-4 w-4 shrink-0" />
+        <div className="mt-3 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+          <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
           <span>{err}</span>
         </div>
       ) : null}

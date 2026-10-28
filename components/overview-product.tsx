@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   Sparkles,
   ShieldCheck,
-  Zap,
 } from 'lucide-react';
 
 import MetricCard from './dashboard/metric-card';
@@ -156,9 +155,9 @@ export default function OverviewProduct() {
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-zinc-900/60 px-5 py-3 shadow-xl backdrop-blur-xl">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
-          <span className="text-xs font-medium text-zinc-400">Loading activation engine…</span>
+        <div className="flex items-center gap-3 rounded-2xl border border-sky-100 bg-white px-5 py-3 shadow-md">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+          <span className="text-xs font-medium text-slate-600">Loading activation engine…</span>
         </div>
       </div>
     );
@@ -167,12 +166,12 @@ export default function OverviewProduct() {
   if (!project) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-20 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-400 shadow-xl shadow-indigo-500/10">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-200 bg-sky-50 text-sky-600 shadow-sm">
           <Sparkles size={22} />
         </div>
-        <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-indigo-400">Memory Engine</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">No active project connected</h1>
-        <p className="mt-3 text-sm leading-6 text-zinc-400">
+        <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-sky-700 font-mono">Memory Engine</p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">No active project connected</h1>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
           Connect your product with the lightweight SDK snippet. DealMemory will automatically synthesize user intent, friction, and activation milestones.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -193,30 +192,29 @@ export default function OverviewProduct() {
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-sky-50 text-sky-700 border border-sky-200 shadow-xs">
               <Sparkles size={11} /> {project.name}
             </span>
-            <span className="text-xs text-zinc-500 font-mono">live telemetry</span>
+            <span className="text-xs text-slate-400 font-mono">live telemetry</span>
           </div>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
             Activation Overview
           </h1>
-          <p className="mt-2 text-sm text-zinc-400 max-w-2xl">
+          <p className="mt-2 text-sm text-slate-600 max-w-2xl">
             Synthesize user behavior, pinpoint critical friction points, and recover stalled trials before asking them to pay.
           </p>
         </div>
 
         {/* Health score badge card */}
-        <div className="self-start sm:self-auto rounded-2xl border border-white/[0.08] bg-zinc-900/60 p-5 backdrop-blur-xl shadow-xl min-w-[170px] relative overflow-hidden group">
-          <div className="absolute inset-0 bg-radial from-emerald-500/10 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none" />
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-400">
+        <div className="self-start sm:self-auto rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 shadow-xs min-w-[170px] relative overflow-hidden group">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-800 font-mono">
             Activation Health
           </p>
-          <p className="mt-1 text-4xl font-extrabold text-white tabular-nums tracking-tight">
+          <p className="mt-1 text-4xl font-extrabold text-slate-900 tabular-nums tracking-tight">
             {productHealth}%
           </p>
-          <p className="text-xs font-medium text-emerald-400 mt-1 flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <p className="text-xs font-medium text-emerald-700 mt-1 flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             {productHealth > 80 ? "Optimal Flow" : productHealth > 60 ? "Healthy" : "Friction Detected"}
           </p>
         </div>
@@ -295,31 +293,31 @@ export default function OverviewProduct() {
           <AIInsights insights={organizationInsights} />
 
           {/* Revenue Leakage card */}
-          <div className="rounded-2xl border border-white/[0.08] bg-zinc-900/60 p-6 shadow-xl backdrop-blur-xl">
+          <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wider text-rose-400">
+              <p className="text-xs font-semibold uppercase tracking-wider text-rose-600 font-mono">
                 Revenue Leakage
               </p>
-              <span className="text-[10px] font-mono text-zinc-500">Monthly Projection</span>
+              <span className="text-[10px] font-mono text-slate-400">Monthly Projection</span>
             </div>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white tabular-nums">
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
               ${revenueOpportunity.toLocaleString()}
             </h2>
-            <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
+            <p className="mt-1 text-xs text-slate-500 leading-relaxed">
               Estimated recoverable MRR from trials currently stalled by integration or setup blockers.
             </p>
             <div className="mt-5 space-y-2 text-xs">
-              <div className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-zinc-950/40 p-2.5">
-                <span className="text-zinc-400">Activation Conversion</span>
-                <span className="font-semibold text-white">{activationRate}%</span>
+              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/60 p-2.5">
+                <span className="text-slate-600">Activation Conversion</span>
+                <span className="font-semibold text-slate-900">{activationRate}%</span>
               </div>
-              <div className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-zinc-950/40 p-2.5">
-                <span className="text-zinc-400">Recovery Conversion</span>
-                <span className="font-semibold text-white">{recoveryRate}%</span>
+              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/60 p-2.5">
+                <span className="text-slate-600">Recovery Conversion</span>
+                <span className="font-semibold text-slate-900">{recoveryRate}%</span>
               </div>
-              <div className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-zinc-950/40 p-2.5">
-                <span className="text-zinc-400">Blocked Trial Users</span>
-                <span className="font-semibold text-rose-400">{stuckUsers.length} users</span>
+              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/60 p-2.5">
+                <span className="text-slate-600">Blocked Trial Users</span>
+                <span className="font-semibold text-rose-600">{stuckUsers.length} users</span>
               </div>
             </div>
           </div>
@@ -330,16 +328,16 @@ export default function OverviewProduct() {
       <LiveActivity events={liveEvents} />
 
       {/* Bottom Mission Card */}
-      <section className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-r from-zinc-950 via-zinc-900 to-indigo-950/40 p-7 sm:p-9 shadow-2xl backdrop-blur-xl">
+      <section className="relative overflow-hidden rounded-3xl border border-sky-200 bg-gradient-to-r from-sky-50/80 via-white to-blue-50/60 p-7 sm:p-9 shadow-sm">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
             <span className="eyebrow">
               <ShieldCheck size={13} /> Continuous Activation Engine
             </span>
-            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
               Never ask users to pay before they succeed.
             </h2>
-            <p className="max-w-2xl text-sm leading-relaxed text-zinc-400">
+            <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
               DealMemory preserves the user&apos;s goal, recognizes exact setup friction, and surfaces guidance so every customer reaches their first milestone with confidence.
             </p>
           </div>

@@ -3,13 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
-  --surface: #121217;
-  --surface-border: rgba(255, 255, 255, 0.08);
-  --accent: #6366f1;
-  --accent-glow: rgba(99, 102, 241, 0.25);
-  color-scheme: dark;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-border: #e2e8f0;
+  --accent: #0284c7;
+  --accent-light: #e0f2fe;
+  --accent-glow: rgba(14, 165, 233, 0.18);
+  color-scheme: light;
 }
 
 * {
@@ -20,68 +21,69 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background-color: #09090b;
-  color: #f4f4f5;
+  background-color: #f8fafc;
+  color: #0f172a;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Geist", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Supermemory Subtle Ambient Background Mesh */
+/* White & Light Blue Ambient Mesh */
 body {
+  background-color: #f8fafc;
   background-image: 
-    radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.12), transparent 50%),
-    radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.08), transparent 40%),
-    radial-gradient(circle at 0% 50%, rgba(59, 130, 246, 0.06), transparent 40%);
+    radial-gradient(circle at 50% 0%, rgba(224, 242, 254, 0.75), transparent 50%),
+    radial-gradient(circle at 100% 15%, rgba(219, 234, 254, 0.5), transparent 40%),
+    radial-gradient(circle at 0% 40%, rgba(240, 249, 255, 0.8), transparent 45%);
   background-repeat: no-repeat;
   background-attachment: fixed;
   min-height: 100vh;
 }
 
-/* Scrollbar */
+/* Light Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #09090b;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: #94a3b8;
 }
 
 /* Card & Panels */
 .surface {
-  background: rgba(18, 18, 23, 0.7);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.95);
   border-radius: 1rem;
-  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 20px -2px rgba(14, 165, 233, 0.05), 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .surface-hover {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .surface-hover:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: #bae6fd;
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.6), 0 0 20px -6px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 12px 28px -4px rgba(14, 165, 233, 0.12), 0 0 15px -3px rgba(56, 189, 248, 0.2);
 }
 
 .panel {
-  background: rgba(18, 18, 23, 0.6);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 1.25rem;
   padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .panel:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: #cbd5e1;
 }
 
 /* Buttons */
@@ -95,20 +97,22 @@ body {
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(24, 24, 27, 0.8);
-  color: #e4e4e7;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
 }
 .btn:hover {
-  background: rgba(39, 39, 42, 0.9);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0284c7;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px -2px rgba(14, 165, 233, 0.12);
 }
 .btn:focus-visible {
-  outline: 2px solid #6366f1;
+  outline: 2px solid #0284c7;
   outline-offset: 2px;
 }
 .btn:disabled {
@@ -118,29 +122,29 @@ body {
 }
 
 .btn-primary {
-  background: #ffffff;
-  color: #09090b;
-  border-color: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  border: 1px solid #0284c7;
   font-weight: 600;
-  box-shadow: 0 0 20px -3px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 16px -2px rgba(2, 132, 199, 0.35);
 }
 .btn-primary:hover {
-  background: #e4e4e7;
-  color: #09090b;
-  border-color: #ffffff;
-  box-shadow: 0 0 25px -2px rgba(255, 255, 255, 0.35);
+  background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border-color: #0369a1;
+  box-shadow: 0 6px 20px -2px rgba(2, 132, 199, 0.45);
 }
 
 .btn-glow {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 24px -4px rgba(99, 102, 241, 0.5);
+  border: 1px solid #38bdf8;
+  box-shadow: 0 4px 20px -2px rgba(14, 165, 233, 0.4);
 }
 .btn-glow:hover {
-  box-shadow: 0 0 32px -2px rgba(99, 102, 241, 0.7);
+  box-shadow: 0 6px 26px -2px rgba(14, 165, 233, 0.6);
   transform: translateY(-1px);
-  filter: brightness(1.1);
+  filter: brightness(1.05);
 }
 
 /* Badges & Pills */
@@ -152,9 +156,9 @@ body {
   padding: 0.25rem 0.65rem;
   font-size: 0.75rem;
   font-weight: 500;
-  background: rgba(24, 24, 27, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #a1a1aa;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0284c7;
 }
 
 .eyebrow {
@@ -165,7 +169,7 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #818cf8;
+  color: #0284c7;
 }
 
 .page-wrap {
@@ -180,31 +184,31 @@ body {
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: -0.035em;
-  color: #ffffff;
+  color: #0f172a;
 }
 
 .page-description {
   margin-top: 0.5rem;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: #a1a1aa;
+  color: #64748b;
 }
 
 /* Inputs */
 input,
 select,
 textarea {
-  background: rgba(18, 18, 23, 0.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #f4f4f5 !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
   border-radius: 0.75rem;
   transition: all 0.16s ease;
 }
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #6366f1 !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18) !important;
   outline: none !important;
 }
 

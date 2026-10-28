@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
 import InstallationGuide from '@/components/installation-guide';
-import { Terminal, Shield, ArrowRight, Zap, Layers, Sparkles } from 'lucide-react';
+import { Terminal, Shield, ArrowRight, Zap } from 'lucide-react';
 
 const steps = [
   {
@@ -35,12 +35,12 @@ export default function SdkPage() {
             <span className="eyebrow">
               <Terminal size={13} /> Developer Hub
             </span>
-            <span className="text-xs font-mono text-zinc-500">Lightweight SDK</span>
+            <span className="text-xs font-mono text-slate-400">Lightweight SDK</span>
           </div>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
             From Event to Intelligence
           </h1>
-          <p className="mt-1 text-sm text-zinc-400 max-w-2xl">
+          <p className="mt-1 text-sm text-slate-600 max-w-2xl">
             Integrate DealMemory into your TypeScript, Node.js, Python, or curl workflows with simple HTTP endpoints.
           </p>
         </div>
@@ -58,25 +58,25 @@ export default function SdkPage() {
             return (
               <section
                 key={step.n}
-                className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-zinc-900/60 p-6 shadow-xl backdrop-blur-xl"
+                className="relative overflow-hidden rounded-2xl border border-sky-100 bg-white p-6 shadow-sm"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-indigo-400">{step.n}</span>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                  <span className="font-mono text-xs font-bold text-sky-600">{step.n}</span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-50 text-sky-600 border border-sky-200 shadow-xs">
                     <Icon size={15} />
                   </div>
                 </div>
-                <h2 className="mt-4 font-bold text-base text-white">{step.title}</h2>
-                <p className="mt-2 text-xs leading-relaxed text-zinc-400">{step.body}</p>
+                <h2 className="mt-4 font-bold text-base text-slate-900">{step.title}</h2>
+                <p className="mt-2 text-xs leading-relaxed text-slate-600">{step.body}</p>
               </section>
             );
           })}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-white/[0.08] bg-zinc-950/60 p-6 backdrop-blur-xl">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50/80 via-white to-blue-50/60 p-6 shadow-sm">
           <div>
-            <h3 className="font-bold text-white text-base">Ready to configure your project?</h3>
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <h3 className="font-bold text-slate-900 text-base">Ready to configure your project?</h3>
+            <p className="text-xs text-slate-600 mt-0.5">
               Generate public keys and test real event ingestion from your local development environment.
             </p>
           </div>
