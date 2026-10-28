@@ -35,8 +35,15 @@ async function main() {
   assert.equal((await post([urlEvent])).status,200);
   const stored=await prisma.activationEvent.findUniqueOrThrow({where:{projectId_eventId:{projectId:project.id,eventId:urlEvent.id}}});
   assert.equal(stored.url,'https://example.invalid/reports');assert.equal(stored.referrer,'https://example.invalid/');
-  for (const [items,status] of [[[{...parallel,properties:{password:'blocked'}}],400],[[{...parallel,occurredAt:new Date(Date.now()+2*86400000).toISOString()}],400],[[{...parallel,properties:{goal:'a'.repeat(501)}}],400]] as const) {
-    const r=await post(items as typeof events);assert.equal(r.status,status);assert.equal(r.headers.get('access-control-allow-origin'),'http://127.0.0.1:3001');
+  const invalidCases: Array<[typeof events, number]> = [
+    [[{ ...parallel, properties: { password: 'blocked' } }], 400],
+    [[{ ...parallel, occurredAt: new Date(Date.now() + 2 * 86400000).toISOString() }], 400],
+    [[{ ...parallel, properties: { goal: 'a'.repeat(501) } }], 400],
+  ];
+  for (const [items, status] of invalidCases) {
+    const r = await post(items);
+    assert.equal(r.status, status);
+    assert.equal(r.headers.get('access-control-allow-origin'), 'http://127.0.0.1:3001');
   }
   const huge=await batch(request('/api/v1/events/batch',{padding:'x'.repeat(262145)},key.raw));assert.equal(huge.status,413);assert(huge.headers.get('access-control-allow-origin'));
   const tenant=await signup(request('/api/auth/signup',{email:'other@example.invalid',password:'local-fixture-only'}));const second=await tenant.json();
@@ -46,7 +53,10 @@ async function main() {
   await prisma.projectApiKey.update({where:{projectId_keyPrefix:{projectId:project.id,keyPrefix:key.prefix}},data:{revokedAt:new Date()}});
   const revoked=await post(events);assert.equal(revoked.status,401);assert(revoked.headers.get('access-control-allow-origin'));
   // Force the real key lookup dependency to throw, without a test-only API switch.
-  const lookup=prisma.projectApiKey.findFirst;prisma.projectApiKey.findFirst=async()=>{throw new Error('Synthetic database failure');};
+  const lookup = prisma.projectApiKey.findFirst;
+  prisma.projectApiKey.findFirst = (async () => {
+    throw new Error('Synthetic database failure');
+  }) as unknown as typeof prisma.projectApiKey.findFirst;
   try {const failed=await post(events);assert.equal(failed.status,500);const b=await failed.json();assert(b.requestId);assert.equal(b.error,'ingest_failed');assert(failed.headers.get('access-control-allow-origin'));}
   finally {prisma.projectApiKey.findFirst=lookup;}
   console.log('PASS idempotency, conflicts, 20 concurrent identical/different posts, isolation, URL redaction, validation, revocation, JSON errors and CORS');
