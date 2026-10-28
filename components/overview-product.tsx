@@ -5,13 +5,16 @@ import AIInsights from "./dashboard/ai-insights";
 import { analyzeOrganization } from '@/lib/organization-intelligence';
 import Link from 'next/link';
 import {
-    ArrowRight,
-    AlertTriangle,
-    DollarSign,
-    Link2,
-    TrendingUp,
-    Users,
-    CheckCircle2,
+  ArrowRight,
+  AlertTriangle,
+  DollarSign,
+  Link2,
+  TrendingUp,
+  Users,
+  CheckCircle2,
+  Sparkles,
+  ShieldCheck,
+  Zap,
 } from 'lucide-react';
 
 import MetricCard from './dashboard/metric-card';
@@ -21,377 +24,335 @@ import UsersAttention from './dashboard/users-attention';
 import LiveActivity from './dashboard/live-activity';
 
 type Journey = {
-    userId: string;
-    state: string;
-    blocker?: string;
-    recommendation: string;
-    inactiveHours: number;
-    goal?: string;
-    events: any[];
+  userId: string;
+  state: string;
+  blocker?: string;
+  recommendation: string;
+  inactiveHours: number;
+  goal?: string;
+  events: any[];
 };
 
 export default function OverviewProduct() {
-    const [project, setProject] = useState<any>(null);
-    const [dashboard, setDashboard] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    useEffect(() => {
-        async function init() {
-            try {
-                setLoading(true);
+  const [project, setProject] = useState<any>(null);
+  const [dashboard, setDashboard] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-                const projectsRes = await fetch('/api/projects', { cache: 'no-store' });
-                const projectsData = await projectsRes.json();
-                const first = Array.isArray(projectsData?.projects) ? projectsData.projects[0] : null;
-                setProject(first ?? null);
+  useEffect(() => {
+    async function init() {
+      try {
+        setLoading(true);
 
-                if (!first?.id) {
-                    setDashboard({ journeys: [] });
-                    return;
-                }
+        const projectsRes = await fetch('/api/projects', { cache: 'no-store' });
+        const projectsData = await projectsRes.json();
+        const first = Array.isArray(projectsData?.projects) ? projectsData.projects[0] : null;
+        setProject(first ?? null);
 
-                const journeysRes = await fetch(`/api/v1/journeys?projectId=${encodeURIComponent(first.id)}`, { cache: 'no-store' });
-                const journeysData = await journeysRes.json();
-                if (!journeysRes.ok) throw new Error(journeysData?.error ?? 'Could not load journeys');
-                setDashboard({ journeys: Array.isArray(journeysData?.journeys) ? journeysData.journeys : [] });
-            } catch (e) {
-                setProject(null);
-                setDashboard({ journeys: [] });
-            } finally {
-                setLoading(false);
-            }
+        if (!first?.id) {
+          setDashboard({ journeys: [] });
+          return;
         }
-        init().catch(console.error);
-    }, []);
 
-    // Memoize all complex data calculations to optimize render performance
-    const processedData = useMemo(() => {
-        const journeys: Journey[] = dashboard?.journeys ?? [];
-        const events = journeys.flatMap((j) => j.events);
-
-        const stuckUsers = journeys.filter((j) => j.state === 'stuck');
-        // Funnel stages are cumulative: a paid user has also activated and
-        // started checkout. Counting only the current state made later stages
-        // appear larger than activation on an otherwise healthy funnel.
-        const activatedUsers = journeys.filter((j) => ['activated', 'checkout_started', 'paid'].includes(j.state));
-        const checkoutUsers = journeys.filter((j) => ['checkout_started', 'paid'].includes(j.state));
-        const paidUsers = journeys.filter((j) => j.state === 'paid');
-
-        const connectedUsers = journeys.filter((j) =>
-            j.events.some((e: any) =>
-                e.name === 'repository_connected' || e.name === 'integration_connected'
-            )
-        );
-
-        const total = journeys.length;
-        const activationRate = total ? Math.round((activatedUsers.length / total) * 100) : 0;
-        const recoveryRate = total ? Math.round((activatedUsers.length / total) * 100) : 0;
-        const revenueOpportunity = stuckUsers.length * 49;
-        const topBlocker = stuckUsers[0]?.blocker ?? 'No blocker detected';
-
-        const attentionUsers = journeys.map((j) => ({
-            id: j.userId,
-            name: j.userId.replace('user_', ''),
-            goal: j.goal ?? 'Complete activation',
-            state: j.state,
-            blocker: j.blocker,
-            inactiveHours: j.inactiveHours ?? 0,
-            recommendation: j.recommendation,
-        }));
-        const liveEvents = [...events]
-            .sort((a: any, b: any) => b.occurredAt.localeCompare(a.occurredAt))
-            .slice(0, 10)
-            .map((e: any) => ({
-                id: e.id,
-                name: e.name,
-                user: e.userId ?? e.anonymousId,
-                time: new Date(e.occurredAt).toLocaleString(),
-            }));
-
-        return {
-            journeys,
-            events,
-            stuckUsers,
-            activatedUsers,
-            checkoutUsers,
-            paidUsers,
-            connectedUsers,
-            activationRate,
-            recoveryRate,
-            revenueOpportunity,
-            topBlocker,
-            attentionUsers,
-            liveEvents
-        };
-    }, [dashboard]);
-    const {
-        journeys,
-        events,
-        stuckUsers,
-        activatedUsers,
-        checkoutUsers,
-        paidUsers,
-        connectedUsers,
-        activationRate,
-        recoveryRate,
-        revenueOpportunity,
-        topBlocker,
-        attentionUsers,
-        liveEvents
-    } = processedData;
-    const organizationInsights = useMemo(() => {
-
-        return analyzeOrganization(journeys);
-
-    }, [journeys]);
-
-    const productHealth = useMemo(() => {
-
-        let score = 100;
-
-        score -= stuckUsers.length * 3;
-
-        score -= organizationInsights.length * 2;
-
-        if (score < 0) score = 0;
-
-        return score;
-
-    }, [
-        stuckUsers,
-        organizationInsights
-    ]);
-
-    // Removed copy key behavior; keys are never exposed client-side
-
-    if (loading) {
-        return (
-            <main className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
-                <div className="animate-pulse space-y-6">
-                    <div className="h-10 w-64 rounded-xl bg-gray-200" />
-                    <div className="grid gap-5 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="h-32 rounded-2xl bg-gray-200" />
-                        ))}
-                    </div>
-                </div>
-            </main>
-        );
+        const journeysRes = await fetch(`/api/v1/journeys?projectId=${encodeURIComponent(first.id)}`, { cache: 'no-store' });
+        const journeysData = await journeysRes.json();
+        if (!journeysRes.ok) throw new Error(journeysData?.error ?? 'Could not load journeys');
+        setDashboard({ journeys: Array.isArray(journeysData?.journeys) ? journeysData.journeys : [] });
+      } catch (e) {
+        setProject(null);
+        setDashboard({ journeys: [] });
+      } finally {
+        setLoading(false);
+      }
     }
+    init().catch(console.error);
+  }, []);
 
-    if (!project) {
-        return (
-            <main className="mx-auto max-w-4xl px-4 py-20">
-                <p className="text-sm text-[#6B6B6B]">No project is available yet.</p>
-            </main>
-        );
-    }
+  const processedData = useMemo(() => {
+    const journeys: Journey[] = dashboard?.journeys ?? [];
+    const events = journeys.flatMap((j) => j.events);
 
+    const stuckUsers = journeys.filter((j) => j.state === 'stuck');
+    const activatedUsers = journeys.filter((j) => ['activated', 'checkout_started', 'paid'].includes(j.state));
+    const checkoutUsers = journeys.filter((j) => ['checkout_started', 'paid'].includes(j.state));
+    const paidUsers = journeys.filter((j) => j.state === 'paid');
 
-    // Empty state view
-    if (!events.length) {
-        return (
-            <main className="mx-auto max-w-4xl px-4 sm:px-6 py-20 text-center sm:text-left">
-                <p className="text-sm font-semibold tracking-wide text-indigo-600 uppercase">
-                    {project.name}
-                </p>
-                <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
-                    No activation events yet
-                </h1>
-                <p className="mt-4 max-w-2xl text-lg text-gray-500 leading-relaxed">
-                    Copy the ready-to-use setup from Settings. AgentLens will start building journeys from the product actions your users take.
-                </p>
-                <div className="mt-8 flex flex-wrap gap-3 justify-center sm:justify-start">
-                    <Link
-                        href="/sdk"
-                        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500"
-                    >
-                        Connect your app
-                        <ArrowRight size={15} />
-                    </Link>
-                    <Link
-                        href="/settings"
-                        className="inline-flex items-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
-                    >
-                        Project Settings
-                    </Link>
-                </div>
-            </main>
-        );
-    }
-
-    return (
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-10">
-            {/* Header section */}
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600">
-                        {project.name}
-                    </p>
-                    <h1 className="mt-1 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
-                        Activation Overview
-                    </h1>
-                    <p className="mt-3 max-w-2xl text-gray-500 leading-relaxed">
-                        Monitor activation pipelines, identify critical blockers, recover leaking trials, and boost overall conversion metrics.
-                    </p>
-                </div>
-
-                <div className="self-start sm:self-auto rounded-2xl border border-green-100 bg-green-50/60 px-6 py-4 backdrop-blur-sm min-w-[160px]">
-                    <p className="text-xs font-semibold uppercase tracking-widest text-green-700">
-                        Activation Health
-                    </p>
-                    <p className="mt-1 text-4xl font-black text-green-600">
-                        {productHealth}%
-                    </p>
-                    <p className="text-xs font-medium text-green-700 mt-0.5">
-                        {productHealth > 80
-                            ? "Excellent"
-                            : productHealth > 60
-                                ? "Healthy"
-                                : "Needs Attention"}
-                    </p>
-                </div>
-            </div>
-
-            {/* Grid Metrics */}
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                <MetricCard
-                    title="Revenue Opportunity"
-                    value={`$${revenueOpportunity}`}
-                    subtitle="Recoverable MRR"
-                    color="green"
-                    icon={<DollarSign size={20} />}
-                />
-                <MetricCard
-                    title="Activation Rate"
-                    value={`${activationRate}%`}
-                    subtitle="Reached activation"
-                    color="indigo"
-                    icon={<TrendingUp size={20} />}
-                />
-                <MetricCard
-                    title="Trial Users"
-                    value={journeys.length}
-                    subtitle="Tracked users"
-                    color="indigo"
-                    icon={<Users size={20} />}
-                />
-                <MetricCard
-                    title="Users At Risk"
-                    value={stuckUsers.length}
-                    subtitle="Need attention"
-                    color="red"
-                    icon={<AlertTriangle size={20} />}
-                />
-                <MetricCard
-                    title="Connected"
-                    value={connectedUsers.length}
-                    subtitle="Integrations active"
-                    color="amber"
-                    icon={<Link2 size={20} />}
-                />
-                <MetricCard
-                    title="Paid Users"
-                    value={paidUsers.length}
-                    subtitle="Converted accounts"
-                    color="green"
-                    icon={<CheckCircle2 size={20} />}
-                />
-            </div>
-
-            {/* Component Views */}
-            <CopilotSummary
-                totalUsers={journeys.length}
-                stuckUsers={stuckUsers.length}
-                activationRate={activationRate}
-                topBlocker={topBlocker}
-            />
-
-            <ActivationFunnel
-                trial={journeys.length}
-                connected={connectedUsers.length}
-                activated={activatedUsers.length}
-                checkout={checkoutUsers.length}
-                paid={paidUsers.length}
-            />
-
-            {/* Layout Breakdown split */}
-            <div className="grid gap-8 lg:grid-cols-3">
-                {/* Main panel */}
-                <div className="lg:col-span-2">
-                    <UsersAttention users={attentionUsers} />
-                </div>
-
-                {/* Side Insights Panels */}
-                <div className="space-y-6">
-                    <AIInsights insights={organizationInsights} />
-
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                        <p className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                            Revenue Leakage
-                        </p>
-                        <h2 className="mt-2 text-4xl font-extrabold tracking-tight text-gray-900">
-                            ${revenueOpportunity.toLocaleString()}
-                        </h2>
-                        <p className="mt-2 text-xs text-gray-400">
-                            Estimated recoverable value from current active blockers.
-                        </p>
-                        <div className="mt-5 space-y-2.5 text-sm">
-                            <div className="flex items-center justify-between rounded-xl border border-gray-100 p-3 bg-gray-50/50">
-                                <span className="text-gray-500">Activation Rate</span>
-                                <span className="font-semibold text-gray-900">{activationRate}%</span>
-                            </div>
-                            <div className="flex items-center justify-between rounded-xl border border-gray-100 p-3 bg-gray-50/50">
-                                <span className="text-gray-500">Recovery Rate</span>
-                                <span className="font-semibold text-gray-900">{recoveryRate}%</span>
-                            </div>
-                            <div className="flex items-center justify-between rounded-xl border border-gray-100 p-3 bg-gray-50/50">
-                                <span className="text-gray-500">At Risk Users</span>
-                                <span className="font-semibold text-red-600">{stuckUsers.length}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-6 text-white shadow-md">
-                        <p className="text-xs font-semibold uppercase tracking-widest opacity-75">
-                            AgentLens insights
-                        </p>
-                        <h2 className="mt-2 text-2xl font-bold">
-                            Daily Summary
-                        </h2>
-                        <p className="mt-4 text-sm leading-relaxed text-indigo-100">
-                            Analyzed <span className="font-bold text-white">{journeys.length} trial pipelines</span>. The core performance choke-point centers on <span className="font-bold text-white">{topBlocker}</span>. Addressing this flow systematically positions up to <span className="font-bold text-white">${revenueOpportunity.toLocaleString()}</span> in direct recovery options.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <LiveActivity events={liveEvents} />
-
-            {/* Bottom Footer Callout */}
-            <section className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50/50 to-blue-50/50 p-6 sm:p-8">
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="space-y-2">
-                        <p className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                            Activation Engine Active
-                        </p>
-                        <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-                            Watching every milestone execution.
-                        </h2>
-                        <p className="max-w-3xl text-sm leading-relaxed text-gray-600">
-                            Every product action adds context. AgentLens turns those actions into a clear view of what users complete, where they stop, and who may need attention.
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap gap-3 shrink-0">
-                        <Link
-                            href="/journeys"
-                            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500"
-                        >
-                            View All Journeys
-                            <ArrowRight size={15} />
-                        </Link>
-                    </div>
-                </div>
-            </section>
-        </main>
+    const connectedUsers = journeys.filter((j) =>
+      j.events.some((e: any) =>
+        e.name === 'repository_connected' || e.name === 'integration_connected'
+      )
     );
+
+    const total = journeys.length;
+    const activationRate = total ? Math.round((activatedUsers.length / total) * 100) : 0;
+    const recoveryRate = total ? Math.round((activatedUsers.length / total) * 100) : 0;
+    const revenueOpportunity = stuckUsers.length * 49;
+    const topBlocker = stuckUsers[0]?.blocker ?? 'No blocker detected';
+
+    const attentionUsers = journeys.map((j) => ({
+      id: j.userId,
+      name: j.userId.replace('user_', ''),
+      goal: j.goal ?? 'Complete activation',
+      state: j.state,
+      blocker: j.blocker,
+      inactiveHours: j.inactiveHours ?? 0,
+      recommendation: j.recommendation,
+    }));
+
+    const liveEvents = [...events]
+      .sort((a: any, b: any) => b.occurredAt.localeCompare(a.occurredAt))
+      .slice(0, 10)
+      .map((e: any) => ({
+        id: e.id,
+        name: e.name,
+        user: e.userId ?? e.anonymousId,
+        time: new Date(e.occurredAt).toLocaleTimeString(),
+      }));
+
+    return {
+      journeys,
+      events,
+      stuckUsers,
+      activatedUsers,
+      checkoutUsers,
+      paidUsers,
+      connectedUsers,
+      activationRate,
+      recoveryRate,
+      revenueOpportunity,
+      topBlocker,
+      attentionUsers,
+      liveEvents,
+    };
+  }, [dashboard]);
+
+  const {
+    journeys,
+    stuckUsers,
+    activatedUsers,
+    checkoutUsers,
+    paidUsers,
+    connectedUsers,
+    activationRate,
+    recoveryRate,
+    revenueOpportunity,
+    topBlocker,
+    attentionUsers,
+    liveEvents,
+  } = processedData;
+
+  const organizationInsights = useMemo(() => {
+    return analyzeOrganization(journeys);
+  }, [journeys]);
+
+  const productHealth = useMemo(() => {
+    let score = 100;
+    if (journeys.length > 0) {
+      const dropRate = (stuckUsers.length / journeys.length) * 100;
+      score = Math.max(20, Math.round(100 - dropRate * 0.7));
+    }
+    return score;
+  }, [journeys, stuckUsers]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-zinc-900/60 px-5 py-3 shadow-xl backdrop-blur-xl">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+          <span className="text-xs font-medium text-zinc-400">Loading activation engine…</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <main className="mx-auto max-w-2xl px-4 py-20 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-400 shadow-xl shadow-indigo-500/10">
+          <Sparkles size={22} />
+        </div>
+        <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-indigo-400">Memory Engine</p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">No active project connected</h1>
+        <p className="mt-3 text-sm leading-6 text-zinc-400">
+          Connect your product with the lightweight SDK snippet. DealMemory will automatically synthesize user intent, friction, and activation milestones.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link href="/sdk" className="btn btn-primary">
+            Connect your app <ArrowRight size={14} />
+          </Link>
+          <Link href="/demo" className="btn">
+            Explore sample demo
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Top Banner & Health Header */}
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              <Sparkles size={11} /> {project.name}
+            </span>
+            <span className="text-xs text-zinc-500 font-mono">live telemetry</span>
+          </div>
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+            Activation Overview
+          </h1>
+          <p className="mt-2 text-sm text-zinc-400 max-w-2xl">
+            Synthesize user behavior, pinpoint critical friction points, and recover stalled trials before asking them to pay.
+          </p>
+        </div>
+
+        {/* Health score badge card */}
+        <div className="self-start sm:self-auto rounded-2xl border border-white/[0.08] bg-zinc-900/60 p-5 backdrop-blur-xl shadow-xl min-w-[170px] relative overflow-hidden group">
+          <div className="absolute inset-0 bg-radial from-emerald-500/10 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none" />
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-400">
+            Activation Health
+          </p>
+          <p className="mt-1 text-4xl font-extrabold text-white tabular-nums tracking-tight">
+            {productHealth}%
+          </p>
+          <p className="text-xs font-medium text-emerald-400 mt-1 flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            {productHealth > 80 ? "Optimal Flow" : productHealth > 60 ? "Healthy" : "Friction Detected"}
+          </p>
+        </div>
+      </div>
+
+      {/* Metrics Grid */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <MetricCard
+          title="Revenue Recovery"
+          value={`$${revenueOpportunity}`}
+          subtitle="Recoverable MRR"
+          color="green"
+          icon={<DollarSign size={18} />}
+        />
+        <MetricCard
+          title="Activation Rate"
+          value={`${activationRate}%`}
+          subtitle="Reached first value"
+          color="indigo"
+          icon={<TrendingUp size={18} />}
+        />
+        <MetricCard
+          title="Total Trials"
+          value={journeys.length}
+          subtitle="Tracked users"
+          color="indigo"
+          icon={<Users size={18} />}
+        />
+        <MetricCard
+          title="Users At Risk"
+          value={stuckUsers.length}
+          subtitle="Need reconnection"
+          color="red"
+          icon={<AlertTriangle size={18} />}
+        />
+        <MetricCard
+          title="Integrations"
+          value={connectedUsers.length}
+          subtitle="Active setups"
+          color="amber"
+          icon={<Link2 size={18} />}
+        />
+        <MetricCard
+          title="Paid Accounts"
+          value={paidUsers.length}
+          subtitle="Converted to pro"
+          color="green"
+          icon={<CheckCircle2 size={18} />}
+        />
+      </div>
+
+      {/* Copilot Summary */}
+      <CopilotSummary
+        totalUsers={journeys.length}
+        stuckUsers={stuckUsers.length}
+        activationRate={activationRate}
+        topBlocker={topBlocker}
+      />
+
+      {/* Visual Funnel */}
+      <ActivationFunnel
+        trial={journeys.length}
+        connected={connectedUsers.length}
+        activated={activatedUsers.length}
+        checkout={checkoutUsers.length}
+        paid={paidUsers.length}
+      />
+
+      {/* Two Column Layout: Users Attention & Intelligence Panels */}
+      <div className="grid gap-8 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <UsersAttention users={attentionUsers} />
+        </div>
+
+        <div className="space-y-6">
+          <AIInsights insights={organizationInsights} />
+
+          {/* Revenue Leakage card */}
+          <div className="rounded-2xl border border-white/[0.08] bg-zinc-900/60 p-6 shadow-xl backdrop-blur-xl">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wider text-rose-400">
+                Revenue Leakage
+              </p>
+              <span className="text-[10px] font-mono text-zinc-500">Monthly Projection</span>
+            </div>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white tabular-nums">
+              ${revenueOpportunity.toLocaleString()}
+            </h2>
+            <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
+              Estimated recoverable MRR from trials currently stalled by integration or setup blockers.
+            </p>
+            <div className="mt-5 space-y-2 text-xs">
+              <div className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-zinc-950/40 p-2.5">
+                <span className="text-zinc-400">Activation Conversion</span>
+                <span className="font-semibold text-white">{activationRate}%</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-zinc-950/40 p-2.5">
+                <span className="text-zinc-400">Recovery Conversion</span>
+                <span className="font-semibold text-white">{recoveryRate}%</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-zinc-950/40 p-2.5">
+                <span className="text-zinc-400">Blocked Trial Users</span>
+                <span className="font-semibold text-rose-400">{stuckUsers.length} users</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Live Event Stream */}
+      <LiveActivity events={liveEvents} />
+
+      {/* Bottom Mission Card */}
+      <section className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-r from-zinc-950 via-zinc-900 to-indigo-950/40 p-7 sm:p-9 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <span className="eyebrow">
+              <ShieldCheck size={13} /> Continuous Activation Engine
+            </span>
+            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              Never ask users to pay before they succeed.
+            </h2>
+            <p className="max-w-2xl text-sm leading-relaxed text-zinc-400">
+              DealMemory preserves the user&apos;s goal, recognizes exact setup friction, and surfaces guidance so every customer reaches their first milestone with confidence.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <Link href="/journeys" className="btn btn-primary">
+              Explore All Journeys <ArrowRight size={14} />
+            </Link>
+            <Link href="/sdk" className="btn">
+              View SDK Docs
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }

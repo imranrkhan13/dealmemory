@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
-import { CheckCircle2, AlertTriangle, ArrowRight, Activity, ShieldCheck, Sparkles } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, ArrowRight, ShieldCheck, Sparkles, Brain, Clock3 } from 'lucide-react';
 
 interface SampleJourney {
   userId: string;
@@ -64,95 +64,99 @@ const SAMPLE_JOURNEYS: SampleJourney[] = [
 export default function DemoPage() {
   return (
     <AppShell>
-      <main className="mx-auto max-w-5xl px-5 py-12">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <main className="space-y-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
-                <Sparkles size={13} /> Interactive Demo
+              <span className="eyebrow">
+                <Sparkles size={13} /> Interactive Simulation
               </span>
-              <span className="text-xs text-[#6B6B6B]">Read-only sample data</span>
+              <span className="text-xs font-mono text-zinc-500">Read-only Sample Data</span>
             </div>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#29221D] sm:text-4xl">
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
               Sample Activation Journeys
             </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6B6B]">
-              Explore sample customer journeys analyzed by AgentLens intelligence. No API keys or writes required.
+            <p className="mt-1 text-sm text-zinc-400 max-w-2xl">
+              Explore customer journey memory and autonomous blocker diagnosis without sending live events.
             </p>
           </div>
+
           <div className="flex items-center gap-3">
-            <Link className="btn btn-primary" href="/signup">
+            <Link className="btn btn-primary text-xs py-2 px-3.5" href="/signup">
               Create account
             </Link>
-            <Link className="btn" href="/sdk">
+            <Link className="btn text-xs py-2 px-3.5" href="/sdk">
               View SDK setup
             </Link>
           </div>
         </div>
 
         {/* Demo journeys list */}
-        <div className="mt-10 space-y-6">
+        <div className="space-y-4">
           {SAMPLE_JOURNEYS.map((journey) => {
             const isHealthy = !journey.blocker;
             return (
               <div
                 key={journey.userId}
-                className="overflow-hidden rounded-2xl border border-[#E7E2DA] bg-[#FFFDF9] shadow-sm transition hover:shadow-md"
+                className="overflow-hidden rounded-2xl border border-white/[0.08] bg-zinc-900/60 shadow-xl backdrop-blur-xl transition hover:border-white/[0.14]"
               >
-                <div className="border-b border-[#E7E2DA] bg-white px-6 py-4">
+                <div className="border-b border-white/[0.06] bg-zinc-950/60 px-6 py-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="grid h-9 w-9 place-items-center rounded-lg bg-indigo-50 text-indigo-600 font-semibold text-sm">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500/20 to-violet-500/20 border border-indigo-500/30 text-indigo-400 font-bold text-xs">
                         {journey.userId.slice(5, 7).toUpperCase()}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h2 className="font-semibold text-[#29221D]">{journey.userId}</h2>
-                          <span className="rounded bg-stone-100 px-2 py-0.5 text-xs text-stone-600 font-medium">
+                          <h2 className="font-semibold text-sm text-white">{journey.userId}</h2>
+                          <span className="rounded-md bg-zinc-800 border border-white/[0.06] px-2 py-0.5 text-[10px] text-zinc-300 font-mono">
                             {journey.plan}
                           </span>
                         </div>
-                        <p className="text-xs text-[#6B6B6B]">{journey.events.length} observed events</p>
+                        <p className="text-[11px] text-zinc-500 font-mono">
+                          {journey.events.length} observed milestone{journey.events.length === 1 ? '' : 's'}
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center justify-end gap-1.5 text-sm font-medium">
+
+                    <div className="flex items-center gap-3 text-xs">
+                      <div
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border capitalize ${
+                          isHealthy
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                            : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                        }`}
+                      >
                         {isHealthy ? (
-                          <>
-                            <CheckCircle2 size={16} className="text-emerald-600" />
-                            <span className="text-emerald-700 capitalize">
-                              {journey.state.replace(/_/g, ' ')}
-                            </span>
-                          </>
+                          <CheckCircle2 size={13} className="text-emerald-400" />
                         ) : (
-                          <>
-                            <AlertTriangle size={16} className="text-amber-600" />
-                            <span className="text-amber-700 capitalize">
-                              {journey.state.replace(/_/g, ' ')}
-                            </span>
-                          </>
+                          <AlertTriangle size={13} className="text-amber-400" />
                         )}
+                        <span>{journey.state.replace(/_/g, ' ')}</span>
                       </div>
-                      <p className="text-xs text-[#6B6B6B]">{journey.inactiveHours}h inactive</p>
+
+                      <span className="flex items-center gap-1 text-zinc-500 font-mono text-[11px]">
+                        <Clock3 size={11} /> {journey.inactiveHours}h inactive
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-6">
+                <div className="p-6 space-y-5">
                   {/* Event pipeline */}
                   <div>
-                    <p className="text-xs font-semibold tracking-wider uppercase text-[#6B6B6B]">
-                      Observed Event Sequence
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                      Observed Event Progression
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {journey.events.map((evt, idx) => (
                         <div key={idx} className="flex items-center gap-2">
-                          <div className="rounded-lg border border-[#E7E2DA] bg-white px-3 py-1.5 text-xs shadow-xs">
-                            <span className="font-medium text-[#29221D]">{evt.label}</span>
-                            <span className="ml-1.5 text-stone-400">({evt.occurredAt})</span>
+                          <div className="rounded-xl border border-white/[0.06] bg-zinc-950/70 px-3 py-1.5 text-xs shadow-xs">
+                            <span className="font-medium text-white">{evt.label}</span>
+                            <span className="ml-1.5 text-zinc-500 font-mono text-[11px]">({evt.occurredAt})</span>
                           </div>
                           {idx < journey.events.length - 1 && (
-                            <ArrowRight size={13} className="text-stone-400 shrink-0" />
+                            <ArrowRight size={13} className="text-zinc-600 shrink-0" />
                           )}
                         </div>
                       ))}
@@ -160,16 +164,16 @@ export default function DemoPage() {
                   </div>
 
                   {/* Intelligence insights */}
-                  <div className="mt-6 grid gap-4 rounded-xl border border-[#E7E2DA] bg-white p-4 sm:grid-cols-2">
+                  <div className="grid gap-4 rounded-xl border border-white/[0.04] bg-zinc-950/40 p-4 sm:grid-cols-2 text-xs">
                     <div>
-                      <p className="text-xs font-medium text-stone-500">Current blocker</p>
-                      <p className="mt-1 text-sm font-medium text-[#29221D]">
-                        {journey.blocker ?? 'None detected'}
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Current blocker</p>
+                      <p className="mt-1 font-medium text-zinc-200">
+                        {journey.blocker ?? 'None detected · Pipeline flowing normally'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-stone-500">Recommended action</p>
-                      <p className="mt-1 text-sm font-medium text-[#29221D]">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">Recommended action</p>
+                      <p className="mt-1 font-medium text-indigo-200">
                         {journey.recommendation ?? 'Everything looks healthy.'}
                       </p>
                     </div>
@@ -181,21 +185,21 @@ export default function DemoPage() {
         </div>
 
         {/* Informational banner */}
-        <div className="mt-10 rounded-2xl border border-[#E7E2DA] bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-white/[0.08] bg-gradient-to-r from-zinc-950 via-zinc-900 to-indigo-950/40 p-7 sm:p-8 shadow-2xl backdrop-blur-xl">
           <div className="flex items-start gap-4">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
-              <ShieldCheck size={20} />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/15 border border-indigo-500/25 text-indigo-400">
+              <ShieldCheck size={22} />
             </div>
             <div>
-              <h3 className="font-semibold text-[#29221D]">How AgentLens Intelligence Works</h3>
-              <p className="mt-1 text-sm leading-6 text-[#6B6B6B]">
-                Your application sends minimal, privacy-safe events via the lightweight client SDK. AgentLens automatically constructs canonical journeys, diagnoses drop-off points, and surfaces actionable recommendations without session recordings or invasive tracking.
+              <h3 className="font-bold text-white text-lg">Continuous Activation Memory</h3>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-400 max-w-3xl">
+                DealMemory turns raw events into canonical journeys, diagnoses drop-off points, and provides actionable recommendations without session recordings or invasive tracking.
               </p>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <Link className="btn btn-primary" href="/signup">
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link className="btn btn-primary text-xs py-2 px-4" href="/signup">
                   Get started with your project
                 </Link>
-                <Link className="btn" href="/pricing">
+                <Link className="btn text-xs py-2 px-4" href="/pricing">
                   View plans
                 </Link>
               </div>

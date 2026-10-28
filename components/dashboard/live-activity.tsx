@@ -1,135 +1,120 @@
 import {
-    Activity,
-    AlertTriangle,
-    CheckCircle2,
-    Clock3,
-    Rocket,
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
+  Rocket,
+  Zap,
 } from "lucide-react";
+import Link from "next/link";
 
 interface EventItem {
-    id: string;
-    name: string;
-    user: string;
-    time: string;
+  id: string;
+  name: string;
+  user: string;
+  time: string;
 }
 
 interface Props {
-    events: EventItem[];
+  events: EventItem[];
 }
 
-function icon(name: string) {
-    const n = name.toLowerCase();
+function eventBadge(name: string) {
+  const n = name.toLowerCase();
 
-    if (n.includes("failed")) {
-        return (
-            <div className="rounded-full bg-red-100 p-2">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-            </div>
-        );
-    }
+  if (n.includes("failed") || n.includes("error")) {
+    return {
+      icon: AlertTriangle,
+      color: "text-rose-400",
+      bg: "bg-rose-500/10 border-rose-500/20",
+    };
+  }
 
-    if (
-        n.includes("activated") ||
-        n.includes("paid") ||
-        n.includes("completed")
-    ) {
-        return (
-            <div className="rounded-full bg-green-100 p-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-            </div>
-        );
-    }
+  if (
+    n.includes("activated") ||
+    n.includes("paid") ||
+    n.includes("completed") ||
+    n.includes("first_value") ||
+    n.includes("first_map")
+  ) {
+    return {
+      icon: CheckCircle2,
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/10 border-emerald-500/20",
+    };
+  }
 
-    if (n.includes("trial")) {
-        return (
-            <div className="rounded-full bg-indigo-100 p-2">
-                <Rocket className="h-4 w-4 text-indigo-600" />
-            </div>
-        );
-    }
+  if (n.includes("trial") || n.includes("connected")) {
+    return {
+      icon: Rocket,
+      color: "text-indigo-400",
+      bg: "bg-indigo-500/10 border-indigo-500/20",
+    };
+  }
 
-    return (
-        <div className="rounded-full bg-gray-100 p-2">
-            <Activity className="h-4 w-4 text-gray-600" />
+  return {
+    icon: Zap,
+    color: "text-zinc-400",
+    bg: "bg-zinc-800/50 border-white/[0.06]",
+  };
+}
+
+export default function LiveActivity({ events }: Props) {
+  return (
+    <div className="rounded-2xl border border-white/[0.08] bg-zinc-900/60 p-6 shadow-xl backdrop-blur-xl">
+      <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <h3 className="font-semibold text-white text-base">Live Activity Feed</h3>
         </div>
-    );
-}
+        <Link
+          href="/events"
+          className="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
+        >
+          View all events →
+        </Link>
+      </div>
 
-export default function LiveActivity({
-    events,
-}: Props) {
-    return (
-        <section className="mt-10 rounded-3xl border bg-white shadow-sm overflow-hidden">
+      <div className="mt-4 space-y-2.5">
+        {events.length === 0 ? (
+          <div className="py-10 text-center">
+            <Activity className="mx-auto h-8 w-8 text-zinc-600 mb-2" />
+            <p className="text-xs text-zinc-400 font-medium">No live events captured yet</p>
+            <p className="text-[11px] text-zinc-600 mt-1">Send an event with your public key to see real-time ingest.</p>
+          </div>
+        ) : (
+          events.slice(0, 8).map((event) => {
+            const badge = eventBadge(event.name);
+            const Icon = badge.icon;
 
-            <div className="border-b p-6">
+            return (
+              <div
+                key={event.id}
+                className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-zinc-950/40 px-3.5 py-2.5 hover:bg-zinc-950/70 hover:border-white/[0.08] transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${badge.bg}`}>
+                    <Icon size={14} className={badge.color} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-zinc-200 truncate capitalize">
+                      {event.name.replace(/_/g, ' ')}
+                    </p>
+                    <p className="text-[11px] font-mono text-zinc-500 truncate">
+                      {event.user}
+                    </p>
+                  </div>
+                </div>
 
-                <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">
-                    Live Feed
-                </p>
-
-                <h2 className="mt-2 text-3xl font-bold">
-                    Live Activity
-                </h2>
-
-                <p className="mt-2 text-gray-500">
-                    Incoming product activity from your SDK.
-                </p>
-
-            </div>
-
-            <div>
-
-                {events.length === 0 && (
-                    <div className="p-8 text-center text-gray-500">
-                        Waiting for events...
-                    </div>
-                )}
-
-                {events.map((event) => (
-
-                    <div
-                        key={event.id}
-                        className="flex items-start justify-between border-b px-6 py-5 last:border-b-0 hover:bg-gray-50 transition"
-                    >
-
-                        <div className="flex gap-4">
-
-                            {icon(event.name)}
-
-                            <div>
-
-                                <p className="font-semibold">
-
-                                    {event.name
-                                        .replaceAll("_", " ")
-                                        .replace(/\b\w/g, l => l.toUpperCase())}
-
-                                </p>
-
-                                <p className="mt-1 text-sm text-gray-500">
-
-                                    {event.user}
-
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-
-                            <Clock3 size={15} />
-
-                            {event.time}
-
-                        </div>
-
-                    </div>
-
-                ))}
-
-            </div>
-
-        </section>
-    );
+                <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 shrink-0 font-mono">
+                  <Clock3 size={11} />
+                  <span>{event.time}</span>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
 }
