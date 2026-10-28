@@ -1,49 +1,17 @@
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
-import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/nextauth';
+export const dynamic='force-dynamic';
 import { prisma } from '@/lib/db';
-import { events } from '@/lib/intelligence';
-import { ok, error } from '@/lib/api';
-import { projectKeyHasAnyPrefix } from '@/lib/keys';
-
-export async function GET(req: NextRequest) {
-  const session = (await getServerSession(authOptions as any)) as any;
-  if (!session?.user?.id) return error('Authentication required', 401);
-
-  const url = new URL(req.url);
-  const projectId = url.searchParams.get('projectId') ?? undefined;
-  const requestedLimit = Number(url.searchParams.get('limit') ?? '20');
-  const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(Math.floor(requestedLimit), 1), 500) : 20;
-
-  let prefixes: string[] = [];
-
-  if (projectId) {
-    const owned = await prisma.project.findFirst({
-      where: { id: projectId, ownerId: session.user.id as string },
-      select: { id: true },
-    });
-    if (!owned) return error('Forbidden', 403);
-    const keys = await prisma.projectApiKey.findMany({
-      where: { projectId, revokedAt: null },
-      select: { keyPrefix: true },
-    });
-    prefixes = keys.map((k) => k.keyPrefix);
-  } else {
-    const keys = await prisma.projectApiKey.findMany({
-      where: { project: { ownerId: session.user.id as string }, revokedAt: null },
-      select: { keyPrefix: true },
-    });
-    prefixes = keys.map((k) => k.keyPrefix);
-  }
-
-  const list = (await events())
-    .filter((event) => projectKeyHasAnyPrefix(event.projectKey, prefixes))
-    .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
-    .slice(0, limit);
-
-  return ok({ events: list });
+import { mapEvent } from '@/lib/event-store';
+import { projectScope,scopeError } from '@/lib/project-scope';
+export async function GET(req:Request) {
+  try {
+    const projectId=await projectScope(req);
+    if(!projectId) return Response.json({ok:true,events:[],nextCursor:null});
+    const params=new URL(req.url).searchParams;
+    const limit=Math.min(500,Math.max(1,Number(params.get('limit'))||20));
+    let after:{occurredAt:string;id:string}|undefined;
+    if(params.get('cursor')) { try {after=JSON.parse(Buffer.from(params.get('cursor')!,'base64url').toString()); if(!after?.id || !Number.isFinite(Date.parse(after.occurredAt))) throw new Error();} catch{return Response.json({ok:false,error:'Invalid cursor'},{status:400});} }
+    const rows=await prisma.activationEvent.findMany({where:{projectId,...(after?{OR:[{occurredAt:{lt:new Date(after.occurredAt)}},{occurredAt:new Date(after.occurredAt),id:{lt:after.id}}]}:{})},include:{trialUser:true},orderBy:[{occurredAt:'desc'},{id:'desc'}],take:Math.floor(limit)+1});
+    const page=rows.slice(0,Math.floor(limit)); const last=page[page.length-1];
+    return Response.json({ok:true,events:page.map(mapEvent),nextCursor:rows.length>limit?Buffer.from(JSON.stringify({occurredAt:last.occurredAt.toISOString(),id:last.id})).toString('base64url'):null});
+  } catch(e) {return scopeError(e);}
 }

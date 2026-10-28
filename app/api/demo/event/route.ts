@@ -1,7 +1,2 @@
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
-import { z } from 'zod'; import { addEvent, getStore, patchUser } from '@/lib/store'; import { writeSupermemory } from '@/lib/memory'; import { error, ok } from '@/lib/api';
-const schema = z.object({ action: z.enum(['goal','payment']) });
-export async function POST(req: Request) { const parsed = schema.safeParse(await req.json()); if (!parsed.success) return error('Unknown demo action.'); if (parsed.data.action === 'goal') { const updated = await patchUser({ goal: 'Connect my GitHub repository and generate an architecture map.' }); const result = await addEvent('goalset', 'Wants to connect GitHub and generate an architecture map.', { category: 'goal', content: 'I want to connect my GitHub repository and generate an architecture map.', source: 'usermessage' }); try { await writeSupermemory(updated.user.id, result.store.memories[0]); } catch (e) { return error(e instanceof Error ? e.message : 'Memory write failed.', 502); } return ok({ user: updated.user }); } const store = await getStore(); if (store.user.planStatus !== 'checkoutstarted') return error('A verified local payment can only follow checkout.', 409); const updated = await patchUser({ planStatus: 'paid' }); const result = await addEvent('paymentcompleted', 'Local demo: verified payment simulated.', { category: 'purchasecontext', content: 'Local demo payment marked verified. A real app requires a Dodo webhook.', source: 'productevent' }); try { await writeSupermemory(updated.user.id, result.store.memories[0]); } catch (e) { return error(e instanceof Error ? e.message : 'Memory write failed.', 502); } return ok({ user: updated.user }); }
+export const dynamic='force-dynamic';
+export async function POST(){return Response.json({ok:false,error:'Legacy demo writes retired. View /demo for read-only sample data.'},{status:410});}

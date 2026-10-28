@@ -2479,5 +2479,35 @@
     "url": "http://localhost:3000/demo",
     "referrer": "",
     "properties": {}
+  },
+  {
+    "id": "6ae3ac5a-8c98-4853-8be1-6434573f1032",
+    "projectKey": "pk_live_9c1dca303f_8d3d0ff89fa94dc386147ebc",
+    "name": "trial_started",
+    "userId": "imran",
+    "anonymousId": "anonymous-test",
+    "sessionId": "session-test",
+    "occurredAt": "2026-10-28T05:42:09.515Z",
+    "properties": {}
+  },
+  {
+    "id": "1bef30c5-1477-45bb-b9aa-ce8c7f814d94",
+    "projectKey": "pk_live_9c1dca303f_8d3d0ff89fa94dc386147ebc",
+    "name": "trial_started",
+    "userId": "imran",
+    "anonymousId": "anonymous-test",
+    "sessionId": "session-test",
+    "occurredAt": "2026-10-28T05:42:09.515Z",
+    "properties": {}
+  },
+  {
+    "id": "179655bb-e199-48ea-bf2f-c69711b34129",
+    "projectKey": "pk_live_9c1dca303f_8d3d0ff89fa94dc386147ebc",
+    "name": "trial_started",
+    "userId": "imran",
+    "anonymousId": "anonymous-test",
+    "sessionId": "session-test",
+    "occurredAt": "2026-10-28T05:42:09.515Z",
+    "properties": {}
   }
 ]

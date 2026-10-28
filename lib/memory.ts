@@ -1,75 +1,21 @@
+import { createHash } from 'node:crypto';
 import { MemoryItem } from './types';
-
-function memoryBase() {
-  // Resolve at call-time to avoid build-time env evaluation
-  return process.env.SUPERMEMORY_BASE_URL || 'http://localhost:6767';
+export function memoryContainerTag(projectId:string, externalUserId:string) {
+  return `p:${projectId}:u:${createHash('sha256').update(externalUserId).digest('hex').slice(0,16)}`;
 }
-
-export function memoryConfigured() {
-  // Gracefully report configuration without throwing during import
-  return Boolean(process.env.SUPERMEMORY_API_KEY);
+export function memoryConfigured() { return Boolean(process.env.SUPERMEMORY_API_KEY); }
+async function call(path:string, body:unknown, signal?:AbortSignal) {
+  const response=await fetch(`${process.env.SUPERMEMORY_BASE_URL || 'https://api.supermemory.ai'}${path}`,{method:'POST',headers:{Authorization:`Bearer ${process.env.SUPERMEMORY_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(body),signal:signal ?? AbortSignal.timeout(3000)});
+  if(!response.ok) throw new Error(`Memory provider failed (${response.status})`);
+  return response.json();
 }
-
-export async function writeSupermemory(userId: string, memory: MemoryItem) {
-  if (!memoryConfigured()) return { configured: false as const };
-  const apiKey = process.env.SUPERMEMORY_API_KEY;
-  // Fail softly if missing at runtime
-  if (!apiKey) return { configured: false as const };
-  const response = await fetch(`${memoryBase()}/v3/documents`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      content: memory.content,
-      containerTag: userId,
-      metadata: {
-        category: memory.category,
-        source: memory.source,
-        createdAt: memory.createdAt,
-      },
-    }),
-  });
-  if (!response.ok) throw new Error(`Supermemory request failed (${response.status}).`);
-  return { configured: true as const };
+export async function writeSupermemory(projectId:string, externalUserId:string, memory:MemoryItem, signal?:AbortSignal) {
+  if(!memoryConfigured()) return {configured:false};
+  await call('/v3/documents',{content:`Quoted data: ${JSON.stringify(memory.content.replace(/[\u0000-\u001f\u007f]/g,'').slice(0,500))}`,containerTag:memoryContainerTag(projectId,externalUserId),metadata:{category:memory.category,source:memory.source,createdAt:memory.createdAt}},signal);
+  return {configured:true};
 }
-
-export async function retrieveSupermemory(userId: string) {
-  if (!memoryConfigured()) return { configured: false as const, results: [] as string[] };
-  const apiKey = process.env.SUPERMEMORY_API_KEY;
-  if (!apiKey) return { configured: false as const, results: [] as string[] };
-
-  const response = await fetch(`${memoryBase()}/v3/search`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      q: `
-goal
-behavior
-blocker
-progress
-pricing
-summary
-upload
-chat
-export
-subscription
-churn
-`,
-      containerTags: [userId],
-      limit: 8,
-    }),
-  });
-
-  if (!response.ok) {
-    // Do not throw during build or runtime; return empty results gracefully
-    return { configured: true as const, results: [] as string[] };
-  }
-
-  const data = await response.json().catch(() => ({ results: [] }));
-  return { configured: true as const, results: Array.isArray(data.results) ? data.results : [] };
+export async function retrieveSupermemory(projectId:string, externalUserId:string) {
+  if(!memoryConfigured()) return {configured:false,results:[] as string[]};
+  const data=await call('/v3/search',{q:'product progress goal behavior blocker',containerTags:[memoryContainerTag(projectId,externalUserId)],limit:8});
+  return {configured:true,results:Array.isArray(data.results)?data.results:[]};
 }

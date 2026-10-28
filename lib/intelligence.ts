@@ -1,213 +1,11 @@
-import { readFile, writeFile, mkdir } from 'fs/promises';
-import path from 'path';
 import { ActivationEvent } from '@/packages/shared/src/events';
-import {
-  writeSupermemory,
-  retrieveSupermemory,
-} from "@/lib/memory";
-import { analyzeJourney } from "./product-intelligence";
-import { projectKeyHasAnyPrefix } from './keys';
+import { analyzeJourney } from './product-intelligence';
+import { events } from './event-store';
+export { events, ingest } from './event-store';
 
-export type Journey = {
-  userId: string;
-  email: string;
-  goal?: string;
-  rawEvents: ActivationEvent[];
-  events: ActivationEvent[];
-  invalidEvents: ActivationEvent[];
-};
-
-const file = path.join(process.cwd(), 'data', 'activation-events.json');
+export type Journey = { userId: string; email: string; goal?: string; rawEvents: ActivationEvent[]; events: ActivationEvent[]; invalidEvents: ActivationEvent[] };
 const BLOCKER_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-export async function events() {
-  try {
-    return JSON.parse(await readFile(file, 'utf8')) as ActivationEvent[];
-  } catch {
-    return [];
-  }
-}
-
-export async function save(value: ActivationEvent[]) {
-  await mkdir(path.dirname(file), { recursive: true });
-  await writeFile(file, JSON.stringify(value, null, 2));
-}
-export async function ingest(items: ActivationEvent[]) {
-    const all = await events();
-
-    const ids = new Set(all.map((x) => x.id));
-
-    const fresh = items.filter((x) => !ids.has(x.id));
-
-    if (fresh.length) {
-        await save([...all, ...fresh]);
-    }
-
-    const memoryResults = [];
-
-    for (const event of fresh) {
-        try {
-            switch (event.name) {
-
-                case "goal_set":
-                    await writeSupermemory(event.userId!, {
-                        category: "goal",
-                      content: `User goal: ${event.properties?.goal ?? ""}`,
-                        source: "productevent",
-                        createdAt: event.occurredAt,
-                    });
-
-                    memoryResults.push({
-                        event: event.name,
-                        success: true,
-                    });
-
-                    break;
-
-                case "repository_connection_failed":
-                    await writeSupermemory(event.userId!, {
-                        category: "blocker",
-                      content:
-                        "GitHub repository connection failed. User should retry connecting the repository.",
-                        source: "productevent",
-                        createdAt: event.occurredAt,
-                    });
-
-                    memoryResults.push({
-                        event: event.name,
-                        success: true,
-                    });
-
-                    break;
-
-                case "repository_connected":
-                    await writeSupermemory(event.userId!, {
-                        category: "progress",
-                        content: "Repository connected successfully.",
-                        source: "productevent",
-                        createdAt: event.occurredAt,
-                    });
-
-                    memoryResults.push({
-                        event: event.name,
-                        success: true,
-                    });
-
-                    break;
-
-                case "first_map_generated":
-                    await writeSupermemory(event.userId!, {
-                        category: "progress",
-                      content: "User successfully generated their first architecture map.",
-                        source: "productevent",
-                        createdAt: event.occurredAt,
-                    });
-                memoryResults.push({
-                  event: event.name,
-                  success: true,
-                });
-
-                break;
-              case "summary_viewed":
-
-                await writeSupermemory(event.userId!, {
-                  category: "behavior",
-                  content:
-                    `User viewed the Summary page for ${event.properties?.duration ?? 0} seconds without opening AI Chat.`,
-                  source: "productevent",
-                  createdAt: event.occurredAt,
-                });
-
-                break;
-
-              case "upload_failed":
-
-                await writeSupermemory(event.userId!, {
-                  category: "blocker",
-                  content:
-                    `Upload failed ${event.properties?.retries ?? 1} time(s). Reason: ${event.properties?.reason ?? "Unknown"}.`,
-                  source: "productevent",
-                  createdAt: event.occurredAt,
-                });
-
-                break;
-
-              case "pricing_opened":
-
-                await writeSupermemory(event.userId!, {
-                  category: "behavior",
-                  content:
-                    `User visited the Pricing page and stayed for ${event.properties?.duration ?? 0} seconds.`,
-                  source: "productevent",
-                  createdAt: event.occurredAt,
-                });
-
-                break;
-
-              case "subscription_cancelled":
-
-                await writeSupermemory(event.userId!, {
-                  category: "churn",
-                  content:
-                    `User cancelled the subscription. Reason: ${event.properties?.reason ?? "Unknown"}.`,
-                  source: "productevent",
-                  createdAt: event.occurredAt,
-                });
-
-                break;
-
-              case "chat_opened":
-
-                await writeSupermemory(event.userId!, {
-                  category: "progress",
-                  content:
-                    "User discovered and started using AI Chat.",
-                  source: "productevent",
-                  createdAt: event.occurredAt,
-                });
-
-                break;
-
-              case "export_clicked":
-
-                await writeSupermemory(event.userId!, {
-                  category: "progress",
-                  content:
-                    "User exported generated content.",
-                  source: "productevent",
-                  createdAt: event.occurredAt,
-                });
-
-                break;
-                    memoryResults.push({
-                        event: event.name,
-                        success: true,
-                    });
-
-                    break;
-            }
-        } catch (e) {
-
-            memoryResults.push({
-                event: event.name,
-                success: false,
-                error:
-                    e instanceof Error
-                        ? e.message
-                        : "Supermemory failed",
-            });
-
-            // IMPORTANT:
-            // don't stop ingestion
-        }
-    }
-
-    return {
-        accepted: fresh.length,
-        deduplicated: items.length - fresh.length,
-        memory: memoryResults,
-    };
-}
 export function normalizeEvents(events: ActivationEvent[]) {
   const sorted = [...events].sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
   const seen = new Set<string>();
@@ -311,53 +109,6 @@ export function buildCanonicalJourney(events: ActivationEvent[]): Journey {
   };
 }
 
-export async function journeys(projectKey?: string) {
-  const all = (await events()).filter(
-    (e) => !projectKey || e.projectKey === projectKey
-  );
-  const normalized = normalizeEvents(all);
-
-  const group = new Map<string, ActivationEvent[]>();
-
-  for (const event of normalized) {
-    const id = event.userId ?? event.anonymousId;
-
-    const current = group.get(id) ?? [];
-    current.push(event);
-    group.set(id, current);
-  }
-
-  return Promise.all(
-    Array.from(group.values()).map(async (eventsForUser) => {
-      const journey = buildCanonicalJourney(eventsForUser);
-
-      let memoryResults: string[] = [];
-
-      try {
-        const memories = await retrieveSupermemory(journey.userId);
-        console.log("Journey User:", journey.userId);
-        console.log("Memories:", memories);
-
-        memoryResults = memories?.results ?? [];
-      } catch (err) {
-        console.error("Supermemory error:", err);
-      }
-
-      const insights = analyzeJourney(journey, memoryResults);
-
-      return {
-        ...journey,
-        memories: memoryResults,
-        insights,
-        recommendation: recommendation(journey),
-        currentState: state(journey),
-        blocker: blocker(journey),
-        inactiveHours: inactiveHours(journey),
-      };
-    })
-  );
-}
-
 export function state(j: Journey) {
   if (j.events.some(isVerifiedPayment)) return 'paid';
   if (j.events.some((event) => event.name === 'checkout_started')) return 'checkout_started';
@@ -407,46 +158,14 @@ export function inactiveHours(j: Journey) {
   return e ? Math.max(0, Math.round((Date.now() - new Date(e.occurredAt).getTime()) / 3600000)) : 0;
 }
 
-export async function journeysForPrefixes(prefixes: string[]) {
-  const all = (await events()).filter((event) => projectKeyHasAnyPrefix(event.projectKey, prefixes));
-
-  const normalized = normalizeEvents(all);
+export async function journeys(projectId: string) {
   const group = new Map<string, ActivationEvent[]>();
-
-  for (const event of normalized) {
-    const id = event.userId ?? event.anonymousId;
-    const current = group.get(id) ?? [];
-    current.push(event);
-    group.set(id, current);
+  for (const event of await events(projectId)) {
+    const id = event.userId ?? `anon:${event.anonymousId}`;
+    group.set(id, [...(group.get(id) ?? []), event]);
   }
-
-  return Promise.all(
-    Array.from(group.values()).map(async (eventsForUser) => {
-      const journey = buildCanonicalJourney(eventsForUser);
-
-      let memoryResults: string[] = [];
-
-      try {
-        const memories = await retrieveSupermemory(journey.userId);
-        memoryResults = memories?.results ?? [];
-      } catch (err) {
-        console.error("Supermemory error:", err);
-      }
-
-      const insights = analyzeJourney(journey, memoryResults);
-
-      return {
-        ...journey,
-        memories: memoryResults,
-        insights,
-        recommendation: recommendation(journey),
-        state: state(journey),
-        // Kept temporarily so integrations built against the earlier response
-        // continue to render while clients move to the canonical `state` key.
-        currentState: state(journey),
-        blocker: blocker(journey),
-        inactiveHours: inactiveHours(journey),
-      };
-    })
-  );
+  return Array.from(group.values()).map(items => {
+    const journey = buildCanonicalJourney(items);
+    return { ...journey, memories: [], insights: analyzeJourney(journey, []), recommendation: recommendation(journey), state: state(journey), currentState: state(journey), blocker: blocker(journey), inactiveHours: inactiveHours(journey) };
+  });
 }

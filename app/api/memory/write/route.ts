@@ -1,33 +1,17 @@
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
+export const dynamic='force-dynamic';
 import { z } from 'zod';
-import { writeSupermemory } from '@/lib/memory';
-import { error, ok } from '@/lib/api';
 import { requireAuth } from '@/lib/auth';
-
-const schema = z.object({
-  category: z.enum(['goal','setupstate','blocker','progress','objection','purchasecontext']),
-  content: z.string().min(2),
-  source: z.enum(['usermessage','productevent']).default('usermessage'),
-});
-
-export async function POST(req: Request) {
-  const parsed = schema.safeParse(await req.json());
-  if (!parsed.success) return error(parsed.error.issues[0].message);
-
+import { ownedProject,scopeError } from '@/lib/project-scope';
+import { writeSupermemory } from '@/lib/memory';
+const schema=z.object({projectId:z.string().min(1).max(200),externalUserId:z.string().min(1).max(200),content:z.string().min(2).max(500),category:z.enum(['goal','setupstate','blocker','progress','objection','purchasecontext']).default('progress')}).strict();
+export async function POST(req:Request) {
   try {
-    const { userId } = await requireAuth();
-    const provider = await writeSupermemory(userId, {
-      category: parsed.data.category,
-      content: parsed.data.content,
-      source: parsed.data.source,
-      createdAt: new Date().toISOString(),
-    });
-    return ok({ provider });
-  } catch (e: any) {
-    if (e?.status === 401) return error('Authentication required', 401);
-    return error(e instanceof Error ? e.message : 'Memory write failed.', 502);
-  }
+    const {userId}=await requireAuth();
+    const parsed=schema.safeParse(await req.json().catch(()=>null));
+    if(!parsed.success) return Response.json({ok:false,error:'Invalid memory request'},{status:400});
+    const data=parsed.data;
+    if(!await ownedProject(userId,data.projectId)) return Response.json({ok:false,error:'Forbidden'},{status:403});
+    const provider=await writeSupermemory(data.projectId,data.externalUserId,{category:data.category,content:data.content,source:'usermessage',createdAt:new Date().toISOString()});
+    return Response.json({ok:true,provider});
+  }catch(e){if((e as any)?.status)return scopeError(e);return Response.json({ok:false,error:'Memory provider unavailable'},{status:502});}
 }

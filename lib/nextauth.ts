@@ -1,3 +1,4 @@
+import { authSecret } from './auth-secret';
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
@@ -15,44 +16,9 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const existing = await prisma.user.findUnique({ where: { email: credentials.email } });
+        const existing = await prisma.user.findUnique({ where: { email: credentials.email.trim().toLowerCase() } });
 
-        if (!existing) {
-          const total = await prisma.user.count();
-          if (total === 0) {
-            const { hash } = await import('bcryptjs');
-            const passwordHash = await hash(credentials.password, 10);
-            const created = await prisma.user.create({
-              data: {
-                email: credentials.email,
-                name: credentials.email.split('@')[0] || 'Founder',
-                passwordHash,
-              },
-            });
-
-            const baseName = created.name || created.email.split('@')[0] || 'My Project';
-            const slugBase = baseName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const slug = `${slugBase || 'project'}-${Math.random().toString(36).slice(2, 6)}`;
-
-            const project = await prisma.project.create({
-              data: { name: `${baseName}'s Project`, slug, ownerId: created.id },
-            });
-
-            const { generateProjectKey } = await import('@/lib/keys');
-            const pub = await generateProjectKey('pk_live');
-            const sec = await generateProjectKey('sk_live');
-
-            await prisma.projectApiKey.createMany({
-              data: [
-                { projectId: project.id, keyPrefix: pub.prefix, keyHash: pub.keyHash },
-                { projectId: project.id, keyPrefix: sec.prefix, keyHash: sec.keyHash },
-              ],
-            });
-
-            return { id: created.id, email: created.email, name: created.name };
-          }
-          return null;
-        }
+        if (!existing || new TextEncoder().encode(credentials.password).length>72) return null;
 
         const { compare } = await import('bcryptjs');
         const ok = await compare(credentials.password, (existing as any).passwordHash);
@@ -81,5 +47,5 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: { signIn: '/auth/signin' },
-  secret: process.env.NEXTAUTH_SECRET ?? 'dev-secret',
+  secret: authSecret(),
 };

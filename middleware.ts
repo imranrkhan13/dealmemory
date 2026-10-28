@@ -1,3 +1,4 @@
+import { authSecret } from './lib/auth-secret';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
@@ -8,6 +9,7 @@ const PUBLIC_PAGE_PATHS = new Set<string>([
   '/auth/signin',
   '/login',
   '/signup',
+  '/demo',
 ]);
 
 const PUBLIC_API_PREFIXES = [
@@ -18,7 +20,6 @@ const PUBLIC_API_PREFIXES = [
 
 const PROTECTED_PAGE_PREFIXES = [
   '/overview',
-  '/demo',
   '/journeys',
   '/settings',
   '/sdk',
@@ -42,11 +43,11 @@ export async function middleware(req: NextRequest) {
 
   // If user is already authenticated, do not show the sign-in page — redirect to callback or overview
   if (pathname === '/auth/signin' || pathname.startsWith('/auth/signin')) {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getToken({ req, secret: authSecret() });
     if (token) {
       const cb = req.nextUrl.searchParams.get('callbackUrl');
       const safe =
-        cb && cb.startsWith('/') && !cb.startsWith('/auth') ? cb : '/overview';
+        cb && cb.startsWith('/') && !cb.startsWith('//') && !cb.includes('\\') && !cb.startsWith('/auth') ? cb : '/overview';
       const url = req.nextUrl.clone();
       url.pathname = safe;
       url.search = '';
@@ -63,7 +64,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // All other API routes require a valid NextAuth session (JWT)
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getToken({ req, secret: authSecret() });
     if (!token) {
       return NextResponse.json({ ok: false, error: 'Authentication required' }, { status: 401 });
     }
@@ -81,7 +82,7 @@ export async function middleware(req: NextRequest) {
   );
 
   if (requiresAuth) {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getToken({ req, secret: authSecret() });
     if (!token) {
       const url = req.nextUrl.clone();
       url.pathname = '/auth/signin';

@@ -1,5 +1,5 @@
 {
-  "name": "agentlens",
+  "name": "dealmemory-sdk-local",
   "version": "0.1.0",
   "description": "Privacy-safe product action tracking for founders.",
   "license": "MIT",
@@ -14,14 +14,28 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
     "prepack": "npm run build"
   },
-  "keywords": ["activation", "analytics", "saas", "sdk", "journeys"],
-  "devDependencies": { "typescript": "^5.7.2" },
-  "engines": { "node": ">=18" }
+  "keywords": [
+    "activation",
+    "analytics",
+    "saas",
+    "sdk",
+    "journeys"
+  ],
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "private": true
 }

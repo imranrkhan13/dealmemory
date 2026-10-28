@@ -26,7 +26,7 @@ class AgentLens:
             raise ValueError("AgentLens requires a public pk_ project key")
         self.project_key = project_key
         self.api_url = api_url.rstrip("/")
-        self.timeout = timeout
+        self.timeout = max(0.1, min(timeout, 30.0))
         self._user_id: Optional[str] = None
         self._anonymous_id = f"python_{uuid.uuid4()}"
         self._session_id = f"python_{uuid.uuid4()}"
@@ -75,7 +75,9 @@ class AgentLens:
     @staticmethod
     def _safe_properties(properties: Mapping[str, Any]) -> dict[str, str | int | float | bool | None]:
         safe: dict[str, str | int | float | bool | None] = {}
-        for key, value in properties.items():
+        for key, value in list(properties.items())[:20]:
+            if len(key) > 80 or (isinstance(value, str) and len(value) > 500):
+                continue
             if any(fragment in key.lower() for fragment in _SENSITIVE_PROPERTY_NAMES):
                 continue
             if isinstance(value, (str, int, float, bool)) or value is None:

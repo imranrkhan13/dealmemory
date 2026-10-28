@@ -3,6 +3,7 @@ export type ActivationProperties = Record<string, string | number | boolean | nu
 export type PrivacyOptions = {
   capturePageUrl?: boolean;
   captureReferrer?: boolean;
+  captureQueryString?: boolean;
   blockedEvents?: string[];
 };
 
