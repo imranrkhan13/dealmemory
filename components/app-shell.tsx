@@ -105,9 +105,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 Pricing
               </Link>
               <Link
-                href="/sdk"
+                href="/docs"
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                  pathname === '/sdk' ? 'text-sky-700 bg-sky-50 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  pathname === '/docs' || pathname === '/sdk'
+                    ? 'text-sky-700 bg-sky-50 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
                 Docs
@@ -307,15 +309,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
 
             <Link
-              href="/sdk"
+              href="/docs"
               onClick={() => setMobileSidebarOpen(false)}
               className={`flex items-center gap-2.5 rounded-lg px-3 py-2 font-medium transition ${
-                pathname === '/sdk'
+                pathname === '/docs' || pathname === '/sdk'
                   ? 'bg-sky-50 text-sky-700 font-semibold'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <Bot size={16} className={pathname === '/sdk' ? 'text-sky-600' : 'text-slate-400'} />
+              <Bot size={16} className={pathname === '/docs' || pathname === '/sdk' ? 'text-sky-600' : 'text-slate-400'} />
               <span>Agents &amp; MCP</span>
             </Link>
 
@@ -462,7 +464,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Help
             </Link>
             <Link
-              href="/sdk"
+              href="/docs"
               className="flex items-center gap-1 text-slate-600 hover:text-slate-900 transition"
             >
               <span>Docs</span>

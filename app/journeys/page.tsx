@@ -185,7 +185,7 @@ function JourneysView() {
             Once users send actions through the SDK, DealMemory will map out their progression, detect drop-off friction, and present live recommendations.
           </p>
           <div className="mt-6 flex justify-center gap-3">
-            <Link href="/sdk" className="btn btn-primary text-xs">
+            <Link href="/docs" className="btn btn-primary text-xs">
               Install SDK snippet
             </Link>
             <Link href="/demo" className="btn text-xs">

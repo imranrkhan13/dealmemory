@@ -85,7 +85,7 @@ export default function DemoPage() {
             <Link className="btn btn-primary text-xs py-2 px-3.5" href="/signup">
               Create account
             </Link>
-            <Link className="btn text-xs py-2 px-3.5" href="/sdk">
+            <Link className="btn text-xs py-2 px-3.5" href="/docs">
               View SDK setup
             </Link>
           </div>
