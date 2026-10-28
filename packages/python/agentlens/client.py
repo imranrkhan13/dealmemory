@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import platform
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
@@ -12,6 +13,18 @@ from urllib.request import Request, urlopen
 
 
 _SENSITIVE_PROPERTY_NAMES = ("password", "token", "secret", "message", "text", "value")
+
+_CREDENTIAL_PATTERNS = (
+    re.compile(r"(?:pk_live|sk_live|whsec)_[A-Za-z0-9_]{16,}"),
+    re.compile(r"\bBearer(?:\s|%20)+[A-Za-z0-9_\-\.~+/]{16,}={0,2}", re.IGNORECASE),
+    re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"),
+    re.compile(r"-----BEGIN[ A-Z0-9_-]*PRIVATE KEY-----"),
+    re.compile(r"(?:password|token|secret)\s*=\s*['\"]?[^\s'\";&]{3,}", re.IGNORECASE),
+)
+
+
+def _contains_credential(value: str) -> bool:
+    return any(p.search(value) is not None for p in _CREDENTIAL_PATTERNS)
 
 
 class AgentLens:
@@ -79,6 +92,8 @@ class AgentLens:
             if len(key) > 80 or (isinstance(value, str) and len(value) > 500):
                 continue
             if any(fragment in key.lower() for fragment in _SENSITIVE_PROPERTY_NAMES):
+                continue
+            if isinstance(value, str) and _contains_credential(value):
                 continue
             if isinstance(value, (str, int, float, bool)) or value is None:
                 safe[key] = value

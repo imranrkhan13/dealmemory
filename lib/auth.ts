@@ -1,4 +1,11 @@
 import { getServerSession } from "next-auth";
+import { z } from "zod";
+
+export const signupSchema = z.object({
+  email: z.string().trim().email().max(254).transform((v) => v.toLowerCase()),
+  name: z.string().max(80).optional(),
+  password: z.string().min(8).refine((v) => Buffer.byteLength(v, "utf8") <= 72, "Password must be at most 72 UTF-8 bytes"),
+});
 
 export class UnauthorizedError extends Error {
   status = 401 as const;

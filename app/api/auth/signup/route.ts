@@ -1,9 +1,9 @@
 export const dynamic='force-dynamic';
-import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/db';
-const schema=z.object({email:z.string().trim().email().max(254).transform(v=>v.toLowerCase()),name:z.string().max(80).optional(),password:z.string().min(8).refine(v=>Buffer.byteLength(v,'utf8')<=72,'Password must be at most 72 UTF-8 bytes')});
+import { signupSchema } from '@/lib/auth';
+const schema=signupSchema;
 // Best-effort only: per-process throttle is not durable across serverless instances.
 const attempts=new Map<string,{count:number;until:number}>();
 export async function POST(req:Request) {

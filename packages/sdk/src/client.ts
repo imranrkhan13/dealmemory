@@ -4,6 +4,19 @@ import type { ActivationOptions, ActivationProperties, QueuedEvent } from './typ
 const storageKey = (project: string, name: string) => `agentlens:${project}:${name}`;
 const createId = () => crypto.randomUUID();
 
+const CREDENTIAL_PATTERNS = [
+  /(?:pk_live|sk_live|whsec)_[a-zA-Z0-9_]{16,}/,
+  /\bBearer(?:\s|%20)+[a-zA-Z0-9_\-\.~+/]{16,}={0,2}/i,
+  /\beyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\b/,
+  /-----BEGIN[ A-Z0-9_-]*PRIVATE KEY-----/,
+  /(?:password|token|secret)\s*=\s*['"]?[^\s'";&]{3,}['"]?/i,
+];
+
+function containsCredential(value: unknown): boolean {
+  if (typeof value !== 'string') return false;
+  return CREDENTIAL_PATTERNS.some((pattern) => pattern.test(value));
+}
+
 export class AgentLens {
   private readonly options: ActivationOptions;
   private userId?: string;
@@ -47,7 +60,15 @@ export class AgentLens {
 
   track(name: string, properties: ActivationProperties = {}) {
     if (this.options.privacy?.blockedEvents?.includes(name)) return;
-    const safe = Object.fromEntries(Object.entries(properties).slice(0,20).filter(([key, value]) => key.length<=80 && (typeof value!=='string' || value.length<=500) && !/password|token|secret|message|text|value/i.test(key) && ['string', 'number', 'boolean'].includes(typeof value))) as ActivationProperties;
+    const safe = Object.fromEntries(
+      Object.entries(properties).slice(0, 20).filter(([key, value]) =>
+        key.length <= 80 &&
+        (typeof value !== 'string' || value.length <= 500) &&
+        !/password|token|secret|message|text|value/i.test(key) &&
+        ['string', 'number', 'boolean'].includes(typeof value) &&
+        (typeof value !== 'string' || !containsCredential(value))
+      )
+    ) as ActivationProperties;
     const event: QueuedEvent = { id: createId(), projectKey: this.options.projectKey, name, userId: this.userId, anonymousId: this.anonymousId, sessionId: this.sessionId, occurredAt: new Date().toISOString(), properties: safe };
     if (this.options.privacy?.capturePageUrl !== false) event.url = this.pageUrl(location.href);
     if (this.options.privacy?.captureReferrer !== false) event.referrer = this.pageUrl(document.referrer);
