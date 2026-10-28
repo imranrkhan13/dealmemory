@@ -1,75 +1,127 @@
 import Link from 'next/link';
 import UpgradeButton from '@/components/upgrade-button';
+import { AppShell } from '@/components/app-shell';
+import { Check, Sparkles } from 'lucide-react';
 
 const freeFeatures = [
-  'Single AI journey',
-  'Basic Supermemory retrieval',
-  'Personal workspace',
-  'Core AI insights (basic)',
-  'No API access',
+  'Single project workspace',
+  'Up to 10,000 monthly telemetry events',
+  'Automated activation funnel mapping',
+  'Basic friction & blocker detection',
+  'Lightweight SDK & HTTP API access',
+  'Community support',
 ];
 
 const proFeatures = [
-  'Unlimited AI journeys',
-  'Unlimited Supermemory retrieval',
-  'Team workspaces',
-  'Advanced AI insights',
-  'API access',
+  'Unlimited project workspaces',
+  'Unlimited monthly telemetry events',
+  'AI Copilot synthesis & recommendations',
+  'Supermemory vector semantic retrieval',
+  'Multi-team access & role permissions',
+  'Priority ingestion pipeline & dedicated SLAs',
+  'Automated Slack & webhook blocker alerts',
 ];
 
 export default function PricingPage() {
   return (
-    <main className="mx-auto max-w-5xl px-5 py-16">
-      <div className="text-center">
-        <p className="text-sm font-semibold text-[#4F46E5]">Plans</p>
-        <h1 className="mt-3 text-4xl font-bold tracking-tight">Choose your plan</h1>
-        <p className="mt-3 text-[#6B7280]">
-          Start free. Upgrade to Pro when you need unlimited journeys, team workspaces, and full AI insights.
-        </p>
-      </div>
-
-      <div className="mt-12 grid gap-6 md:grid-cols-2">
-        {/* Free */}
-        <div className="rounded-xl border border-[#E8E7E3] bg-white p-6">
-          <h2 className="text-xl font-semibold">Free</h2>
-          <p className="mt-1 text-sm text-[#6B7280]">For evaluation and initial exploration.</p>
-          <div className="mt-4 text-3xl font-bold tracking-tight">$0</div>
-          <ul className="mt-6 space-y-2 text-sm">
-            {freeFeatures.map((f) => (
-              <li key={f} className="flex items-start gap-2">
-                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#4F46E5]" />
-                <span>{f}</span>
-              </li>
-            ))}
-          </ul>
-          <Link href="/signup" className="btn mt-6 w-full">
-            Get started
-          </Link>
-        </div>
-
-        {/* Pro */}
-        <div className="rounded-xl border border-[#E8E7E3] bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold">Pro</h2>
-          <p className="mt-1 text-sm text-[#6B7280]">For teams ready to ship with activation memory.</p>
-          <div className="mt-4 text-3xl font-bold tracking-tight">$29<span className="text-base font-medium text-[#6B7280]">/mo</span></div>
-          <ul className="mt-6 space-y-2 text-sm">
-            {proFeatures.map((f) => (
-              <li key={f} className="flex items-start gap-2">
-                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#4F46E5]" />
-                <span>{f}</span>
-              </li>
-            ))}
-          </ul>
-          <UpgradeButton className="mt-6" />
-          <p className="mt-2 text-xs text-[#6B7280]">
-            You&#39;ll be redirected to a secure Dodo Payments checkout. After payment, you&#39;ll return to Dashboard → Settings.
+    <AppShell>
+      <main className="space-y-12">
+        {/* Header */}
+        <div className="text-center max-w-2xl mx-auto">
+          <span className="eyebrow mx-auto justify-center">
+            <Sparkles size={13} /> Transparent Pricing
+          </span>
+          <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+            Start Free. Upgrade for Scale.
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-slate-600">
+            Never lose another customer to avoidable setup blockers. Unlock full AI Copilot synthesis when you are ready.
           </p>
         </div>
-      </div>
 
-      <p className="mt-10 text-center text-xs text-[#9CA3AF]">
-        Need help? Visit Dashboard → Settings to access the customer portal after subscribing.
-      </p>
-    </main>
+        {/* Pricing Cards */}
+        <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+          {/* Free Tier */}
+          <div className="rounded-3xl border border-sky-100 bg-white p-8 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 font-mono">Starter</span>
+                <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-mono text-slate-600">
+                  Forever Free
+                </span>
+              </div>
+
+              <div className="mt-4 flex items-baseline gap-1">
+                <span className="text-4xl font-extrabold text-slate-900 tracking-tight">$0</span>
+                <span className="text-xs text-slate-500">/ month</span>
+              </div>
+              <p className="mt-2 text-xs text-slate-600">
+                Ideal for indie hackers and early-stage SaaS launching their first product loop.
+              </p>
+
+              <div className="mt-8 border-t border-slate-100 pt-6 space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-700 font-mono">What is included:</p>
+                <ul className="space-y-2.5 text-xs text-slate-600">
+                  {freeFeatures.map((f) => (
+                    <li key={f} className="flex items-center gap-2.5">
+                      <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-700">
+                        <Check size={10} />
+                      </div>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-slate-100">
+              <Link href="/signup" className="btn w-full justify-center text-xs py-2.5">
+                Get started free
+              </Link>
+            </div>
+          </div>
+
+          {/* Pro Tier (Light blue gradient) */}
+          <div className="relative rounded-3xl border border-sky-300 bg-gradient-to-b from-sky-50/90 via-white to-blue-50/40 p-8 shadow-md flex flex-col justify-between overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-300 to-transparent" />
+
+            <div className="relative">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-sky-700 font-mono">Growth Pro</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 border border-sky-200 px-2.5 py-0.5 text-[10px] font-bold text-sky-800">
+                  <Sparkles size={10} /> Recommended
+                </span>
+              </div>
+
+              <div className="mt-4 flex items-baseline gap-1">
+                <span className="text-4xl font-extrabold text-slate-900 tracking-tight">$49</span>
+                <span className="text-xs text-slate-500">/ month</span>
+              </div>
+              <p className="mt-2 text-xs text-slate-600">
+                For growth-stage AI startups that need continuous user memory and autonomous drop-off recovery.
+              </p>
+
+              <div className="mt-8 border-t border-sky-100 pt-6 space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-sky-800 font-mono">Everything in Free, plus:</p>
+                <ul className="space-y-2.5 text-xs text-slate-700">
+                  {proFeatures.map((f) => (
+                    <li key={f} className="flex items-center gap-2.5">
+                      <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 border border-sky-200">
+                        <Check size={10} />
+                      </div>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="relative mt-8 pt-6 border-t border-sky-100">
+              <UpgradeButton />
+            </div>
+          </div>
+        </div>
+      </main>
+    </AppShell>
   );
 }

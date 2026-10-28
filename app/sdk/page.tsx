@@ -1,5 +1,14 @@
 'use client';
-import Link from 'next/link';
+
 import { AppShell } from '@/components/app-shell';
-import InstallationGuide from '@/components/installation-guide';
-export default function SdkPage(){return <AppShell><main className="page-wrap"><p className="eyebrow">Developer guide</p><h1 className="page-title">From action to insight.</h1><p className="page-description">Send events with direct HTTP today. Create a public key in Settings to connect your product.</p><InstallationGuide creatingKey={false} onCreatePublicKey={()=>{location.href='/settings';}}/><div className="mt-8 grid gap-4 sm:grid-cols-3">{[['01','Identify an action','Use a clear event name such as report_exported and a stable user ID.'],['02','Send it safely','Never send passwords, messages or tokens in properties. URLs lose queries and fragments.'],['03','Follow the journey','See your events and activation milestones in the dashboard.']].map(([n,title,body])=><section className="panel" key={n}><span className="eyebrow">{n}</span><h2 className="mt-3 font-semibold">{title}</h2><p className="mt-2 text-sm leading-6 text-slate-500">{body}</p></section>)}</div><Link href="/settings" className="btn btn-primary mt-8">Connect your app →</Link><p className="mt-5 text-xs text-slate-500">Browser apps on another domain need that origin allowed in SDK_CORS_ORIGINS. SDK packages are coming soon, not published yet.</p></main></AppShell>}
+import DocsHub from '@/components/docs-hub';
+
+export default function SdkPage() {
+  return (
+    <AppShell>
+      <main>
+        <DocsHub />
+      </main>
+    </AppShell>
+  );
+}

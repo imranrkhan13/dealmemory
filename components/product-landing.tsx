@@ -1135,7 +1135,7 @@ return (
                     <Link href="/signup" className="inline-flex items-center gap-2 rounded-lg bg-white px-7 py-3.5 text-base font-semibold text-[#15181D] hover:bg-white/90 transition-colors">
                         Create your project <ArrowRight size={17} />
                     </Link>
-                    <Link href="/sdk" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-7 py-3.5 text-base font-semibold text-white hover:bg-white/10 transition-colors">
+                    <Link href="/docs" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-7 py-3.5 text-base font-semibold text-white hover:bg-white/10 transition-colors">
                         Read the SDK docs <ArrowUpRight size={15} className="opacity-60" />
                     </Link>
                 </div>

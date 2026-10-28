@@ -3,23 +3,23 @@ import "./globals.css";
 import Providers from "./providers";
 
 export const metadata: Metadata = {
-    title: "AgentLens · Product actions for founders",
-    description: "See privacy-safe product actions without wrestling with analytics tooling.",
-    icons: { icon: "/favicon.svg" }
+  title: "DealMemory · Activation Memory & Copilot for AI SaaS",
+  description: "Remember user goals, detect onboarding friction, and guide users to real value before checkout.",
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    return (
-        <html lang="en">
-            <body>
-                <Providers>
-                    {children}
-                </Providers>
-            </body>
-        </html>
-    );
+  return (
+    <html lang="en">
+      <body className="min-h-screen bg-[#f8fafc] text-slate-900 antialiased selection:bg-sky-500/20 selection:text-sky-900">
+        <Providers>
+          {children}
+        </Providers>
+      </body>
+    </html>
+  );
 }

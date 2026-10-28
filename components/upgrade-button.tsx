@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
+import { Sparkles, Loader2, AlertCircle } from 'lucide-react';
 
 type Props = {
   label?: string;
@@ -49,14 +50,29 @@ export default function UpgradeButton({ label = 'Upgrade to Pro', className }: P
   return (
     <div className={className}>
       <button
-        className="btn btn-primary w-full"
+        className="btn btn-primary w-full flex items-center justify-center gap-2 py-3 shadow-md transition-all duration-200"
         onClick={onClick}
         disabled={loading}
         aria-busy={loading}
       >
-        {loading ? 'Redirecting…' : label}
+        {loading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin text-white" />
+            <span>Redirecting to Checkout…</span>
+          </>
+        ) : (
+          <>
+            <Sparkles className="h-4 w-4 text-white" />
+            <span>{label}</span>
+          </>
+        )}
       </button>
-      {err ? <p className="mt-2 text-sm text-red-600">{err}</p> : null}
+      {err ? (
+        <div className="mt-3 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+          <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+          <span>{err}</span>
+        </div>
+      ) : null}
     </div>
   );
 }

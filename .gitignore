@@ -29,3 +29,4 @@ __pycache__/
 .DS_Store
 .vercel
 .env*
+!.env.example

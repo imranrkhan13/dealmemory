@@ -10,6 +10,8 @@ const PUBLIC_PAGE_PATHS = new Set<string>([
   '/login',
   '/signup',
   '/demo',
+  '/docs',
+  '/sdk',
 ]);
 
 const PUBLIC_API_PREFIXES = [
@@ -21,8 +23,8 @@ const PUBLIC_API_PREFIXES = [
 const PROTECTED_PAGE_PREFIXES = [
   '/overview',
   '/journeys',
+  '/events',
   '/settings',
-  '/sdk',
   '/billing',
   '/dashboard',
 ];
@@ -71,8 +73,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Public pages
-  if (PUBLIC_PAGE_PATHS.has(pathname)) {
+  // Public pages - never require authentication
+  if (
+    PUBLIC_PAGE_PATHS.has(pathname) ||
+    pathname.startsWith('/docs') ||
+    pathname.startsWith('/sdk')
+  ) {
     return NextResponse.next();
   }
 
