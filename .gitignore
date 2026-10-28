@@ -2,7 +2,10 @@ node_modules
 .next
 .env.local
 .env
-data/store.json
+data/
+cookies.txt
+*.db
+*.tsbuildinfo
 # Supermemory local runtime
 .supermemory/
 
