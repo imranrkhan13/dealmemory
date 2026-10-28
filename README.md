@@ -1,160 +1,216 @@
-# AgentLens
+# DealMemory™
 
-AgentLens is a founder-friendly product action dashboard. Sign in, copy the npm or pip setup from Settings, and watch real user actions arrive in Events and Journeys. No data is seeded automatically.
+> **Product Memory & Real-Time Activation Engine for SaaS and AI Agents**
 
-## Quick start
+DealMemory turns raw user actions into continuous customer memory. It reconstructs user journeys from client events, pinpoints onboarding drop-offs, and powers personalized activation flows without invasive session replays or heavy tracking bundles.
+
+Built with Next.js 14, PostgreSQL, Prisma ORM, and a sleek **white and light-blue** console design inspired by [Supermemory.ai](https://supermemory.ai).
+
+---
+
+## ⚡️ Quickstart
+
+Get a local instance running in under 2 minutes:
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/your-org/dealmemory.git
+cd dealmemory
+
+# 2. Install dependencies
 npm install
+
+# 3. Copy environment template & configure
+cp .env.example .env
+
+# 4. Initialize local PostgreSQL schema
+npx prisma db push
+
+# 5. Start development server
 npm run dev
 ```
 
-1. Open `/signup` and create a workspace.
-2. Open `/settings` and create or reveal a public `pk_` project key.
-3. Copy the ready-to-use npm or pip snippet into your app.
+Visit [http://localhost:3000](http://localhost:3000):
+- Create your administrator workspace at `/signup`.
+- Generate your public `pk_live_...` project key in `/settings`.
+- Send events and watch the `/overview` dashboard update live.
 
-JavaScript:
+---
 
-```ts
-import { AgentLens } from 'agentlens';
+## 📖 Complete Documentation
 
-const agentlens = new AgentLens({ projectKey: 'pk_live_…', apiUrl: 'http://localhost:3000/api' });
-agentlens.identify(user.id);
-agentlens.track('trial_started');
+| Guide | Description |
+| :--- | :--- |
+| [**Installation & Self-Hosting Guide**](docs/INSTALLATION.md) | PostgreSQL setup, Docker, Prisma migrations, environment variables, and production deployment. |
+| [**Client SDK & Integration Guide**](docs/SDK-GUIDE.md) | TypeScript, Python, cURL, standard milestone catalog, edge privacy redaction, and offline queues. |
+| [**API Reference**](docs/API-REFERENCE.md) | Batch ingestion endpoints, idempotency, keys API, Dodo Payments, and webhooks. |
+| [**Console User Guide**](docs/CONSOLE-GUIDE.md) | Walkthrough of the Supermemory-style dashboard, metric cards, 30-day timeline charts, and journeys. |
+
+---
+
+## 📦 Client SDK Installation & Integration
+
+DealMemory provides client libraries with **zero external tracking bloat**, **edge credential sanitization**, and **idempotent delivery**.
+
+### 1. Zero-Dependency cURL / Native Fetch
+
+You can emit milestone events over HTTP without installing any package:
+
+```typescript
+const response = await fetch('http://localhost:3000/api/v1/events/batch', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-project-key': 'pk_live_your_key_here'
+  },
+  body: JSON.stringify({
+    events: [
+      {
+        id: crypto.randomUUID(),
+        projectKey: 'pk_live_your_key_here',
+        name: 'trial_started',
+        userId: 'user_48291',
+        occurredAt: new Date().toISOString(),
+        properties: { plan: 'pro_trial', source: 'pricing_page' }
+      }
+    ]
+  })
+});
 ```
 
-Python:
-
-```py
-from agentlens import AgentLens
-
-agentlens = AgentLens(project_key='pk_live_…', api_url='http://localhost:3000/api')
-agentlens.identify(user.id)
-agentlens.track('report_exported', {'format': 'pdf'})
-```
-
-4. Open `/events` to see actions arriving, or `/journeys` to see them grouped by user.
-
-For a browser app hosted on another domain, set `SDK_CORS_ORIGINS` to a comma-separated list of allowed app origins, such as `https://app.example.com`.
-
-## Product model
-
-- `/` is the marketing site.
-- `/overview` is project-gated and summarizes real incoming data.
-- `/events` lists up to 500 recent SDK actions, with their safe metadata.
-- `/journeys` reconstructs user paths from ordered events.
-- `/settings` exposes project keys and webhook configuration.
-
-Supermemory is optional, server-side customer context for goals, objections, and support outcomes. Dodo is optional, server-side activation-gated checkout; payments are accepted only through signed webhook verification.
-
-## Billing with Dodo Payments
-
-This app integrates Dodo Payments for subscriptions (Free and Pro).
-
-- Pricing page: [`app/pricing/page.tsx`](app/pricing/page.tsx)
-- Upgrade button: [`components/upgrade-button.tsx`](components/upgrade-button.tsx)
-- API routes:
-  - Create Checkout Session: [`app/api/billing/checkout/route.ts`](app/api/billing/checkout/route.ts)
-  - Customer Portal: [`app/api/billing/customer-portal/route.ts`](app/api/billing/customer-portal/route.ts)
-  - Get Current Subscription: [`app/api/billing/subscription/route.ts`](app/api/billing/subscription/route.ts)
-  - Cancel Subscription: [`app/api/billing/subscription/cancel/route.ts`](app/api/billing/subscription/cancel/route.ts)
-- Webhook (signature verified + idempotent): [`app/api/webhooks/dodo/route.ts`](app/api/webhooks/dodo/route.ts)
-- Helpers for gating:
-  - [`lib/billing.ts`](lib/billing.ts) exports [`isProUser()`](lib/billing.ts:10) and [`requirePro()`](lib/billing.ts:28)
-
-### Environment variables
-
-Configure these in `.env` (test mode by default):
-
-- DODO_API_KEY (fallbacks supported: DODOPAYMENTSAPIKEY, DODO_PAYMENTS_API_KEY)
-- DODO_WEBHOOK_SECRET (fallbacks supported: DODOWEBHOOKSECRET, DODO_PAYMENTS_WEBHOOK_SECRET)
-- DODO_PRODUCT_ID (fallback: DODOPRODUCTID) — Pro product id
-- DODO_PRICE_ID (optional, fallback: DODOPRICEID) — if using price-based checkout
-- NEXT_PUBLIC_APP_URL — e.g. http://localhost:3000
-- DODO_ENVIRONMENT — test_mode (default) or live_mode
-
-Return URL after successful checkout: `${NEXT_PUBLIC_APP_URL}/dashboard/settings`
-
-The Dodo client and env mapping live in [`lib/dodo.ts`](lib/dodo.ts).
-
-### Database mapping
-
-We reuse the existing Prisma Subscription model:
-
-- dodoCustomerId → dodo_customer_id
-- dodoSubscriptionId → subscription_id
-- status → subscription_status
-- dodoProductId → current_plan
-- currentPeriodEnd → next_billing_date
-
-Normalization helper: [`normalizeFromPrisma()`](lib/dodo.ts:34).
-
-### Webhook security
-
-- Uses Standard Webhooks headers: `webhook-id`, `webhook-signature`, `webhook-timestamp`
-- Verifies raw body with `standardwebhooks`
-- Idempotency via `DodoWebhookEvent` table (`eventId` unique)
-- Updates/creates `Subscription` for events like:
-  - `subscription.active`, `subscription.renewed`, `subscription.cancelled`, `subscription.updated`
-
-Docs references:
-- Checkout Sessions: https://docs.dodopayments.com/developer-resources/checkout-session
-- Next.js Adaptor (Customer Portal, Webhooks): https://docs.dodopayments.com/developer-resources/nextjs-adaptor
-- Customer Portal API: https://docs.dodopayments.com/api-reference/customers/create-customer-portal-session
-- Subscription webhooks: https://docs.dodopayments.com/developer-resources/webhooks/intents/subscription
-- Webhooks guide and verification: https://docs.dodopayments.com/developer-resources/webhooks
-
-### Protecting premium features
-
-Use the helpers from [`lib/billing.ts`](lib/billing.ts):
-
-- Server/API routes: call [`requirePro(userId)`](lib/billing.ts:28) to enforce Pro.
-- Server utilities: call [`isProUser(userId)`](lib/billing.ts:10) to check access.
-
-Examples (pseudo):
-- Unlimited AI journeys → guard write-heavy routes with `requirePro`
-- Unlimited Supermemory retrieval → guard retrieval endpoint
-- Team workspaces / Advanced AI insights / API access → guard respective routes
-
-Note: We intentionally did not add a global `middleware.ts` to avoid breaking existing demo flows. Apply gating where needed.
-
-### Sandbox testing
-
-1) Create a user and sign in (NextAuth credentials).
-2) Visit `/pricing` and click Upgrade to Pro.
-3) Complete Dodo checkout in test mode.
-4) Ensure your webhook endpoint is configured to POST to `/api/webhooks/dodo` with the correct secret.
-5) After webhook delivery, open `/settings`:
-   - Status should show `active` or `renewed`
-   - Manage subscription via “Manage subscription” (Customer Portal)
-   - Try Cancel immediately to test `subscription.cancelled`
-
-Troubleshooting:
-- Missing checkout URL → verify `DODO_PRODUCT_ID` and API key.
-- 401 on webhook → verify `DODO_WEBHOOK_SECRET` and headers.
-- Not resolving user on webhook → ensure checkout `metadata.user_id` is set (done by our checkout route).
-
-### Production rollout
-
-- Switch `DODO_ENVIRONMENT=live_mode` and use live API key and product/price IDs.
-- Keep using NEXT_PUBLIC_APP_URL with your production domain.
-- Monitor webhook deliveries; store `webhook-id` for idempotency (already implemented).
-- Ensure PCI compliance: Never handle raw card data; Dodo hosted checkout handles it.
-- Add observability on billing routes + webhook (logging, trace ids).
-- Rotate webhook secret periodically.
-
-## Privacy
-
-The browser SDK automatically records page views, clicks, and form submissions, plus the explicit product events you add. It filters sensitive property names and never captures passwords, form values, arbitrary page text, screen recordings, or session replay data.
-
-## Honest limitations
-
-This prototype uses JSON persistence and local browser project selection; it does not implement production authentication, team roles, or durable secret management. Supermemory and Dodo need environment credentials before their provider requests can be tested.
+### 2. TypeScript / JavaScript Web SDK
 
 ```bash
-npm run lint
+npm install ./packages/sdk
+# or npm install @dealmemory/sdk
+```
+
+```typescript
+import { DealMemory } from '@dealmemory/sdk';
+
+const dm = new DealMemory({
+  projectKey: 'pk_live_your_key_here',
+  apiUrl: 'http://localhost:3000/api',
+  flushIntervalMs: 5000,
+  autoCapture: true
+});
+
+// Identify user on authentication
+dm.identify('user_48291', { company: 'Acme Inc' });
+
+// Track product milestones
+dm.trialStarted();
+dm.setGoal('connect_github_repo');
+dm.integrationConnected({ provider: 'github' });
+dm.firstValueReached();
+```
+
+### 3. Python SDK
+
+```bash
+pip install ./packages/python
+```
+
+```python
+from agentlens import DealMemory
+
+dm = DealMemory(
+    project_key="pk_live_your_key_here",
+    api_url="http://localhost:3000/api"
+)
+
+dm.identify("user_48291")
+dm.track("report_generated", {"format": "pdf", "pages": 14})
+```
+
+---
+
+## 🛡️ Edge Privacy & Credential Redaction
+
+DealMemory enforces zero-trust privacy rules at both client and server layers:
+
+- **Automatic Credential Sanitization**: Bearer tokens, JWTs, API keys (`pk_live_`, `sk_live_`), and private keys are detected and rejected.
+- **Sensitive Key Exclusion**: Properties named `password`, `token`, `secret`, `message`, or `value` are automatically blocked.
+- **Query Parameter Stripping**: URLs and referrers have query parameters (`?token=...`, `?code=...`) stripped before transmission.
+- **No Keystroke / Screen Recording**: DealMemory never records user inputs, form values, or screen video.
+
+---
+
+## 🖥️ Supermemory-Style Console Dashboard
+
+The DealMemory console replicates the clean, minimalist look of `console.supermemory.ai`:
+
+- **Split Navigation**: Public visitors see only public pages (`Demo`, `Pricing`, `Docs`, `Sign in`, `Get started`). The full operational console activates after sign-in.
+- **Sidebar Organization**:
+  - `Overview`: Live metrics, 30-day vertical request bar chart, namespace distributions, recent memories, and search latencies.
+  - `DATA`: Namespaces, Memory Graph, Connectors, Import.
+  - `DEVELOPER`: API Keys, Agents & MCP, Requests (Event Inspector), User Insights.
+- **Top Header**: Workspace selector (`[F] Fella Free ⌵`), Help, and Documentation shortcut.
+
+---
+
+## 💳 Billing with Dodo Payments
+
+DealMemory includes native billing integration with **Dodo Payments**:
+
+- **Pricing Page**: `/pricing` with Free and Pro tiers.
+- **Checkout Session API**: `/api/billing/checkout` generates hosted checkout sessions.
+- **Customer Portal API**: `/api/billing/customer-portal` allows users to manage payment methods and cancellation.
+- **Webhook Verifier**: `/api/webhooks/dodo` validates standard webhook signatures using `standardwebhooks` with atomic deduplication.
+- **Feature Gating**: Enforce Pro limits in server routes via `requirePro(userId)` and `isProUser(userId)` from `lib/billing.ts`.
+
+---
+
+## 🧪 Testing & Verification
+
+Run the comprehensive test suites:
+
+```bash
+# Type check and code standards
 npm run typecheck
+npm run lint
+
+# Run unit tests
+npm test
+
+# Run database integration tests
+npm run test:integration
+
+# Run multi-tenant HTTP isolation test
+npx tsx scripts/test-two-accounts.mjs
+
+# Build production bundle
 npm run build
 ```
 
-Local schema setup: set DATABASE_URL to a localhost database named dm_test_core, then `npm run db:migrate:deploy`. Existing databases created with db push require the baseline procedure in [production migration notes](docs/MIGRATING-PRODUCTION.md), after owner approval and backup.
+---
+
+## 📂 Project Structure
+
+```
+dealmemory/
+├── app/                      # Next.js App Router (pages, layouts, API routes)
+│   ├── (public)/             # Landing, Demo, Pricing, Docs (/sdk), Login, Signup
+│   ├── overview/             # Supermemory Console Overview dashboard
+│   ├── events/               # Telemetry Requests & raw event inspector
+│   ├── journeys/             # User journey reconstruction & drop-off analysis
+│   ├── settings/             # Workspace API keys, webhooks, billing
+│   └── api/                  # REST endpoints (events, keys, billing, webhooks)
+├── components/               # React UI components (AppShell, Overview, Guides)
+├── docs/                     # Detailed architectural and user documentation
+│   ├── INSTALLATION.md       # Self-hosting, Docker, and PostgreSQL guide
+│   ├── SDK-GUIDE.md          # TypeScript, Python, and cURL SDK documentation
+│   ├── API-REFERENCE.md      # Full REST API & Webhook specifications
+│   └── CONSOLE-GUIDE.md      # Console UI and metric walkthrough
+├── lib/                      # Core business logic, db client, billing, privacy
+├── packages/
+│   ├── sdk/                  # TypeScript / JavaScript client library
+│   └── python/               # Python client library
+└── prisma/                   # Database schema & migrations
+```
+
+---
+
+## License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.

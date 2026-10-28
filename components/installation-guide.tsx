@@ -94,7 +94,7 @@ export default function InstallationGuide({
             <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
             <span className="ml-2 font-mono text-[11px] text-slate-400">
-              {runtime === 'fetch' ? 'agentlens.ts' : runtime === 'curl' ? 'curl.sh' : 'agentlens.py'}
+              {runtime === 'fetch' ? 'dealmemory.ts' : runtime === 'curl' ? 'curl.sh' : 'dealmemory.py'}
             </span>
           </div>
 

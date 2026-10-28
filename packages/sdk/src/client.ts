@@ -171,5 +171,8 @@ export class AgentLens {
   private persist() { this.queue=this.queue.slice(-1000); try { localStorage.setItem(storageKey(this.options.projectKey, 'queue'), JSON.stringify(this.queue)); } catch { /* Storage can be unavailable or full. In-memory delivery still works. */ } }
 }
 
-/** @deprecated Use AgentLens. Kept so existing integrations continue to work. */
+/** DealMemory is the primary client for product activation and event tracking. */
+export const DealMemory = AgentLens;
+
+/** @deprecated Use DealMemory or AgentLens. Kept so existing integrations continue to work. */
 export const ActivationMemory = AgentLens;

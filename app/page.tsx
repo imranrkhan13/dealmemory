@@ -21,9 +21,9 @@ import { useState } from 'react';
 export default function Page() {
   const [copied, setCopied] = useState(false);
 
-  const codeSnippet = `import { AgentLens } from '@dealmemory/sdk';
+  const codeSnippet = `import { DealMemory } from '@dealmemory/sdk';
 
-const dm = new AgentLens({ projectKey: 'pk_live_production' });
+const dm = new DealMemory({ projectKey: 'pk_live_production' });
 
 // Record trial start with user intent
 dm.trialStarted({
