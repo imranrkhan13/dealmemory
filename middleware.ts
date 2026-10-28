@@ -21,6 +21,7 @@ const PUBLIC_API_PREFIXES = [
 const PROTECTED_PAGE_PREFIXES = [
   '/overview',
   '/journeys',
+  '/events',
   '/settings',
   '/sdk',
   '/billing',
