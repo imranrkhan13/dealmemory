@@ -1,88 +1,18 @@
 'use client';
-
-import { useEffect, useMemo, useState } from 'react';
-import { Check, Copy } from 'lucide-react';
-
-type Runtime = 'javascript' | 'python';
-
-type Props = {
-  publicKey?: string | null;
-  creatingKey: boolean;
-  onCreatePublicKey: () => void;
-};
-
-export default function InstallationGuide({ publicKey, creatingKey, onCreatePublicKey }: Props) {
-  const [runtime, setRuntime] = useState<Runtime>('javascript');
-  const [apiUrl, setApiUrl] = useState('https://your-agentlens-domain/api');
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    setApiUrl(`${window.location.origin}/api`);
-  }, []);
-
-  const key = publicKey ?? '<YOUR_PUBLIC_KEY>';
-  const code = useMemo(() => {
-    if (runtime === 'python') {
-      return `pip install agentlens
-
-from agentlens import AgentLens
-
-agentlens = AgentLens(
-    project_key='${key}',
-    api_url='${apiUrl}',
-)
-agentlens.identify('user_123')
-agentlens.track('report_exported', {'format': 'pdf'})`;
-    }
-
-    return `npm install agentlens
-
-import { AgentLens } from 'agentlens';
-
-const agentlens = new AgentLens({
-  projectKey: '${key}',
-  apiUrl: '${apiUrl}',
-});
-
-agentlens.identify(user.id);
-agentlens.track('trial_started');
-// Page views, clicks, and form submissions are captured safely by default.`;
-  }, [apiUrl, key, runtime]);
-
-  const copy = async () => {
-    await navigator.clipboard.writeText(code).catch(() => undefined);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
-  };
-
-  return (
-    <section className="mt-8 rounded-xl border border-[#C7D2FE] bg-[#F8FAFF] p-5">
-      <p className="text-sm font-semibold text-[#4F46E5]">Connect your product</p>
-      <h2 className="mt-1 text-xl font-semibold">Copy this into your app.</h2>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6B6B]">
-        AgentLens uses your public project key to collect page views, clicks, form submissions, and the custom events you add. It never records form values or session replay.
-      </p>
-
-      <div className="mt-5 flex flex-wrap items-center gap-2">
-        <button className={`btn ${runtime === 'javascript' ? 'btn-primary' : ''}`} onClick={() => setRuntime('javascript')}>JavaScript / npm</button>
-        <button className={`btn ${runtime === 'python' ? 'btn-primary' : ''}`} onClick={() => setRuntime('python')}>Python / pip</button>
-        {!publicKey ? <button className="btn ml-auto" onClick={onCreatePublicKey} disabled={creatingKey}>{creatingKey ? 'Creating key…' : 'Create public key'}</button> : null}
-      </div>
-
-      <div className="relative mt-4">
-        <pre className="mono overflow-x-auto rounded-lg bg-[#171717] p-5 pr-24 text-sm leading-6 text-[#F4F4F2]">{code}</pre>
-        <button className="btn absolute right-3 top-3 bg-white" onClick={() => void copy()}>
-          {copied ? <Check size={15} /> : <Copy size={15} />}{copied ? 'Copied' : 'Copy'}
-        </button>
-      </div>
-
-      {!publicKey ? <p className="mt-3 text-xs text-[#B45309]">Create a public key to replace the placeholder before copying. Public keys are safe for browser and app code; secret keys are not.</p> : null}
-      <ol className="mt-5 grid gap-3 text-sm text-[#4B5563] md:grid-cols-3">
-        <li><b className="text-[#29221D]">1. Install</b><br />Run the first line in your project.</li>
-        <li><b className="text-[#29221D]">2. Paste</b><br />Initialize AgentLens once when your app starts.</li>
-        <li><b className="text-[#29221D]">3. Watch</b><br />Return to Events to see actions arrive.</li>
-      </ol>
-      {runtime === 'javascript' ? <p className="mt-4 text-xs leading-5 text-[#6B7280]">For a browser app on another domain, add that app&apos;s origin to <code>SDK_CORS_ORIGINS</code> on your AgentLens deployment (for example, <code>https://app.example.com</code>).</p> : null}
-    </section>
-  );
+import { useEffect,useState } from 'react';
+import { Check,Copy,Terminal } from 'lucide-react';
+import { sdkInstall,installSnippet,SnippetRuntime } from '@/lib/sdk-install';
+export default function InstallationGuide({publicKey,creatingKey,onCreatePublicKey}:{publicKey?:string|null;creatingKey:boolean;onCreatePublicKey:()=>void}) {
+  const [runtime,setRuntime]=useState<SnippetRuntime>('fetch');
+  const [apiUrl,setApiUrl]=useState('/api');
+  const [copied,setCopied]=useState(false);
+  const [copyError,setCopyError]=useState(false);
+  useEffect(()=>setApiUrl(`${location.origin}/api`),[]);
+  const code=installSnippet(runtime,apiUrl,publicKey||undefined);
+  return <section className="mt-8 overflow-hidden rounded-2xl border border-indigo-200 bg-white shadow-sm">
+    <div className="p-6 sm:p-8"><p className="eyebrow"><Terminal size={14}/> Your first event</p><h2 className="mt-3 text-2xl font-semibold tracking-tight">A few lines. A clearer picture.</h2><p className="mt-2 text-sm leading-6 text-slate-500">Send a product action from your app. No package installation needed.</p>
+    <div className="mt-6 flex flex-wrap items-center gap-2">{(['fetch','curl','python'] as const).map(t=><button key={t} aria-pressed={runtime===t} className={`btn ${runtime===t?'btn-primary':''}`} onClick={()=>setRuntime(t)}>{t==='fetch'?'JavaScript':t==='curl'?'cURL':'Python'}</button>)}{!publicKey&&<button className="btn ml-auto" onClick={onCreatePublicKey} disabled={creatingKey}>{creatingKey?'Creating…':'Create public key'}</button>}</div></div>
+    <div className="relative bg-[#141c2d] p-5 pt-16 sm:p-7 sm:pt-16"><button className="absolute right-4 top-3 rounded-lg bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20" onClick={async()=>{try{await navigator.clipboard.writeText(code);setCopied(true);setCopyError(false);setTimeout(()=>setCopied(false),1800);}catch{setCopyError(true);}}}>{copied?<Check className="mr-2 inline" size={13}/>:<Copy className="mr-2 inline" size={13}/>} {copied?'Copied':'Copy snippet'}</button><pre className="overflow-x-auto text-xs leading-6 text-indigo-100 sm:text-sm">{code}</pre></div>
+    <p className="px-6 py-4 text-xs leading-5 text-slate-500" role="status">{copyError?'Copy unavailable. Select and copy the snippet above.':!publicKey?'Create a public key, then copy your snippet. Full keys are shown once.':'Your new key is filled in. Save it now; only the prefix is stored.'} {!sdkInstall.published&&'npm and pip packages: coming soon, not published yet.'}</p>
+  </section>;
 }

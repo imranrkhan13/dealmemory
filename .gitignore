@@ -2,7 +2,10 @@ node_modules
 .next
 .env.local
 .env
-data/store.json
+data/
+cookies.txt
+*.db
+*.tsbuildinfo
 # Supermemory local runtime
 .supermemory/
 
@@ -19,6 +22,8 @@ node_modules/
 
 # Logs
 *.log
+__pycache__/
+*.pyc
 
 # macOS
 .DS_Store

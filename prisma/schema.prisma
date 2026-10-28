@@ -78,6 +78,7 @@ model ProjectApiKey {
   revokedAt  DateTime?
 
   @@unique([projectId, keyPrefix])
+  @@unique([keyPrefix])
 }
 
 model TrialUser {
@@ -107,8 +108,15 @@ model ActivationEvent {
   receivedAt    DateTime @default(now())
   isValid       Boolean  @default(true)
   invalidReason String?
+  anonymousId   String?
+  url           String?
+  referrer      String?
+  payloadHash   String?
 
   @@unique([projectId, eventId])
+  @@index([projectId, occurredAt])
+  @@index([projectId, trialUserId, occurredAt])
+  @@index([projectId, name])
 }
 
 model Subscription {

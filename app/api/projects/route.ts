@@ -20,8 +20,6 @@ export async function POST(req: Request) {
 	const user = await prisma.user.findUnique({ where: { email: session.user.email } });
 	if (!user) return error('Authenticated user not found', 401);
 
-	const { generateProjectKey } = await import('@/lib/keys');
-	const publicKey = await generateProjectKey('pk_live');
 	const slugBase = body.data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 	const slug = `${slugBase || 'project'}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -30,12 +28,11 @@ export async function POST(req: Request) {
 			name: body.data.name,
 			slug,
 			ownerId: user.id,
-			apiKeys: { create: { keyPrefix: publicKey.prefix, keyHash: publicKey.keyHash } },
 		},
 		include: { apiKeys: true },
 	});
 
-	return ok({ project: { id: project.id, name: project.name, slug: project.slug }, rawKey: publicKey.raw });
+	return ok({ project: { id: project.id, name: project.name, slug: project.slug } });
 }
 
 export async function GET(req: Request) {
@@ -69,28 +66,7 @@ export async function GET(req: Request) {
       select: { id: true, name: true, slug: true, createdAt: true },
     });
 
-    // Generate initial public and secret keys
-    const { generateProjectKey } = await import('@/lib/keys');
-    const pub = await generateProjectKey('pk_live');
-    const sec = await generateProjectKey('sk_live');
-
-    await prisma.projectApiKey.createMany({
-      data: [
-        { projectId: created.id, keyPrefix: pub.prefix, keyHash: pub.keyHash },
-        { projectId: created.id, keyPrefix: sec.prefix, keyHash: sec.keyHash },
-      ],
-    });
-
     projects = [created];
-
-    // Manually create response to attach one-time onboarding cookie
-    const res = NextResponse.json({ ok: true, projects });
-    res.cookies.set(
-      'dm_onboard',
-      JSON.stringify({ projectId: created.id, publicKey: pub.raw, secretKey: sec.raw }),
-      { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 600 }
-    );
-    return res;
   }
 
   return ok({ projects });

@@ -1,5 +1,2 @@
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
-import { resetStore } from '@/lib/store'; import { ok } from '@/lib/api'; export async function POST() { return ok({ store: await resetStore() }); }
+export const dynamic='force-dynamic';
+export async function POST(){return Response.json({ok:false,error:'Legacy demo writes retired. View /demo for read-only sample data.'},{status:410});}

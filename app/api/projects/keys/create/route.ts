@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
   }
 
   const { projectId, kind } = body || ({} as Body);
-  if (!projectId || (kind !== 'pk_live' && kind !== 'sk_live')) {
-    return error('projectId and kind (pk_live|sk_live) are required', 400);
+  if (!projectId || kind !== 'pk_live') {
+    return error('projectId and kind pk_live are required', 400);
   }
 
   const owned = await prisma.project.findFirst({
