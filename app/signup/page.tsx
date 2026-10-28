@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { AppShell } from '@/components/app-shell';
 
@@ -10,11 +11,13 @@ export default function Signup() {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSignInError, setIsSignInError] = useState(false);
   const [busy, setBusy] = useState(false);
   const router = useRouter();
 
   const create = async () => {
     setError('');
+    setIsSignInError(false);
     setBusy(true);
     try {
       const r = await fetch('/api/auth/signup', {
@@ -30,7 +33,7 @@ export default function Signup() {
       // Auto sign-in then go to Settings to show API keys onboarding
       const res: any = await signIn('credentials', { redirect: false, email, password });
       if (res?.error) {
-        setError(res.error);
+        setIsSignInError(true);
         return;
       }
       router.push('/settings');
@@ -62,7 +65,17 @@ export default function Signup() {
           <button className="btn btn-primary mt-6" onClick={create} disabled={busy}>
             {busy ? 'Creating…' : 'Create account'}
           </button>
-          {error && <p className="mt-3 text-sm text-[#B91C1C]">{error}</p>}
+          {isSignInError ? (
+            <p className="mt-3 text-sm text-[#B91C1C]">
+              Could not sign you in. If you already have an account,{' '}
+              <Link href="/auth/signin" className="underline font-semibold hover:text-[#7F1D1D]">
+                sign in instead
+              </Link>
+              .
+            </p>
+          ) : error ? (
+            <p className="mt-3 text-sm text-[#B91C1C]">{error}</p>
+          ) : null}
         </div>
       </main>
     </AppShell>
