@@ -22,6 +22,8 @@ node_modules/
 
 # Logs
 *.log
+__pycache__/
+*.pyc
 
 # macOS
 .DS_Store
