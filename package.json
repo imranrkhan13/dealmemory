@@ -13,7 +13,9 @@
     "db:migrate": "prisma migrate dev --name init",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate",
-    "test:integration": "tsx test/integration.test.ts"
+    "test:integration": "tsx test/integration.test.ts",
+    "db:migrate:deploy": "node scripts/local-db.mjs",
+    "db:reset:local": "node scripts/local-db.mjs --reset"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",

@@ -156,3 +156,5 @@ npm run lint
 npm run typecheck
 npm run build
 ```
+
+Local schema setup: set DATABASE_URL to a localhost database named dm_test_core, then `npm run db:migrate:deploy`. Existing databases created with db push require the baseline procedure in [production migration notes](docs/MIGRATING-PRODUCTION.md), after owner approval and backup.
