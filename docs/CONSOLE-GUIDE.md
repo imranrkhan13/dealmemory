@@ -112,14 +112,20 @@ Inspect the raw stream of events arriving from your client apps:
 
 ---
 
-## 6. User Journeys & Funnel Insights
+## 6. Customer Memory, Timelines & Breakpoint Diagnosis
 
-- Access via `/journeys`.
-- Groups actions chronologically per unique user ID or anonymous session ID.
-- Automatically calculates:
-  - **Time-to-Value (TTV)**: Minutes elapsed from `trial_started` to `first_value_reached`.
-  - **Drop-Off Points**: Highlights where users stalled before completing onboarding.
-  - **Blocker Recovery**: Surfaces contextual suggestions to re-engage stuck users.
+Traditional product analytics tools tell you *how many* users did something. **DealMemory sits between product analytics and customer memory**: it shows *what a specific user did* and *what context your team should remember*.
+
+- Access via `/journeys` and `/journeys/[userId]`.
+- **Chronological Action Sequences**:
+  - Reconstructs every user's progression as a visual timeline (e.g. `User signed up` → `Opened dashboard` → `Created project` → `Attempted integration connection` → `Stopped`).
+- **Last Recorded Action**:
+  - Highlights the exact last action the user performed with relative timestamp (`14m ago`, `2h ago`) so founders never need to dig through raw logs.
+- **Where Onboarding Broke**:
+  - Pinpoints where the user stalled (e.g. `Integration connection failed: OAuth authorization error`, `Created project but stopped before connecting integration`, or `First value not reached`).
+- **Context the Team Should Remember (Customer Memory Capsule)**:
+  - Synthesizes the user's stated goal/intent, discovered tech stack, known friction points, and team action items.
+  - **Founder Notes**: Editable team memory notes persisted directly to PostgreSQL.
 
 ---
 

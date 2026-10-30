@@ -1,5 +1,15 @@
 import assert from 'assert';
-import { buildCanonicalJourney, blocker, normalizeEvents, recommendation, state } from '../lib/intelligence';
+import {
+  buildCanonicalJourney,
+  blocker,
+  normalizeEvents,
+  recommendation,
+  state,
+  buildTimelineSequence,
+  extractLastRecordedAction,
+  diagnoseOnboarding,
+  buildCustomerMemoryCapsule,
+} from '../lib/intelligence';
 import { projectKeyHasAnyPrefix, projectKeyPrefix } from '../lib/keys';
 import { signupSchema } from '../lib/auth';
 import { activationEventSchema, containsCredential, stripUrlQuery } from '@/packages/shared/src/events';
@@ -228,4 +238,49 @@ runTest('secret value scanner strips url query params before scanning', () => {
   });
   const parsed = activationEventSchema.safeParse(event);
   assert.strictEqual(parsed.success, true, 'Url with credentials only in query parameters must pass schema validation');
+});
+
+runTest('shows signup-dashboard-project-integration sequence as a timeline and detects breakpoint', () => {
+  // A user signs up, opens the dashboard, creates a project, tries to connect an integration, then stops.
+  const t0 = new Date('2026-10-30T10:00:00.000Z').toISOString();
+  const t1 = new Date('2026-10-30T10:02:00.000Z').toISOString();
+  const t2 = new Date('2026-10-30T10:05:00.000Z').toISOString();
+  const t3 = new Date('2026-10-30T10:08:00.000Z').toISOString();
+
+  const userEvents: ActivationEvent[] = [
+    buildEvent({ id: 'evt-1', name: 'user_signed_up', userId: 'usr_maya', occurredAt: t0, properties: { plan: 'trial' } }),
+    buildEvent({ id: 'evt-2', name: 'dashboard_opened', userId: 'usr_maya', occurredAt: t1, properties: { page: '/overview' } }),
+    buildEvent({ id: 'evt-3', name: 'project_created', userId: 'usr_maya', occurredAt: t2, properties: { name: 'Acme SaaS' } }),
+    buildEvent({ id: 'evt-4', name: 'integration_connect_attempted', userId: 'usr_maya', occurredAt: t3, properties: { provider: 'github', repo: 'acme/core' } }),
+  ];
+
+  // Timeline sequence
+  const timeline = buildTimelineSequence(userEvents);
+  assert.strictEqual(timeline.length, 4);
+  assert.strictEqual(timeline[0].readableName, 'Account registered');
+  assert.strictEqual(timeline[1].readableName, 'Opened workspace dashboard');
+  assert.strictEqual(timeline[2].readableName, 'Created new project');
+  assert.strictEqual(timeline[3].readableName, 'Attempted integration connection');
+  assert.strictEqual(timeline[3].isLast, true);
+
+  // Last recorded action
+  const lastAction = extractLastRecordedAction(userEvents);
+  assert.ok(lastAction);
+  assert.strictEqual(lastAction?.name, 'integration_connect_attempted');
+  assert.strictEqual(lastAction?.readableName, 'Attempted integration connection');
+  assert.strictEqual(lastAction?.properties.provider, 'github');
+
+  // Diagnosis: where onboarding broke
+  const diagnosis = diagnoseOnboarding(userEvents);
+  assert.strictEqual(diagnosis.stage, 'integration');
+  assert.strictEqual(diagnosis.isBroke, true);
+  assert.ok(diagnosis.brokeAt?.includes('Integration connection failed') || diagnosis.brokeAt?.includes('OAuth'));
+
+  // Customer memory capsule: context the team should remember
+  const memory = buildCustomerMemoryCapsule('usr_maya', userEvents, 'High-priority enterprise prospect');
+  assert.ok(memory.summary.includes('usr_maya'));
+  assert.ok(memory.summary.includes('Integration'));
+  assert.ok(memory.techStack.includes('github') || memory.techStack.includes('GitHub'));
+  assert.strictEqual(memory.founderNotes, 'High-priority enterprise prospect');
+  assert.ok(memory.suggestedAction.length > 0);
 });

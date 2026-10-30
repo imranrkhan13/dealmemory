@@ -37,7 +37,22 @@ export async function ingest(projectId: string, items: ActivationEvent[]) {
       const user=await tx.trialUser.findUniqueOrThrow({where:{projectId_externalUserId:{projectId,externalUserId}}});
       const hash=payloadHash(event);
       const inserted=await tx.activationEvent.createMany({data:[{projectId,eventId:event.id,trialUserId:user.id,sessionId:event.sessionId,name:event.name,properties:JSON.stringify(event.properties),occurredAt:new Date(event.occurredAt),anonymousId:event.anonymousId,url:cleanUrl(event.url),referrer:cleanUrl(event.referrer),payloadHash:hash}],skipDuplicates:true});
-      if (inserted.count) { fresh.push(event); continue; }
+      if (inserted.count) {
+        if (event.name === 'identified' || event.properties?.email || event.properties?.company || event.properties?.role || event.properties?.goal) {
+          try {
+            let existingTraits: Record<string, unknown> = {};
+            if (user.attributes) { try { existingTraits = JSON.parse(user.attributes); } catch {} }
+            const merged = { ...existingTraits, ...event.properties };
+            const emailCandidate = typeof event.properties?.email === 'string' ? event.properties.email : user.email;
+            await tx.trialUser.update({
+              where: { id: user.id },
+              data: { attributes: JSON.stringify(merged), ...(emailCandidate ? { email: emailCandidate } : {}) },
+            });
+          } catch {}
+        }
+        fresh.push(event);
+        continue;
+      }
       const previous=await tx.activationEvent.findUniqueOrThrow({where:{projectId_eventId:{projectId,eventId:event.id}},include:{trialUser:true}});
       const same=previous.payloadHash ? previous.payloadHash===hash : previous.name===event.name && previous.occurredAt.getTime()===new Date(event.occurredAt).getTime() && previous.trialUser.externalUserId===externalUserId;
       if (same) deduplicated++;

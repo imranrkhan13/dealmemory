@@ -2,7 +2,9 @@
 
 > **Product Memory & Real-Time Activation Engine for SaaS and AI Agents**
 
-DealMemory turns raw user actions into continuous customer memory. It reconstructs user journeys from client events, pinpoints onboarding drop-offs, and powers personalized activation flows without invasive session replays or heavy tracking bundles.
+DealMemory sits between **product analytics** and **customer memory**. Analytics tools tell you *how many* users did something; DealMemory reveals *what a specific user did* and *what context your team should remember*. 
+
+When a user signs up, opens the dashboard, creates a project, tries to connect an integration, then stops, DealMemory reconstructs that exact sequence as an interactive timeline. The founder can immediately see the user's last recorded action and diagnose where onboarding broke, without digging through server logs or guessing from generic dashboard metrics.
 
 Built with Next.js 14, PostgreSQL, Prisma ORM, and a sleek **white and light-blue** console design inspired by [Supermemory.ai](https://supermemory.ai).
 

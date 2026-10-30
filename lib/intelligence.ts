@@ -1,9 +1,33 @@
 import { ActivationEvent } from '@/packages/shared/src/events';
 import { analyzeJourney } from './product-intelligence';
 import { events } from './event-store';
-export { events, ingest } from './event-store';
+import { prisma } from './db';
+import {
+  extractLastRecordedAction,
+  diagnoseOnboarding,
+  buildTimelineSequence,
+  buildCustomerMemoryCapsule,
+  LastActionSummary,
+  OnboardingDiagnosis,
+  TimelineStep,
+  CustomerMemoryCapsule,
+} from './customer-memory';
 
-export type Journey = { userId: string; email: string; goal?: string; rawEvents: ActivationEvent[]; events: ActivationEvent[]; invalidEvents: ActivationEvent[] };
+export { events, ingest } from './event-store';
+export * from './customer-memory';
+
+export type Journey = {
+  userId: string;
+  email: string;
+  goal?: string;
+  rawEvents: ActivationEvent[];
+  events: ActivationEvent[];
+  invalidEvents: ActivationEvent[];
+  lastAction?: LastActionSummary | null;
+  onboardingDiagnosis?: OnboardingDiagnosis;
+  timeline?: TimelineStep[];
+  customerMemory?: CustomerMemoryCapsule;
+};
 const BLOCKER_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 export function normalizeEvents(events: ActivationEvent[]) {
@@ -160,12 +184,56 @@ export function inactiveHours(j: Journey) {
 
 export async function journeys(projectId: string) {
   const group = new Map<string, ActivationEvent[]>();
-  for (const event of await events(projectId)) {
+  const allEvents = await events(projectId);
+  for (const event of allEvents) {
     const id = event.userId ?? `anon:${event.anonymousId}`;
     group.set(id, [...(group.get(id) ?? []), event]);
   }
-  return Array.from(group.values()).map(items => {
+
+  // Load trial user attributes and custom founder notes if available
+  const notesMap = new Map<string, string>();
+  try {
+    const trialUsers = await prisma.trialUser.findMany({
+      where: { projectId },
+      select: { externalUserId: true, attributes: true },
+    });
+    for (const tu of trialUsers) {
+      if (tu.attributes) {
+        try {
+          const parsed = JSON.parse(tu.attributes);
+          if (parsed?.notes) notesMap.set(tu.externalUserId, String(parsed.notes));
+        } catch {}
+      }
+    }
+  } catch {}
+
+  return Array.from(group.entries()).map(([userId, items]) => {
     const journey = buildCanonicalJourney(items);
-    return { ...journey, memories: [], insights: analyzeJourney(journey, []), recommendation: recommendation(journey), state: state(journey), currentState: state(journey), blocker: blocker(journey), inactiveHours: inactiveHours(journey) };
+    const existingNotes = notesMap.get(userId);
+
+    const lastAction = extractLastRecordedAction(items);
+    const diagnosis = diagnoseOnboarding(items);
+    const timeline = buildTimelineSequence(items);
+    const customerMemory = buildCustomerMemoryCapsule(userId, items, existingNotes);
+
+    const baseState = state(journey);
+    const legacyBlocker = blocker(journey);
+    const finalBlocker = legacyBlocker ?? (diagnosis.isBroke ? diagnosis.brokeAt : undefined);
+    const finalRecommendation = recommendation(journey) ?? diagnosis.recommendation;
+
+    return {
+      ...journey,
+      memories: [],
+      insights: analyzeJourney(journey, []),
+      recommendation: finalRecommendation,
+      state: baseState,
+      currentState: baseState,
+      blocker: finalBlocker,
+      inactiveHours: inactiveHours(journey),
+      lastAction,
+      onboardingDiagnosis: diagnosis,
+      timeline,
+      customerMemory,
+    };
   });
 }
