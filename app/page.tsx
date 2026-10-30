@@ -79,10 +79,10 @@ dm.firstMapGenerated({
             </Link>
             <Link
               className="btn px-5 py-3 text-sm font-medium border border-slate-200 bg-white hover:bg-sky-50/60 hover:border-sky-300 text-slate-700 hover:text-sky-700 flex items-center gap-2 shadow-xs transition-all"
-              href="/demo"
+              href="/docs"
             >
-              <Play size={14} className="text-sky-600" />
-              <span>Explore live demo</span>
+              <span>Setup in 30 seconds</span>
+              <ArrowRight size={14} className="text-sky-600" />
             </Link>
             <Link
               className="btn px-5 py-3 text-sm font-medium border border-slate-200 bg-white hover:bg-sky-50/60 hover:border-sky-300 text-slate-700 hover:text-sky-700 shadow-xs transition-all"
