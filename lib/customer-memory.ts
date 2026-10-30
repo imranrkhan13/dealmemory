@@ -408,16 +408,22 @@ export function diagnoseOnboarding(events: ActivationEvent[]): OnboardingDiagnos
 
   // 4. Creation / Setup in progress:
   if (creationEvent) {
+    const hasDownstreamActions = events.length > sorted.findIndex((e) => e.name === creationEvent.event.name) + 1;
+    const isActuallyStalled = isAttemptWithoutCompletion || (!hasDownstreamActions && inactiveHours >= 1);
     return {
-      stage: 'creation',
-      stageLabel: getReadableEventName(creationEvent.event.name),
-      isBroke: isStalled,
-      brokeAt: isStalled ? `Halted after ${lastReadable}` : null,
-      summary: isStalled
-        ? `User performed "${getReadableEventName(creationEvent.event.name)}" but halted after "${lastReadable}" ${formatRelativeTime(last.occurredAt)}.`
+      stage: hasDownstreamActions ? 'activated' : 'creation',
+      stageLabel: hasDownstreamActions ? lastReadable : getReadableEventName(creationEvent.event.name),
+      isBroke: isActuallyStalled,
+      brokeAt: isActuallyStalled ? `Setup paused after ${lastReadable}` : null,
+      summary: hasDownstreamActions
+        ? `User configured "${getReadableEventName(creationEvent.event.name)}" and used downstream features (${lastReadable}) ${formatRelativeTime(last.occurredAt)}.`
+        : isActuallyStalled
+        ? `User performed "${getReadableEventName(creationEvent.event.name)}" but hasn't activated downstream features yet (${formatRelativeTime(last.occurredAt)}).`
         : `User is actively configuring setup (${lastReadable}).`,
-      progressPercent: Math.min(70, Math.max(30, events.length * 15)),
-      recommendation: `Prompt the next milestone action following ${lastReadable}.`,
+      progressPercent: Math.min(85, Math.max(40, events.length * 15)),
+      recommendation: hasDownstreamActions
+        ? `User is active and engaged. Recommend relevant templates or advanced integrations.`
+        : `Prompt the next milestone action following ${lastReadable}.`,
       archetype: 'creator',
     };
   }
@@ -426,12 +432,12 @@ export function diagnoseOnboarding(events: ActivationEvent[]): OnboardingDiagnos
   return {
     stage: 'general',
     stageLabel: lastReadable,
-    isBroke: isStalled,
-    brokeAt: isStalled ? `Inactive after ${lastReadable}` : null,
+    isBroke: isAttemptWithoutCompletion,
+    brokeAt: isAttemptWithoutCompletion ? `Incomplete action at ${lastReadable}` : null,
     summary: `User performed ${events.length} interaction${events.length === 1 ? '' : 's'}. Last recorded action was "${lastReadable}" ${formatRelativeTime(last.occurredAt)}.`,
-    progressPercent: Math.min(50, events.length * 10),
-    recommendation: `Monitor user activity or trigger onboarding assistance.`,
-    archetype: isStalled ? 'friction_stalled' : 'general',
+    progressPercent: Math.min(60, events.length * 10),
+    recommendation: `Monitor user activity or share getting-started recommendations.`,
+    archetype: isStalled ? 'evaluator' : 'general',
   };
 }
 
@@ -575,26 +581,37 @@ export function computeUserActivitySummary(
   const lastAction = extractLastRecordedAction(sorted);
   const diagnosis = diagnoseOnboarding(sorted);
 
-  let statusPhrase = '';
-  if (diagnosis.isBroke && diagnosis.brokeAt) {
-    statusPhrase = `, but session stalled during "${lastAction?.readableName ?? 'setup'}" (${diagnosis.brokeAt})`;
-  } else if (diagnosis.archetype === 'converted') {
-    statusPhrase = `, and successfully completed milestone "${diagnosis.stageLabel}"`;
-  } else if (diagnosis.archetype === 'explorer') {
-    statusPhrase = `. Last action recorded was "${lastAction?.readableName ?? 'browsing'}" before leaving`;
+  const safeId = userId || 'User';
+  const rawHandle = safeId.includes('@') ? safeId.split('@')[0] : safeId.replace(/^(user_|usr_|anon:)/, '');
+  const capitalName = rawHandle.charAt(0).toUpperCase() + rawHandle.slice(1);
+  const userIdentifier = userId ? `${capitalName} (${userId})` : 'The user';
+
+  let affinityPart = '';
+  if (topRepeated) {
+    const verb = topRepeated.category === 'topic' ? 'exploring' : topRepeated.category === 'action' ? 'using' : 'engaging with';
+    affinityPart = `focused heavily on "${topRepeated.label}", ${verb} it ${topRepeated.count} times`;
+  } else if (topTopic) {
+    affinityPart = `showed strong interest exploring "${topTopic.label}"`;
+  } else if (topFeature) {
+    affinityPart = `actively engaged with ${topFeature.label}`;
+  } else if (lovedItems.length > 0) {
+    affinityPart = `explored key features including ${lovedItems[0].label}`;
   } else {
-    statusPhrase = `. Last recorded action: "${lastAction?.readableName ?? 'action'}"`;
+    affinityPart = `actively explored core features`;
   }
 
-  const lovedStoryPart = topRepeated
-    ? `Loved "${topRepeated.label}" (viewed ${topRepeated.count} times)`
-    : topTopic
-    ? `Loved exploring "${topTopic.label}"`
-    : topFeature
-    ? `Loved ${topFeature.label}`
-    : `Explored ${lovedItems[0]?.label || 'key features'}`;
+  let outcomePart = '';
+  if (diagnosis.isBroke && diagnosis.brokeAt) {
+    outcomePart = `, but onboarding stalled when ${diagnosis.brokeAt}. Recommended action: ${diagnosis.recommendation}`;
+  } else if (diagnosis.archetype === 'converted') {
+    outcomePart = `, and successfully reached the "${diagnosis.stageLabel}" milestone with zero errors.`;
+  } else if (diagnosis.stage === 'activated' || lastAction?.readableName === 'Feature Used') {
+    outcomePart = `, and concluded their session smoothly after ${lastAction?.readableName ?? 'using features'} with zero errors.`;
+  } else {
+    outcomePart = `. Their last recorded action was "${lastAction?.readableName ?? 'active'}" with no friction detected.`;
+  }
 
-  const executiveStory = `User "${userId || 'user'}" spent ${totalTimeSpent} active ${activeTimeWindow}. ${cleanUser} ${lovedStoryPart.toLowerCase().startsWith('loved') ? lovedStoryPart : `loved ${lovedStoryPart}`}${statusPhrase}.`;
+  const executiveStory = `${userIdentifier} spent ${totalTimeSpent} active ${activeTimeWindow}. They ${affinityPart}${outcomePart}`;
 
   return {
     totalTimeSpent,

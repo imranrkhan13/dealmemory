@@ -120,11 +120,15 @@ ${JSON.stringify(systemContext, null, 2)}
 User Question: "${question}"
 
 Instructions:
-1. Answer the question directly, factually, and concisely based strictly on the ground-truth data provided.
-2. If citing users, cite their actual ID (e.g. usr_sarah), what they loved, how much time they spent, and their active time window.
-3. If they asked about drop-offs or onboarding friction, specify the exact event or error where they stalled and provide a concrete outreach recommendation for the founder.
-4. Format using clean markdown with bullet points or bold text where helpful. Keep it concise (under 250 words unless specifically asked for a full breakdown).
-5. If the question asks for an outreach draft, craft a personalized message referencing the user's specific dwell time, favorite feature, and stalled step.`;
+1. Answer the question directly, factually, and with executive clarity based strictly on the ground-truth data provided.
+2. If citing a specific user (e.g. sarah@acme.inc), structure the response cleanly:
+   - Clear telemetry breakdown (Active Dwell Time, Top Feature Affinity, Last Action, and Onboarding Status).
+   - A cohesive 2-3 sentence **Executive Summary** that reads like a senior product leader explaining what the user did, what they loved, and their current state.
+   - A concrete **Recommended Next Step** for the founder.
+3. Crucially distinguish between real friction vs. normal session completion:
+   - If no error or blocker occurred, report Onboarding Status as "Healthy · No friction detected". Never state that onboarding "broke" or "halted" if the user was using features happily.
+   - Only flag onboarding friction if an actual error event (e.g. connection failed) or incomplete setup attempt occurred.
+4. Keep the tone professional, natural, and founder-focused. Avoid robotic phrasing or repeating the user's email multiple times.`;
 
   try {
     const response = await fetch(
@@ -159,13 +163,21 @@ Instructions:
 
       let fallbackAnswer = '';
       if (relevantUser) {
+        const cleanWindow = relevantUser.activeWindow.replace(/^around\s+/i, '');
+        const cleanLoved = relevantUser.lovedFeature.replace(/^Loved:\s*/i, '');
+        const hasRealFriction = relevantUser.isStalled && relevantUser.stalledReason;
+
         fallbackAnswer =
-          `Based on telemetry for **${relevantUser.userId}**:\n\n` +
-          `• **Time Spent**: ${relevantUser.timeSpent} (${relevantUser.activeWindow})\n` +
-          `• **Feature Affinity**: ${relevantUser.lovedFeature}\n` +
+          `### Telemetry Intelligence: **${relevantUser.userId}**\n\n` +
+          `• **Active Dwell Time**: ${relevantUser.timeSpent} (${cleanWindow})\n` +
+          `• **Top Feature Affinity**: ${cleanLoved}\n` +
           `• **Last Recorded Action**: ${relevantUser.lastAction} (${relevantUser.lastActionTime})\n` +
-          (relevantUser.stalledReason ? `• **Where Onboarding Broke**: ${relevantUser.stalledReason}\n` : '') +
-          `\n**Executive Summary**:\n${relevantUser.executiveStory}`;
+          `• **Onboarding Status**: ${hasRealFriction ? `Friction detected (${relevantUser.stalledReason})` : 'Healthy · No friction detected'}\n\n` +
+          `**Executive Summary**:\n${relevantUser.executiveStory}\n\n` +
+          `**Recommended Next Step**:\n` +
+          (hasRealFriction
+            ? `Send an in-app prompt or reach out directly to resolve: "${relevantUser.stalledReason}".`
+            : `Reach out with tailored tips or advanced workflows for ${cleanLoved}.`);
       } else {
         fallbackAnswer = `DealMemory observed ${trialUsers.length} user profiles and ${recentEvents.length} telemetry events across your workspace. ${stalledJourneys.length} user(s) currently experience onboarding friction.`;
       }
