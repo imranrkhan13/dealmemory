@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { ActivationEvent as Row, TrialUser } from '@prisma/client';
-import { prisma } from './db';
+import { prisma, ensureDatabaseSchema } from './db';
 import type { ActivationEvent } from '@/packages/shared/src/events';
 import { memoryConfigured, writeSupermemory } from './memory';
 
@@ -51,9 +51,11 @@ export function mapEvent(row: Row & {trialUser?: TrialUser | null}): ActivationE
 }
 export async function events(projectId: string) {
   if (!projectId) return [];
+  await ensureDatabaseSchema();
   return (await prisma.activationEvent.findMany({where:{projectId}, include:{trialUser:true}, orderBy:[{occurredAt:'asc'},{id:'asc'}]})).map(mapEvent);
 }
 export async function ingest(projectId: string, items: ActivationEvent[]) {
+  await ensureDatabaseSchema();
   const result = await prisma.$transaction(async tx => {
     const fresh: ActivationEvent[] = [];
     const conflicts: {index:number;eventId:string;reason:string}[] = [];

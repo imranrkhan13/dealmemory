@@ -68,7 +68,8 @@ export async function POST(req: NextRequest) {
     const result=await ingest(resolved.projectId,body.data.events);
     return respond({ok:result.conflicts.length===0,...result},result.conflicts.length ? 409 : 200);
   } catch(error) {
-    console.error('ingest_failed', {requestId,error});
-    return respond({ok:false,error:'ingest_failed',requestId},500);
+    const details = error instanceof Error ? error.message : String(error);
+    console.error('ingest_failed', {requestId, error, details});
+    return respond({ok:false,error:'ingest_failed',details,requestId},500);
   }
 }

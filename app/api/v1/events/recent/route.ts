@@ -1,9 +1,10 @@
 export const dynamic='force-dynamic';
-import { prisma } from '@/lib/db';
+import { prisma, ensureDatabaseSchema } from '@/lib/db';
 import { mapEvent } from '@/lib/event-store';
 import { projectScope,scopeError } from '@/lib/project-scope';
 export async function GET(req:Request) {
   try {
+    await ensureDatabaseSchema();
     const projectId=await projectScope(req);
     if(!projectId) return Response.json({ok:true,events:[],nextCursor:null});
     const params=new URL(req.url).searchParams;

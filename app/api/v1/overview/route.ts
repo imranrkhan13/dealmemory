@@ -1,13 +1,14 @@
 export const dynamic = 'force-dynamic';
 
 import { requireAuth } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { prisma, ensureDatabaseSchema } from '@/lib/db';
 import { ownedProject, projectScope, scopeError } from '@/lib/project-scope';
 import { journeys } from '@/lib/intelligence';
 import { formatRelativeTime, getReadableEventName } from '@/lib/customer-memory';
 
 export async function GET(req: Request) {
   try {
+    await ensureDatabaseSchema();
     const { userId } = await requireAuth();
     const requested = new URL(req.url).searchParams.get('projectId');
     const project = await ownedProject(userId, requested);
