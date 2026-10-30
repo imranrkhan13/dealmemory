@@ -165,6 +165,7 @@ Instructions:
       if (relevantUser) {
         const cleanWindow = relevantUser.activeWindow.replace(/^around\s+/i, '');
         const cleanLoved = relevantUser.lovedFeature.replace(/^Loved:\s*/i, '');
+        const targetFeature = cleanLoved.replace(/\s*\([^)]*\)/, '').trim();
         const hasRealFriction = relevantUser.isStalled && relevantUser.stalledReason;
 
         fallbackAnswer =
@@ -177,7 +178,7 @@ Instructions:
           `**Recommended Next Step**:\n` +
           (hasRealFriction
             ? `Send an in-app prompt or reach out directly to resolve: "${relevantUser.stalledReason}".`
-            : `Reach out with tailored tips or advanced workflows for ${cleanLoved}.`);
+            : `Reach out with tailored tips or advanced workflows for ${targetFeature}.`);
       } else {
         fallbackAnswer = `DealMemory observed ${trialUsers.length} user profiles and ${recentEvents.length} telemetry events across your workspace. ${stalledJourneys.length} user(s) currently experience onboarding friction.`;
       }

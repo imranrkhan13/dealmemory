@@ -566,15 +566,15 @@ export function computeUserActivitySummary(
 
   if (topRepeated) {
     const verb = topRepeated.category === 'topic' ? 'viewed' : topRepeated.category === 'action' ? 'used' : 'engaged';
-    lovedFeature = `Loved: "${topRepeated.label}" (${verb} ${topRepeated.count}x)`;
+    lovedFeature = `"${topRepeated.label}" (${verb} ${topRepeated.count}x)`;
   } else if (topTopic) {
-    lovedFeature = `Loved exploring "${topTopic.label}"`;
+    lovedFeature = `"${topTopic.label}"`;
   } else if (topFeature) {
-    lovedFeature = `Loved the ${topFeature.label}`;
+    lovedFeature = topFeature.label;
   } else if (lovedItems.length > 0) {
-    lovedFeature = `Engaged with ${lovedItems[0].label}`;
+    lovedFeature = lovedItems[0].label;
   } else {
-    lovedFeature = `Engaged with app features`;
+    lovedFeature = `Core app features`;
   }
 
   // 4. Executive Behavioral Story Synthesis
@@ -586,10 +586,19 @@ export function computeUserActivitySummary(
   const capitalName = rawHandle.charAt(0).toUpperCase() + rawHandle.slice(1);
   const userIdentifier = userId ? `${capitalName} (${userId})` : 'The user';
 
+  // Format time window naturally: e.g. "between 01:44 PM and 02:54 PM" or "around 01:44 PM"
+  const cleanWindow = activeTimeWindow
+    .replace(/^around\s+/i, '')
+    .replace(/\s*–\s*/, ' and ');
+  const timeClause = cleanWindow.includes('and')
+    ? `${userIdentifier} spent ${totalTimeSpent} active between ${cleanWindow}`
+    : `${userIdentifier} spent ${totalTimeSpent} active around ${cleanWindow}`;
+
   let affinityPart = '';
   if (topRepeated) {
     const verb = topRepeated.category === 'topic' ? 'exploring' : topRepeated.category === 'action' ? 'using' : 'engaging with';
-    affinityPart = `focused heavily on "${topRepeated.label}", ${verb} it ${topRepeated.count} times`;
+    const times = topRepeated.count === 2 ? 'twice' : `${topRepeated.count} times`;
+    affinityPart = `focused heavily on "${topRepeated.label}", ${verb} it ${times}`;
   } else if (topTopic) {
     affinityPart = `showed strong interest exploring "${topTopic.label}"`;
   } else if (topFeature) {
@@ -606,12 +615,13 @@ export function computeUserActivitySummary(
   } else if (diagnosis.archetype === 'converted') {
     outcomePart = `, and successfully reached the "${diagnosis.stageLabel}" milestone with zero errors.`;
   } else if (diagnosis.stage === 'activated' || lastAction?.readableName === 'Feature Used') {
-    outcomePart = `, and concluded their session smoothly after ${lastAction?.readableName ?? 'using features'} with zero errors.`;
+    const actionLabel = lastAction?.readableName === 'Feature Used' ? 'using core features' : `${lastAction?.readableName ?? 'active use'}`;
+    outcomePart = `, and concluded their session smoothly after ${actionLabel} with zero errors.`;
   } else {
     outcomePart = `. Their last recorded action was "${lastAction?.readableName ?? 'active'}" with no friction detected.`;
   }
 
-  const executiveStory = `${userIdentifier} spent ${totalTimeSpent} active ${activeTimeWindow}. They ${affinityPart}${outcomePart}`;
+  const executiveStory = `${timeClause}. They ${affinityPart}${outcomePart}`;
 
   return {
     totalTimeSpent,
@@ -709,9 +719,18 @@ export function buildCustomerMemoryCapsule(
   // Human executive summary
   const summary = activitySummary.executiveStory;
 
+  const safeId = userId || 'User';
+  const rawHandle = safeId.includes('@') ? safeId.split('@')[0] : safeId.replace(/^(user_|usr_|anon:)/, '');
+  const capitalName = rawHandle.charAt(0).toUpperCase() + rawHandle.slice(1);
+  const cleanFeature = activitySummary.lovedFeature && activitySummary.lovedFeature !== 'Core app features'
+    ? activitySummary.lovedFeature.replace(/\s*\([^)]*\)/, '').replace(/^"|"$/g, '').trim()
+    : null;
+
   return {
     title: diagnosis.isBroke
       ? `Friction: ${diagnosis.brokeAt ?? diagnosis.stageLabel}`
+      : cleanFeature
+      ? `${capitalName} · ${cleanFeature}`
       : `${diagnosis.stageLabel} (${userId})`,
     summary,
     intent: statedGoal || (diagnosis.archetype === 'explorer' ? 'Explore & browse application content' : 'Evaluate product capabilities'),
