@@ -16,97 +16,110 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const sampleUserId = body.userId || `user_sarah_${Math.floor(100 + Math.random() * 900)}`;
+    const isSingleTest = body.mode === 'single' || body.mode === 'test';
+    const sampleUserId = body.userId || (isSingleTest ? `usr_test_${Math.floor(100 + Math.random() * 900)}` : `user_sarah_${Math.floor(100 + Math.random() * 900)}`);
     const sessionId = `ses_${crypto.randomUUID().slice(0, 8)}`;
-    const baseTime = Date.now() - 35 * 60 * 1000; // 35 minutes ago
+    const baseTime = isSingleTest ? Date.now() : Date.now() - 35 * 60 * 1000; // right now or 35 mins ago
 
-    // The sequence requested by the user:
-    // 1. User signs up
-    // 2. Opens the dashboard
-    // 3. Creates a project
-    // 4. Tries to connect an integration
-    // 5. Connection fails & user stops
-    const events: ActivationEvent[] = [
-      {
-        id: crypto.randomUUID(),
-        projectKey: '',
-        name: 'trial_started',
-        userId: sampleUserId,
-        anonymousId: sampleUserId,
-        sessionId,
-        occurredAt: new Date(baseTime).toISOString(),
-        properties: {
-          plan: 'pro_trial',
-          source: 'landing_page',
-          company: 'Acme Software',
-          role: 'Tech Lead',
-        },
-      },
-      {
-        id: crypto.randomUUID(),
-        projectKey: '',
-        name: 'goal_set',
-        userId: sampleUserId,
-        anonymousId: sampleUserId,
-        sessionId,
-        occurredAt: new Date(baseTime + 3 * 60 * 1000).toISOString(),
-        properties: {
-          goal: 'Map repository architecture and identify activation drop-offs',
-        },
-      },
-      {
-        id: crypto.randomUUID(),
-        projectKey: '',
-        name: 'dashboard_opened',
-        userId: sampleUserId,
-        anonymousId: sampleUserId,
-        sessionId,
-        occurredAt: new Date(baseTime + 5 * 60 * 1000).toISOString(),
-        properties: {
-          page: '/overview',
-        },
-      },
-      {
-        id: crypto.randomUUID(),
-        projectKey: '',
-        name: 'project_created',
-        userId: sampleUserId,
-        anonymousId: sampleUserId,
-        sessionId,
-        occurredAt: new Date(baseTime + 9 * 60 * 1000).toISOString(),
-        properties: {
-          name: 'Core Agent Platform',
-          stack: 'Next.js, Python, PostgreSQL',
-        },
-      },
-      {
-        id: crypto.randomUUID(),
-        projectKey: '',
-        name: 'integration_connect_attempted',
-        userId: sampleUserId,
-        anonymousId: sampleUserId,
-        sessionId,
-        occurredAt: new Date(baseTime + 14 * 60 * 1000).toISOString(),
-        properties: {
-          provider: 'github',
-          repository: 'acme/core-agent',
-        },
-      },
-      {
-        id: crypto.randomUUID(),
-        projectKey: '',
-        name: 'integration_connection_failed',
-        userId: sampleUserId,
-        anonymousId: sampleUserId,
-        sessionId,
-        occurredAt: new Date(baseTime + 16 * 60 * 1000).toISOString(),
-        properties: {
-          provider: 'github',
-          errorCode: 'oauth_callback_failed',
-          errorMessage: 'GitHub organization requires third-party application owner authorization',
-        },
-      },
-    ];
+    const events: ActivationEvent[] = isSingleTest
+      ? [
+          {
+            id: crypto.randomUUID(),
+            projectKey: '',
+            name: 'setup_verified_event',
+            userId: sampleUserId,
+            anonymousId: sampleUserId,
+            sessionId,
+            occurredAt: new Date(baseTime).toISOString(),
+            properties: {
+              source: 'Quickstart Setup Test',
+              status: 'success',
+              latencyMs: 142,
+              feature: 'Event Ingestion',
+            },
+          },
+        ]
+      : [
+          {
+            id: crypto.randomUUID(),
+            projectKey: '',
+            name: 'trial_started',
+            userId: sampleUserId,
+            anonymousId: sampleUserId,
+            sessionId,
+            occurredAt: new Date(baseTime).toISOString(),
+            properties: {
+              plan: 'pro_trial',
+              source: 'landing_page',
+              company: 'Acme Software',
+              role: 'Tech Lead',
+            },
+          },
+          {
+            id: crypto.randomUUID(),
+            projectKey: '',
+            name: 'goal_set',
+            userId: sampleUserId,
+            anonymousId: sampleUserId,
+            sessionId,
+            occurredAt: new Date(baseTime + 3 * 60 * 1000).toISOString(),
+            properties: {
+              goal: 'Map repository architecture and identify activation drop-offs',
+            },
+          },
+          {
+            id: crypto.randomUUID(),
+            projectKey: '',
+            name: 'dashboard_opened',
+            userId: sampleUserId,
+            anonymousId: sampleUserId,
+            sessionId,
+            occurredAt: new Date(baseTime + 5 * 60 * 1000).toISOString(),
+            properties: {
+              page: '/overview',
+            },
+          },
+          {
+            id: crypto.randomUUID(),
+            projectKey: '',
+            name: 'project_created',
+            userId: sampleUserId,
+            anonymousId: sampleUserId,
+            sessionId,
+            occurredAt: new Date(baseTime + 9 * 60 * 1000).toISOString(),
+            properties: {
+              name: 'Core Agent Platform',
+              stack: 'Next.js, Python, PostgreSQL',
+            },
+          },
+          {
+            id: crypto.randomUUID(),
+            projectKey: '',
+            name: 'integration_connect_attempted',
+            userId: sampleUserId,
+            anonymousId: sampleUserId,
+            sessionId,
+            occurredAt: new Date(baseTime + 14 * 60 * 1000).toISOString(),
+            properties: {
+              provider: 'github',
+              repository: 'acme/core-agent',
+            },
+          },
+          {
+            id: crypto.randomUUID(),
+            projectKey: '',
+            name: 'integration_connection_failed',
+            userId: sampleUserId,
+            anonymousId: sampleUserId,
+            sessionId,
+            occurredAt: new Date(baseTime + 16 * 60 * 1000).toISOString(),
+            properties: {
+              provider: 'github',
+              errorCode: 'oauth_callback_failed',
+              errorMessage: 'GitHub organization requires third-party application owner authorization',
+            },
+          },
+        ];
 
     const result = await ingest(project.id, events);
     return Response.json({

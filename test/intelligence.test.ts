@@ -327,3 +327,35 @@ runTest('dynamically handles users who just scroll, browse content, or search wi
   assert.ok(memory.interests.includes('Design Engineering') || memory.interests.includes('UI/UX'));
   assert.ok(memory.summary.includes('usr_reader_44'));
 });
+
+runTest('computes dwell time, peak active window, repeat feature affinity ("loved this"), and customer story', () => {
+  const t0 = '2026-10-30T14:15:00.000Z';
+  const t1 = '2026-10-30T14:22:00.000Z';
+  const t2 = '2026-10-30T14:27:00.000Z';
+  const t3 = '2026-10-30T14:30:00.000Z';
+
+  const userEvents: ActivationEvent[] = [
+    buildEvent({ id: 'evt-1', name: 'dashboard_opened', userId: 'usr_sarah', occurredAt: t0 }),
+    buildEvent({ id: 'evt-2', name: 'template_previewed', userId: 'usr_sarah', occurredAt: t1, properties: { topic: 'SaaS Analytics' } }),
+    buildEvent({ id: 'evt-3', name: 'template_previewed', userId: 'usr_sarah', occurredAt: t2, properties: { topic: 'SaaS Analytics' } }),
+    buildEvent({ id: 'evt-4', name: 'integration_connect_attempted', userId: 'usr_sarah', occurredAt: t3, properties: { provider: 'GitHub', error: 'OAuth timeout' } }),
+  ];
+
+  const capsule = buildCustomerMemoryCapsule('usr_sarah', userEvents);
+  assert.ok(capsule.activitySummary);
+
+  // Time spent: 15 minutes between t0 (14:15) and t3 (14:30)
+  assert.strictEqual(capsule.activitySummary.totalTimeSpent, '~15 minutes');
+
+  // Active time window contains local hours
+  assert.ok(capsule.activitySummary.activeTimeWindow.includes('around'));
+
+  // What they loved: template previewed twice with topic 'SaaS Analytics'
+  assert.ok(capsule.activitySummary.lovedFeature.includes('SaaS Analytics') || capsule.activitySummary.lovedFeature.includes('Template Previewed'));
+
+  // Executive story combines time spent, what they loved, and the stalled action
+  assert.ok(capsule.summary.includes('usr_sarah'));
+  assert.ok(capsule.summary.includes('15 minutes'));
+  assert.ok(capsule.summary.includes('SaaS Analytics') || capsule.summary.includes('loved'));
+  assert.ok(capsule.summary.includes('Integration Connect Attempted'));
+});

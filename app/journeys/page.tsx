@@ -48,6 +48,11 @@ type CustomerMemory = {
   suggestedAction: string;
   archetype?: string;
   founderNotes?: string;
+  activitySummary?: {
+    totalTimeSpent: string;
+    activeTimeWindow: string;
+    lovedFeature: string;
+  };
 };
 
 type Journey = {
@@ -385,6 +390,16 @@ function JourneysView() {
                       <p className="text-[11px] text-slate-700 leading-relaxed line-clamp-2">
                         {memory.summary}
                       </p>
+                      {memory.activitySummary && (
+                        <div className="flex flex-wrap gap-1 pt-1 text-[10px] font-mono text-slate-600">
+                          <span className="rounded bg-sky-50 border border-sky-200/60 px-1.5 py-0.5 font-medium text-sky-800">
+                            🕒 {memory.activitySummary.totalTimeSpent}
+                          </span>
+                          <span className="rounded bg-sky-50 border border-sky-200/60 px-1.5 py-0.5 font-medium text-sky-800">
+                            ❤️ {memory.activitySummary.lovedFeature}
+                          </span>
+                        </div>
+                      )}
                       {((memory.techStack && memory.techStack.length > 0) || (memory.interests && memory.interests.length > 0)) && (
                         <div className="flex flex-wrap gap-1 pt-1">
                           {memory.techStack?.map((tech) => (

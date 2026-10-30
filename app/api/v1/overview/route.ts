@@ -45,7 +45,7 @@ export async function GET(req: Request) {
     // 1. Core database counts
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     const [
       totalUsers,
@@ -55,6 +55,8 @@ export async function GET(req: Request) {
       allOwnerProjects,
       recentEvents,
       userJourneys,
+      activeTodayCount,
+      existingKey,
     ] = await Promise.all([
       // Total customer profiles (documents)
       prisma.trialUser.count({ where: { projectId } }),
@@ -107,11 +109,38 @@ export async function GET(req: Request) {
         where: { projectId },
         include: { trialUser: true },
         orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
-        take: 10,
+        take: 12,
       }),
       // Full customer journeys
       journeys(projectId),
+      // Active users today
+      prisma.trialUser.count({
+        where: {
+          projectId,
+          activationEvents: {
+            some: {
+              occurredAt: { gte: oneDayAgo },
+            },
+          },
+        },
+      }),
+      // Active project API key
+      prisma.projectApiKey.findFirst({
+        where: { projectId, revokedAt: null },
+        select: { keyPrefix: true },
+        orderBy: { createdAt: 'desc' },
+      }),
     ]);
+
+    let keyPrefix = existingKey?.keyPrefix;
+    if (!keyPrefix) {
+      const { generateProjectKey } = await import('@/lib/keys');
+      const generated = await generateProjectKey('pk_live');
+      await prisma.projectApiKey.create({
+        data: { projectId, keyPrefix: generated.prefix, keyHash: generated.keyHash },
+      });
+      keyPrefix = generated.prefix;
+    }
 
     // 2. Compute 30-day dynamic chart data
     const eventsLast30Days = await prisma.activationEvent.findMany({
@@ -190,25 +219,42 @@ export async function GET(req: Request) {
       usersCount: p._count.trialUsers,
     }));
 
-    // 4. Synthesized Recent Customer Memories
-    const recentMemories = userJourneys
+    // 4. Synthesized Recent Customer Memories & User Stories
+    const stalledCount = userJourneys.filter(
+      (j) => j.onboardingDiagnosis?.isBroke || Boolean(j.blocker)
+    ).length;
+
+    const userStories = userJourneys
       .filter((j) => j.lastAction)
-      .slice(0, 5)
+      .slice(0, 8)
       .map((j) => {
         const last = j.lastAction!;
-        const projName = allOwnerProjects.find((p) => p.id === projectId)?.slug ?? 'dm_project_default';
+        const actSummary = j.customerMemory?.activitySummary;
+        const projName =
+          allOwnerProjects.find((p) => p.id === projectId)?.slug ?? 'dm_project_default';
+
         return {
           id: j.userId,
           userId: j.userId,
-          title: `${j.userId}: ${j.customerMemory?.title ?? last.readableName}`,
+          cleanName: j.userId.replace(/^(user_|usr_)/, ''),
+          title: j.customerMemory?.title ?? last.readableName,
           summary: j.customerMemory?.summary ?? last.narrative,
+          story: actSummary?.executiveStory ?? j.customerMemory?.summary ?? last.narrative,
+          loved: actSummary?.lovedFeature ?? 'Engaged with application features',
+          timeSpent: actSummary?.totalTimeSpent ?? '< 1 min',
+          activeWindow: actSummary?.activeTimeWindow ?? 'recently',
+          lastAction: last.readableName,
           namespace: projName,
           state: j.state,
           isBroke: j.onboardingDiagnosis?.isBroke ?? false,
+          brokeReason: j.onboardingDiagnosis?.brokeAt ?? null,
+          archetype: j.onboardingDiagnosis?.archetype ?? 'general',
           timeAgo: last.relativeTime,
           occurredAt: last.occurredAt,
         };
       });
+
+    const recentMemories = userStories.slice(0, 5);
 
     // 5. Recent Requests / Searches feed
     const latestSearches = recentEvents.map((e) => {
@@ -234,7 +280,14 @@ export async function GET(req: Request) {
 
     return Response.json({
       ok: true,
+      apiKeyPrefix: keyPrefix,
       metrics: {
+        // Simple founder metrics
+        trackedUsers: totalUsers,
+        totalEvents,
+        stalledUsers: stalledCount,
+        activeToday: activeTodayCount,
+        // Legacy keys preserved
         documents: totalUsers,
         memories: milestoneEvents || recentMemories.length,
         searchRequests: totalEvents,
@@ -244,6 +297,7 @@ export async function GET(req: Request) {
       chartData,
       namespaces,
       recentMemories,
+      userStories,
       latestSearches,
     });
   } catch (e) {

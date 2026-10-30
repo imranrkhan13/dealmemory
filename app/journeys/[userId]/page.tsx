@@ -61,6 +61,13 @@ type OnboardingDiagnosis = {
   archetype?: string;
 };
 
+type ActivitySummary = {
+  totalTimeSpent: string;
+  activeTimeWindow: string;
+  lovedFeature: string;
+  executiveStory: string;
+};
+
 type CustomerMemory = {
   title: string;
   summary: string;
@@ -73,6 +80,7 @@ type CustomerMemory = {
   archetype?: string;
   founderNotes?: string;
   lastUpdated: string;
+  activitySummary?: ActivitySummary;
 };
 
 type Journey = {
@@ -472,6 +480,26 @@ Would love to hear how your experience was so far and if you have any feedback o
                     <p className="text-xs text-slate-700 leading-relaxed font-medium">
                       {memory?.summary ?? 'Autonomous customer memory synthesized from user milestones.'}
                     </p>
+
+                    {/* Behavioral Dwell & Loved Highlights */}
+                    {memory?.activitySummary && (
+                      <div className="rounded-xl border border-sky-100 bg-sky-50/50 p-3 space-y-2">
+                        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-800">
+                          Behavioral Dwell &amp; Affinity
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          <span className="rounded-md bg-white border border-sky-200/80 px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
+                            🕒 {memory.activitySummary.totalTimeSpent} active
+                          </span>
+                          <span className="rounded-md bg-white border border-sky-200/80 px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
+                            ⏰ {memory.activitySummary.activeTimeWindow}
+                          </span>
+                          <span className="rounded-md bg-sky-100/80 border border-sky-300/80 px-2 py-0.5 text-xs font-mono font-bold text-sky-900">
+                            ❤️ {memory.activitySummary.lovedFeature}
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Stated Goal */}
                     <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3 space-y-1">

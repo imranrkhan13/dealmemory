@@ -44,6 +44,20 @@ export interface OnboardingDiagnosis {
   archetype: 'explorer' | 'evaluator' | 'creator' | 'converted' | 'friction_stalled' | 'general';
 }
 
+export interface LovedItem {
+  label: string;
+  count: number;
+  category: 'feature' | 'topic' | 'action' | 'product';
+}
+
+export interface UserActivitySummary {
+  totalTimeSpent: string; // e.g. "~12 minutes", "< 1 min", "~1h 15m"
+  activeTimeWindow: string; // e.g. "around 2:15 PM – 2:35 PM" or "around 11:20 AM"
+  lovedFeature: string; // e.g. 'Loved: "Design Systems" (viewed 3x)'
+  lovedItems: LovedItem[];
+  executiveStory: string; // The rich founder summary
+}
+
 export interface CustomerMemoryCapsule {
   title: string;
   summary: string;
@@ -56,6 +70,7 @@ export interface CustomerMemoryCapsule {
   archetype: string;
   founderNotes?: string;
   lastUpdated: string;
+  activitySummary?: UserActivitySummary;
 }
 
 /** Formats a date string into relative time, e.g. "4m ago", "2h ago", "3d ago" */
@@ -418,6 +433,167 @@ export function diagnoseOnboarding(events: ActivationEvent[]): OnboardingDiagnos
 }
 
 /**
+ * Computes dwell time, peak active window, repeat feature affinity ("loved this"),
+ * and synthesizes a human behavioral story for the user.
+ */
+export function computeUserActivitySummary(
+  events: ActivationEvent[],
+  userId?: string
+): UserActivitySummary {
+  if (!events || events.length === 0) {
+    return {
+      totalTimeSpent: 'No active time recorded',
+      activeTimeWindow: 'N/A',
+      lovedFeature: 'None recorded',
+      lovedItems: [],
+      executiveStory: 'No user activity recorded yet.',
+    };
+  }
+
+  const sorted = [...events].sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
+  const cleanUser = (userId || 'User').replace(/^(user_|usr_)/, '');
+
+  // 1. Time Spent calculation (grouping by sessions separated by >= 90 mins inactivity)
+  let totalActiveMs = 0;
+  let sessionStart = new Date(sorted[0].occurredAt).getTime();
+  let sessionEnd = sessionStart;
+
+  const sessions: Array<{ start: Date; end: Date; count: number }> = [];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const t = new Date(sorted[i].occurredAt).getTime();
+    if (t - sessionEnd > 90 * 60 * 1000) {
+      const dur = Math.max(60 * 1000, sessionEnd - sessionStart);
+      totalActiveMs += dur;
+      sessions.push({ start: new Date(sessionStart), end: new Date(sessionEnd), count: 1 });
+      sessionStart = t;
+      sessionEnd = t;
+    } else {
+      sessionEnd = t;
+    }
+  }
+  const finalDur = Math.max(sorted.length > 1 ? 60 * 1000 : 0, sessionEnd - sessionStart);
+  totalActiveMs += finalDur;
+  sessions.push({ start: new Date(sessionStart), end: new Date(sessionEnd), count: 1 });
+
+  // Format Total Time Spent
+  let totalTimeSpent = '< 1 min';
+  if (totalActiveMs >= 3600 * 1000) {
+    const hours = Math.floor(totalActiveMs / (3600 * 1000));
+    const mins = Math.round((totalActiveMs % (3600 * 1000)) / (60 * 1000));
+    totalTimeSpent = mins > 0 ? `~${hours}h ${mins}m` : `~${hours} hour${hours > 1 ? 's' : ''}`;
+  } else if (totalActiveMs >= 60 * 1000) {
+    const mins = Math.max(1, Math.round(totalActiveMs / (60 * 1000)));
+    totalTimeSpent = `~${mins} minute${mins === 1 ? '' : 's'}`;
+  } else if (sorted.length > 1) {
+    totalTimeSpent = '~1 minute';
+  }
+
+  // 2. Active Time Window of most recent session
+  const latestSession = sessions[sessions.length - 1];
+  const startClock = formatClockTime(latestSession.start.toISOString());
+  const endClock = formatClockTime(latestSession.end.toISOString());
+  const activeTimeWindow =
+    startClock === endClock ? `around ${startClock}` : `around ${startClock} – ${endClock}`;
+
+  // 3. Affinity & "What they loved" calculation
+  const itemCounts = new Map<string, { label: string; count: number; category: LovedItem['category'] }>();
+
+  function registerItem(label: string, category: LovedItem['category']) {
+    if (!label || label.trim().length === 0) return;
+    const clean = label.trim();
+    const key = `${category}:${clean.toLowerCase()}`;
+    const existing = itemCounts.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      itemCounts.set(key, { label: clean, count: 1, category });
+    }
+  }
+
+  for (const evt of sorted) {
+    const props = (evt.properties ?? {}) as Record<string, unknown>;
+
+    // Topics, articles, and content
+    if (props.topic) registerItem(String(props.topic), 'topic');
+    if (props.category) registerItem(String(props.category), 'topic');
+    if (props.title) registerItem(String(props.title), 'topic');
+    if (props.article) registerItem(String(props.article), 'topic');
+    if (props.product) registerItem(String(props.product), 'product');
+    if (props.item) registerItem(String(props.item), 'product');
+
+    // Integrations / Providers / Tech Stack
+    if (props.provider) registerItem(`${props.provider} Integration`, 'feature');
+    if (props.feature) registerItem(String(props.feature), 'feature');
+
+    // Searches
+    if (props.query || props.searchQuery) {
+      registerItem(`Search: "${props.query || props.searchQuery}"`, 'action');
+    }
+
+    // Repeated action events
+    const readable = getReadableEventName(evt.name);
+    if (/(?:scrolled|read|viewed|created|search|connect|editor|dashboard|page)/i.test(readable)) {
+      registerItem(readable, 'action');
+    }
+  }
+
+  const lovedItems: LovedItem[] = Array.from(itemCounts.values()).sort((a, b) => b.count - a.count);
+
+  // Determine top loved feature / highlight
+  let lovedFeature = '';
+  const topRepeated = lovedItems.find((item) => item.count >= 2);
+  const topTopic = lovedItems.find((item) => item.category === 'topic' || item.category === 'product');
+  const topFeature = lovedItems.find((item) => item.category === 'feature');
+
+  if (topRepeated) {
+    const verb = topRepeated.category === 'topic' ? 'viewed' : topRepeated.category === 'action' ? 'used' : 'engaged';
+    lovedFeature = `Loved: "${topRepeated.label}" (${verb} ${topRepeated.count}x)`;
+  } else if (topTopic) {
+    lovedFeature = `Loved exploring "${topTopic.label}"`;
+  } else if (topFeature) {
+    lovedFeature = `Loved the ${topFeature.label}`;
+  } else if (lovedItems.length > 0) {
+    lovedFeature = `Engaged with ${lovedItems[0].label}`;
+  } else {
+    lovedFeature = `Engaged with app features`;
+  }
+
+  // 4. Executive Behavioral Story Synthesis
+  const lastAction = extractLastRecordedAction(sorted);
+  const diagnosis = diagnoseOnboarding(sorted);
+
+  let statusPhrase = '';
+  if (diagnosis.isBroke && diagnosis.brokeAt) {
+    statusPhrase = `, but session stalled during "${lastAction?.readableName ?? 'setup'}" (${diagnosis.brokeAt})`;
+  } else if (diagnosis.archetype === 'converted') {
+    statusPhrase = `, and successfully completed milestone "${diagnosis.stageLabel}"`;
+  } else if (diagnosis.archetype === 'explorer') {
+    statusPhrase = `. Last action recorded was "${lastAction?.readableName ?? 'browsing'}" before leaving`;
+  } else {
+    statusPhrase = `. Last recorded action: "${lastAction?.readableName ?? 'action'}"`;
+  }
+
+  const lovedStoryPart = topRepeated
+    ? `Loved "${topRepeated.label}" (viewed ${topRepeated.count} times)`
+    : topTopic
+    ? `Loved exploring "${topTopic.label}"`
+    : topFeature
+    ? `Loved ${topFeature.label}`
+    : `Explored ${lovedItems[0]?.label || 'key features'}`;
+
+  const executiveStory = `User "${userId || 'user'}" spent ${totalTimeSpent} active ${activeTimeWindow}. ${cleanUser} ${lovedStoryPart.toLowerCase().startsWith('loved') ? lovedStoryPart : `loved ${lovedStoryPart}`}${statusPhrase}.`;
+
+  return {
+    totalTimeSpent,
+    activeTimeWindow,
+    lovedFeature,
+    lovedItems: lovedItems.slice(0, 5),
+    executiveStory,
+  };
+}
+
+/**
  * Universal Customer Memory Capsule synthesis.
  * Captures what the team should remember about this specific user across ANY organization domain.
  */
@@ -428,6 +604,7 @@ export function buildCustomerMemoryCapsule(
 ): CustomerMemoryCapsule {
   const diagnosis = diagnoseOnboarding(events);
   const lastAction = extractLastRecordedAction(events);
+  const activitySummary = computeUserActivitySummary(events, userId);
 
   // Extract explicit or implicit intent / goals
   let statedGoal = '';
@@ -480,6 +657,8 @@ export function buildCustomerMemoryCapsule(
 
   // Key bulleted context notes for the team
   const contextNotes: string[] = [];
+  contextNotes.push(`Active time: ${activitySummary.totalTimeSpent} (${activitySummary.activeTimeWindow})`);
+  contextNotes.push(`Affinity: ${activitySummary.lovedFeature}`);
   if (statedGoal) {
     contextNotes.push(`Intent: ${statedGoal}`);
   }
@@ -498,18 +677,8 @@ export function buildCustomerMemoryCapsule(
     contextNotes.push(`Status: ${diagnosis.stageLabel} (${diagnosis.progressPercent}% milestone progression)`);
   }
 
-  // Executive summary tailored to user's real behavior (e.g. browsing vs creating vs hitting errors)
-  let summary = '';
-  if (diagnosis.archetype === 'explorer') {
-    const browsed = Array.from(interests).slice(0, 3).join(', ');
-    summary = `User "${userId}" spent time browsing content (${events.length} actions recorded, e.g. ${lastAction?.readableName})${browsed ? ` focusing on ${browsed}` : ''}. Stopped browsing ${lastAction?.relativeTime}.`;
-  } else if (diagnosis.isBroke) {
-    summary = `User "${userId}" was active ${lastAction?.relativeTime} but halted: ${diagnosis.summary}`;
-  } else if (diagnosis.archetype === 'converted') {
-    summary = `User "${userId}" completed milestone "${diagnosis.stageLabel}" ${lastAction?.relativeTime}. High engagement account.`;
-  } else {
-    summary = `User "${userId}" performed ${events.length} action${events.length === 1 ? '' : 's'} (last: ${lastAction?.readableName} ${lastAction?.relativeTime}).`;
-  }
+  // Human executive summary
+  const summary = activitySummary.executiveStory;
 
   return {
     title: diagnosis.isBroke
@@ -525,5 +694,6 @@ export function buildCustomerMemoryCapsule(
     archetype: diagnosis.archetype,
     founderNotes: existingNotes,
     lastUpdated: lastAction?.occurredAt ?? new Date().toISOString(),
+    activitySummary,
   };
 }
