@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Clock3,
+  Heart,
   Sparkles,
   Activity,
   RefreshCw,
@@ -89,10 +90,14 @@ export default function JourneysView() {
       const journeysData = await journeysResponse.json();
       if (!journeysResponse.ok) {
         console.warn('Journeys request warning:', journeysResponse.status, journeysData);
-        if (journeysResponse.status === 401 || journeysResponse.status === 403) {
-          throw new Error(journeysData?.error || 'Authentication required');
+        if (journeysResponse.status === 401) {
+          throw new Error('Authentication required. Please sign in.');
+        }
+        if (journeysResponse.status === 403) {
+          throw new Error('Access restricted to project owner.');
         }
         setJourneys([]);
+        setError(null);
         return;
       }
       setJourneys(Array.isArray(journeysData?.journeys) ? journeysData.journeys : []);
@@ -387,12 +392,14 @@ export default function JourneysView() {
                         {memory.summary}
                       </p>
                       {memory.activitySummary && (
-                        <div className="flex flex-wrap gap-1 pt-1 text-[10px] font-mono text-slate-600">
-                          <span className="rounded bg-sky-50 border border-sky-200/60 px-1.5 py-0.5 font-medium text-sky-800">
-                            🕒 {memory.activitySummary.totalTimeSpent}
+                        <div className="flex flex-wrap gap-1.5 pt-1 text-[10px] font-mono text-slate-600">
+                          <span className="inline-flex items-center gap-1 rounded bg-sky-50 border border-sky-200/60 px-1.5 py-0.5 font-medium text-sky-800">
+                            <Clock3 size={10} className="text-sky-600" />
+                            <span>{memory.activitySummary.totalTimeSpent}</span>
                           </span>
-                          <span className="rounded bg-sky-50 border border-sky-200/60 px-1.5 py-0.5 font-medium text-sky-800">
-                            ❤️ {memory.activitySummary.lovedFeature}
+                          <span className="inline-flex items-center gap-1 rounded bg-sky-50 border border-sky-200/60 px-1.5 py-0.5 font-medium text-sky-800">
+                            <Heart size={10} className="text-rose-500 fill-rose-500/20" />
+                            <span>{memory.activitySummary.lovedFeature}</span>
                           </span>
                         </div>
                       )}

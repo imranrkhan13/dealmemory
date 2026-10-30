@@ -24,6 +24,12 @@ import {
   Heart,
   Bot,
   HelpCircle,
+  Sun,
+  Settings,
+  Monitor,
+  Smartphone,
+  Activity,
+  UserCheck,
 } from 'lucide-react';
 
 interface MetricState {
@@ -84,6 +90,21 @@ interface LatestEventItem {
   latencyMs: number;
 }
 
+interface UserEventItem {
+  id: string;
+  eventId: string;
+  name: string;
+  readableName: string;
+  userId: string;
+  cleanUserId: string;
+  occurredAt: string;
+  timeAgo: string;
+  url?: string;
+  properties: Record<string, unknown>;
+  isMilestone: boolean;
+  isFailure: boolean;
+}
+
 interface GeminiAnswer {
   ok: boolean;
   answer: string;
@@ -111,6 +132,7 @@ export default function OverviewProduct() {
   const [namespaces, setNamespaces] = useState<NamespaceItem[]>([]);
   const [recentMemories, setRecentMemories] = useState<MemoryItem[]>([]);
   const [latestSearches, setLatestSearches] = useState<LatestEventItem[]>([]);
+  const [userEvents, setUserEvents] = useState<UserEventItem[]>([]);
   const [apiKeyPrefix, setApiKeyPrefix] = useState<string>('pk_live_default');
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'1d' | '7d' | '30d' | 'all'>('30d');
@@ -158,6 +180,7 @@ export default function OverviewProduct() {
         setNamespaces(data.namespaces ?? []);
         setRecentMemories(data.userStories ?? data.recentMemories ?? []);
         setLatestSearches(data.latestSearches ?? []);
+        setUserEvents(data.userEvents ?? []);
         if (data.apiKeyPrefix) {
           setApiKeyPrefix(data.apiKeyPrefix);
         }
@@ -346,10 +369,12 @@ export default function OverviewProduct() {
           </h1>
           <p className="mt-1 text-xs text-slate-500 flex items-center gap-2">
             <span>Onboard your agent to dealmemory</span>
-            <span className="cursor-pointer hover:scale-110 transition-transform">☀️</span>
-            <span className="cursor-pointer hover:scale-110 transition-transform">⚙️</span>
-            <span className="cursor-pointer hover:scale-110 transition-transform">🖥️</span>
-            <span className="cursor-pointer hover:scale-110 transition-transform">📱</span>
+            <span className="flex items-center gap-1.5 text-slate-400">
+              <Sun size={13} className="text-amber-500 hover:scale-110 transition-transform cursor-pointer" />
+              <Settings size={13} className="text-slate-400 hover:scale-110 transition-transform cursor-pointer" />
+              <Monitor size={13} className="text-sky-500 hover:scale-110 transition-transform cursor-pointer" />
+              <Smartphone size={13} className="text-indigo-500 hover:scale-110 transition-transform cursor-pointer" />
+            </span>
             <span className="inline-flex items-center gap-1.5 ml-2 text-[10px] font-mono font-medium text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200/80">
               <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
               Real-time Ingest Active
@@ -406,8 +431,8 @@ export default function OverviewProduct() {
         <div className="rounded-2xl border border-sky-200/90 bg-gradient-to-br from-sky-50/80 via-white to-white p-5 shadow-2xs space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-white text-[10px] font-bold">
-                ✓
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-white text-[10px]">
+                <Check size={11} className="stroke-[3]" />
               </span>
               <h3 className="font-bold text-xs text-slate-900">
                 Live Ingestion Setup: Connect &amp; Stream Events in 30 Seconds
@@ -417,7 +442,7 @@ export default function OverviewProduct() {
               onClick={() => setShowSetup(false)}
               className="text-slate-400 hover:text-slate-600 p-1 text-xs"
             >
-              ✕
+              <X size={14} />
             </button>
           </div>
 
@@ -551,7 +576,7 @@ export default function OverviewProduct() {
                 onClick={() => setAiAnswer(null)}
                 className="text-slate-400 hover:text-slate-600 text-xs p-1"
               >
-                ✕
+                <X size={14} />
               </button>
             </div>
 
@@ -885,13 +910,19 @@ export default function OverviewProduct() {
           </div>
         </div>
 
-        {/* Right: Latest searches / Real telemetry stream */}
+        {/* Right: User-Performed Events / Real Telemetry Stream */}
         <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-2xs">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
-              <h2 className="font-bold text-sm text-slate-900">Latest searches</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-sm text-slate-900">User-performed events</h2>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-mono font-medium text-emerald-700 border border-emerald-200/80">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live Ingest
+                </span>
+              </div>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                Real-time API requests and telemetry received from your site
+                Real-time product actions, milestones &amp; telemetry received from your site
               </p>
             </div>
             <Link
@@ -903,13 +934,68 @@ export default function OverviewProduct() {
             </Link>
           </div>
 
-          <div className="mt-3 space-y-2.5">
-            {latestSearches.length === 0 ? (
-              <p className="text-xs text-slate-400 py-6 text-center">
-                No searches or requests recorded yet.
-              </p>
+          <div className="mt-3 space-y-2">
+            {userEvents.length === 0 && latestSearches.length === 0 ? (
+              <div className="py-8 text-center space-y-2">
+                <Activity size={24} className="mx-auto text-slate-300" />
+                <p className="text-xs text-slate-500 font-medium">
+                  No user events recorded yet.
+                </p>
+                <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
+                  Stream product events via the cURL snippet above or click &quot;Simulate Live Events&quot; to test.
+                </p>
+              </div>
+            ) : userEvents.length > 0 ? (
+              userEvents.slice(0, 6).map((evt) => {
+                const propEntries = Object.entries(evt.properties || {}).slice(0, 2);
+                return (
+                  <Link
+                    key={evt.id}
+                    href={`/journeys/${encodeURIComponent(evt.userId)}`}
+                    className="group flex items-start justify-between gap-3 rounded-lg p-2 transition hover:bg-slate-50 border border-transparent hover:border-slate-100"
+                  >
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      {evt.isMilestone ? (
+                        <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-500" />
+                      ) : evt.isFailure ? (
+                        <AlertTriangle size={15} className="mt-0.5 shrink-0 text-rose-500" />
+                      ) : (
+                        <Activity size={15} className="mt-0.5 shrink-0 text-sky-500" />
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-semibold text-xs text-slate-900 group-hover:text-sky-700 transition">
+                            {evt.readableName}
+                          </span>
+                          <span className="rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-mono text-slate-500 font-medium">
+                            {evt.name}
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[11px] font-mono text-slate-500 truncate">
+                          {evt.userId}
+                        </p>
+                        {propEntries.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {propEntries.map(([k, v]) => (
+                              <span
+                                key={k}
+                                className="rounded bg-sky-50/70 border border-sky-100 px-1 py-0.2 text-[9px] font-mono text-sky-700"
+                              >
+                                {k}: {String(v)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <span className="font-mono text-[10px] text-slate-400 shrink-0 whitespace-nowrap mt-0.5">
+                      {evt.timeAgo}
+                    </span>
+                  </Link>
+                );
+              })
             ) : (
-              latestSearches.slice(0, 5).map((search) => (
+              latestSearches.slice(0, 6).map((search) => (
                 <div
                   key={search.id}
                   className="flex items-start justify-between gap-3 text-xs py-1"
@@ -961,7 +1047,7 @@ export default function OverviewProduct() {
               onClick={() => setAiDrawerOpen(false)}
               className="text-slate-400 hover:text-white p-1"
             >
-              ✕
+              <X size={14} />
             </button>
           </div>
 

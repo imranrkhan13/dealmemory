@@ -110,7 +110,7 @@ export async function GET(req: Request) {
         where: { projectId },
         include: { trialUser: true },
         orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
-        take: 12,
+        take: 20,
       }),
       // Full customer journeys
       journeys(projectId),
@@ -257,7 +257,43 @@ export async function GET(req: Request) {
 
     const recentMemories = userStories.slice(0, 5);
 
-    // 5. Recent Requests / Searches feed
+    // 5. Recent User Performed Events Feed
+    const userEvents = recentEvents.map((e) => {
+      let parsedProps: Record<string, unknown> = {};
+      try {
+        parsedProps = JSON.parse(e.properties ?? '{}');
+      } catch {}
+
+      return {
+        id: e.id,
+        eventId: e.eventId,
+        name: e.name,
+        readableName: getReadableEventName(e.name),
+        userId: e.trialUser.externalUserId,
+        cleanUserId: e.trialUser.externalUserId.replace(/^(user_|usr_|anon:)/, ''),
+        occurredAt: e.occurredAt.toISOString(),
+        timeAgo: formatRelativeTime(e.occurredAt.toISOString()),
+        url: e.url,
+        properties: parsedProps,
+        isMilestone: [
+          'user_signed_up',
+          'first_value_reached',
+          'checkout_completed',
+          'activated',
+          'paid',
+          'subscription_created',
+        ].includes(e.name),
+        isFailure: [
+          'connection_failed',
+          'github_connect_failed',
+          'error',
+          'checkout_failed',
+          'onboarding_failed',
+        ].includes(e.name) || Boolean(parsedProps?.error),
+      };
+    });
+
+    // 6. Recent Requests / Searches feed (backwards compatibility)
     const latestSearches = recentEvents.map((e) => {
       // Deterministic latency simulation: ~140ms - 220ms
       const hashNum = Array.from(e.id).reduce((acc, c) => acc + c.charCodeAt(0), 0);
@@ -299,6 +335,7 @@ export async function GET(req: Request) {
       namespaces,
       recentMemories,
       userStories,
+      userEvents,
       latestSearches,
     });
   } catch (e) {

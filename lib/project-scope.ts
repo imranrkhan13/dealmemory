@@ -12,6 +12,19 @@ export async function projectScope(req: Request) {
       : null;
   const project = await ownedProject(userId, requested);
   if (requested && !project) {
+    // Check if the requested project is a foreign project belonging to another user
+    const foreignProject = await prisma.project.findUnique({
+      where: { id: requested },
+      select: { ownerId: true },
+    });
+    if (foreignProject && foreignProject.ownerId !== userId) {
+      throw Object.assign(new Error('Forbidden'), { status: 403 });
+    }
+
+    // If requested was a stale/placeholder id, fallback to user's default owned project
+    const fallback = await ownedProject(userId, null);
+    if (fallback) return fallback.id;
+
     throw Object.assign(new Error('Forbidden'), { status: 403 });
   }
   return project?.id ?? null;

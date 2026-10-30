@@ -11,7 +11,10 @@ import {
   Copy,
   Check,
   AlertTriangle,
+  Clock,
   Clock3,
+  Calendar,
+  Heart,
   CheckCircle2,
   Terminal,
   Layers,
@@ -488,14 +491,17 @@ Would love to hear how your experience was so far and if you have any feedback o
                           Behavioral Dwell &amp; Affinity
                         </p>
                         <div className="flex flex-wrap gap-1.5">
-                          <span className="rounded-md bg-white border border-sky-200/80 px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
-                            🕒 {memory.activitySummary.totalTimeSpent} active
+                          <span className="inline-flex items-center gap-1 rounded-md bg-white border border-sky-200/80 px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
+                            <Clock size={11} className="text-sky-600" />
+                            <span>{memory.activitySummary.totalTimeSpent} active</span>
                           </span>
-                          <span className="rounded-md bg-white border border-sky-200/80 px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
-                            ⏰ {memory.activitySummary.activeTimeWindow}
+                          <span className="inline-flex items-center gap-1 rounded-md bg-white border border-sky-200/80 px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
+                            <Calendar size={11} className="text-slate-500" />
+                            <span>{memory.activitySummary.activeTimeWindow}</span>
                           </span>
-                          <span className="rounded-md bg-sky-100/80 border border-sky-300/80 px-2 py-0.5 text-xs font-mono font-bold text-sky-900">
-                            ❤️ {memory.activitySummary.lovedFeature}
+                          <span className="inline-flex items-center gap-1 rounded-md bg-sky-100/80 border border-sky-300/80 px-2 py-0.5 text-xs font-mono font-bold text-sky-900">
+                            <Heart size={11} className="text-rose-500 fill-rose-500/20" />
+                            <span>{memory.activitySummary.lovedFeature}</span>
                           </span>
                         </div>
                       </div>
@@ -558,8 +564,9 @@ Would love to hear how your experience was so far and if you have any feedback o
                         <span>Team Context Notes</span>
                       </div>
                       {noteSaved && (
-                        <span className="text-[10px] font-mono text-emerald-600 font-bold">
-                          ✓ Saved to Postgres
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-600 font-bold">
+                          <Check size={11} className="stroke-[2.5]" />
+                          <span>Saved to Postgres</span>
                         </span>
                       )}
                     </div>
@@ -596,9 +603,19 @@ Would love to hear how your experience was so far and if you have any feedback o
                         </div>
                         <button
                           onClick={() => copyEmailDraft(outreachTemplate)}
-                          className="text-[10px] font-mono text-sky-600 hover:text-sky-700 font-semibold"
+                          className="inline-flex items-center gap-1 text-[10px] font-mono text-sky-600 hover:text-sky-700 font-semibold"
                         >
-                          {copiedDraft ? '✓ Copied' : 'Copy Draft'}
+                          {copiedDraft ? (
+                            <>
+                              <Check size={11} className="text-emerald-600 stroke-[2.5]" />
+                              <span className="text-emerald-600">Copied</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={11} />
+                              <span>Copy Draft</span>
+                            </>
+                          )}
                         </button>
                       </div>
 

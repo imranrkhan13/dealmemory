@@ -41,9 +41,11 @@ export async function getCurrentUser() {
 export async function requireAuth() {
   const { authOptions } = await import("@/lib/nextauth");
   const session = await getServerSession(authOptions as any);
+  if (!(session as any)?.user) throw new UnauthorizedError();
+
+  const { prisma } = await import("@/lib/db");
   let userId = (session as any)?.user?.id as string | undefined;
-  if (!userId && (session as any)?.user?.email) {
-    const { prisma } = await import("@/lib/db");
+  if ((session as any)?.user?.email) {
     const found = await prisma.user.findUnique({
       where: { email: (session as any).user.email.trim().toLowerCase() },
       select: { id: true },

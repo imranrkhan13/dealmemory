@@ -1,10 +1,12 @@
 export const dynamic = 'force-dynamic';
+import { ensureDatabaseSchema } from '@/lib/db';
 import { journeys } from '@/lib/intelligence';
 import { projectScope, scopeError } from '@/lib/project-scope';
 import { prisma } from '@/lib/db';
 
 export async function GET(req: Request, { params }: { params: { userId: string } }) {
   try {
+    await ensureDatabaseSchema();
     const projectId = await projectScope(req);
     const journey = projectId ? (await journeys(projectId)).find((j) => j.userId === params.userId) : null;
     return journey
@@ -28,6 +30,7 @@ export async function GET(req: Request, { params }: { params: { userId: string }
 
 export async function POST(req: Request, { params }: { params: { userId: string } }) {
   try {
+    await ensureDatabaseSchema();
     const projectId = await projectScope(req);
     if (!projectId) return Response.json({ ok: false, error: 'Project not found' }, { status: 404 });
 

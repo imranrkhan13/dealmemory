@@ -65,10 +65,14 @@ export default function EventsView() {
       const eventsData = await eventsResponse.json();
       if (!eventsResponse.ok) {
         console.warn('Events recent fetch warning:', eventsResponse.status, eventsData);
-        if (eventsResponse.status === 401 || eventsResponse.status === 403) {
-          throw new Error(eventsData?.error ?? 'Authentication required');
+        if (eventsResponse.status === 401) {
+          throw new Error('Authentication required. Please sign in.');
+        }
+        if (eventsResponse.status === 403) {
+          throw new Error('Access restricted to project owner.');
         }
         setEvents([]);
+        setError(null);
         return;
       }
       setEvents(Array.isArray(eventsData?.events) ? eventsData.events : []);
