@@ -58,6 +58,7 @@ type OnboardingDiagnosis = {
   summary: string;
   progressPercent: number;
   recommendation: string;
+  archetype?: string;
 };
 
 type CustomerMemory = {
@@ -65,9 +66,11 @@ type CustomerMemory = {
   summary: string;
   intent: string;
   techStack: string[];
+  interests?: string[];
   frictionPoints: string[];
   contextNotes: string[];
   suggestedAction: string;
+  archetype?: string;
   founderNotes?: string;
   lastUpdated: string;
 };
@@ -172,15 +175,41 @@ export default function JourneyPage() {
   const timeline = journey?.timeline ?? [];
 
   const isBroke = diagnosis?.isBroke || Boolean(journey?.blocker);
+  const cleanName = userId.replace(/^(user_|usr_)/, '');
 
-  // Outreach message template tailored to where onboarding broke
-  const outreachTemplate = `Hi ${userId.replace(/^user_/, '')},
+  // Dynamic outreach message template tailored to user's real behavior across any domain
+  const outreachTemplate = (() => {
+    if (diagnosis?.archetype === 'explorer') {
+      const topInterests = memory?.interests?.slice(0, 2).join(' and ');
+      return `Hi ${cleanName},
 
-I noticed you created a project in our workspace but ran into an issue connecting ${
-    memory?.techStack.find((t) => t.toLowerCase().includes('git')) || 'your integration'
-  } (${last?.readableName ?? 'integration step'}).
+I noticed you were exploring our app recently${topInterests ? ` and looking into ${topInterests}` : ''} (last action: ${last?.readableName ?? 'browsing'}).
 
-Did you hit an organization permission roadblock? Happy to jump on a quick call or send direct setup instructions to get you unblocked.`;
+Is there anything specific you are looking to find or achieve? Happy to share personalized recommendations or answer any questions!`;
+    }
+
+    if (isBroke) {
+      return `Hi ${cleanName},
+
+I saw you were working in our app but ran into an issue during "${last?.readableName ?? 'your setup'}" (${diagnosis?.brokeAt ?? 'friction encountered'}).
+
+Would love to help get you unblocked—happy to take a look together or send direct instructions!`;
+    }
+
+    if (diagnosis?.archetype === 'creator') {
+      return `Hi ${cleanName},
+
+I saw you recently initiated "${last?.readableName ?? 'setup'}" in our app.
+
+Let me know if you have any questions about next steps or if you'd like a quick 5-minute walkthrough!`;
+    }
+
+    return `Hi ${cleanName},
+
+Thanks for trying out our app! I noticed your recent activity (${last?.readableName ?? 'session'}).
+
+Would love to hear how your experience was so far and if you have any feedback or feature requests!`;
+  })();
 
   return (
     <AppShell>
@@ -467,6 +496,25 @@ Did you hit an organization permission roadblock? Happy to jump on a quick call 
                               className="rounded-lg bg-sky-50 border border-sky-200 px-2 py-1 text-xs font-mono font-medium text-sky-800"
                             >
                               {tech}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Browsed Interests & Topics */}
+                    {memory && memory.interests && memory.interests.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+                          Browsed Content &amp; Topics
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {memory.interests.map((interest) => (
+                            <span
+                              key={interest}
+                              className="rounded-lg bg-slate-100 border border-slate-200 px-2 py-1 text-xs font-mono font-medium text-slate-700"
+                            >
+                              {interest}
                             </span>
                           ))}
                         </div>

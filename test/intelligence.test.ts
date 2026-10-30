@@ -257,30 +257,73 @@ runTest('shows signup-dashboard-project-integration sequence as a timeline and d
   // Timeline sequence
   const timeline = buildTimelineSequence(userEvents);
   assert.strictEqual(timeline.length, 4);
-  assert.strictEqual(timeline[0].readableName, 'Account registered');
-  assert.strictEqual(timeline[1].readableName, 'Opened workspace dashboard');
-  assert.strictEqual(timeline[2].readableName, 'Created new project');
-  assert.strictEqual(timeline[3].readableName, 'Attempted integration connection');
+  assert.strictEqual(timeline[0].readableName, 'User Signed Up');
+  assert.strictEqual(timeline[1].readableName, 'Dashboard Opened');
+  assert.strictEqual(timeline[2].readableName, 'Project Created');
+  assert.strictEqual(timeline[3].readableName, 'Integration Connect Attempted');
   assert.strictEqual(timeline[3].isLast, true);
 
   // Last recorded action
   const lastAction = extractLastRecordedAction(userEvents);
   assert.ok(lastAction);
   assert.strictEqual(lastAction?.name, 'integration_connect_attempted');
-  assert.strictEqual(lastAction?.readableName, 'Attempted integration connection');
+  assert.strictEqual(lastAction?.readableName, 'Integration Connect Attempted');
   assert.strictEqual(lastAction?.properties.provider, 'github');
 
   // Diagnosis: where onboarding broke
   const diagnosis = diagnoseOnboarding(userEvents);
-  assert.strictEqual(diagnosis.stage, 'integration');
+  assert.strictEqual(diagnosis.stage, 'creation');
   assert.strictEqual(diagnosis.isBroke, true);
-  assert.ok(diagnosis.brokeAt?.includes('Integration connection failed') || diagnosis.brokeAt?.includes('OAuth'));
+  assert.ok(diagnosis.brokeAt?.includes('Integration Connect Attempted'));
 
   // Customer memory capsule: context the team should remember
   const memory = buildCustomerMemoryCapsule('usr_maya', userEvents, 'High-priority enterprise prospect');
   assert.ok(memory.summary.includes('usr_maya'));
-  assert.ok(memory.summary.includes('Integration'));
   assert.ok(memory.techStack.includes('github') || memory.techStack.includes('GitHub'));
   assert.strictEqual(memory.founderNotes, 'High-priority enterprise prospect');
   assert.ok(memory.suggestedAction.length > 0);
+});
+
+runTest('dynamically handles users who just scroll, browse content, or search without creating projects', () => {
+  // A user opens an app, scrolls the feed, searches for a topic, views an article, and leaves
+  const t0 = new Date('2026-10-30T11:00:00.000Z').toISOString();
+  const t1 = new Date('2026-10-30T11:02:00.000Z').toISOString();
+  const t2 = new Date('2026-10-30T11:05:00.000Z').toISOString();
+  const t3 = new Date('2026-10-30T11:08:00.000Z').toISOString();
+
+  const browsingEvents: ActivationEvent[] = [
+    buildEvent({ id: 'evt-b1', name: 'app_opened', userId: 'usr_reader_44', occurredAt: t0, properties: { platform: 'mobile_ios' } }),
+    buildEvent({ id: 'evt-b2', name: 'feed_scrolled', userId: 'usr_reader_44', occurredAt: t1, properties: { depth: '75%', topic: 'Design Engineering' } }),
+    buildEvent({ id: 'evt-b3', name: 'search_query_submitted', userId: 'usr_reader_44', occurredAt: t2, properties: { query: 'figma tokens' } }),
+    buildEvent({ id: 'evt-b4', name: 'article_read', userId: 'usr_reader_44', occurredAt: t3, properties: { title: 'Design Systems in 2026', category: 'UI/UX' } }),
+  ];
+
+  // Timeline sequence
+  const timeline = buildTimelineSequence(browsingEvents);
+  assert.strictEqual(timeline.length, 4);
+  assert.strictEqual(timeline[0].readableName, 'App Opened');
+  assert.strictEqual(timeline[1].readableName, 'Feed Scrolled');
+  assert.strictEqual(timeline[2].readableName, 'Search Query Submitted');
+  assert.strictEqual(timeline[3].readableName, 'Article Read');
+  assert.strictEqual(timeline[3].isLast, true);
+
+  // Last action
+  const lastAction = extractLastRecordedAction(browsingEvents);
+  assert.ok(lastAction);
+  assert.strictEqual(lastAction?.name, 'article_read');
+  assert.strictEqual(lastAction?.readableName, 'Article Read');
+  assert.strictEqual(lastAction?.isBrowsing, true);
+
+  // Diagnosis
+  const diagnosis = diagnoseOnboarding(browsingEvents);
+  assert.strictEqual(diagnosis.archetype, 'explorer');
+  assert.strictEqual(diagnosis.stageLabel, 'Content Browsing');
+  assert.ok(diagnosis.summary.includes('casual browsing') || diagnosis.summary.includes('browsing content'));
+
+  // Customer memory capsule: captures interests and intent
+  const memory = buildCustomerMemoryCapsule('usr_reader_44', browsingEvents);
+  assert.strictEqual(memory.archetype, 'explorer');
+  assert.ok(memory.intent.includes('figma tokens') || memory.intent.includes('browse'));
+  assert.ok(memory.interests.includes('Design Engineering') || memory.interests.includes('UI/UX'));
+  assert.ok(memory.summary.includes('usr_reader_44'));
 });

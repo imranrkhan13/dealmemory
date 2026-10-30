@@ -43,8 +43,10 @@ type CustomerMemory = {
   summary: string;
   intent: string;
   techStack: string[];
+  interests?: string[];
   frictionPoints: string[];
   suggestedAction: string;
+  archetype?: string;
   founderNotes?: string;
 };
 
@@ -383,14 +385,22 @@ function JourneysView() {
                       <p className="text-[11px] text-slate-700 leading-relaxed line-clamp-2">
                         {memory.summary}
                       </p>
-                      {memory.techStack.length > 0 && (
+                      {((memory.techStack && memory.techStack.length > 0) || (memory.interests && memory.interests.length > 0)) && (
                         <div className="flex flex-wrap gap-1 pt-1">
-                          {memory.techStack.map((tech) => (
+                          {memory.techStack?.map((tech) => (
                             <span
                               key={tech}
-                              className="rounded bg-white border border-sky-200/80 px-1.5 py-0.2 text-[10px] font-mono text-sky-800 font-medium"
+                              className="rounded bg-white border border-sky-200/80 px-1.5 py-0.5 text-[10px] font-mono text-sky-800 font-medium"
                             >
                               {tech}
+                            </span>
+                          ))}
+                          {memory.interests?.map((interest) => (
+                            <span
+                              key={interest}
+                              className="rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-[10px] font-mono text-slate-700 font-medium"
+                            >
+                              {interest}
                             </span>
                           ))}
                         </div>

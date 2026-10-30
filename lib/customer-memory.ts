@@ -1,5 +1,7 @@
 import { ActivationEvent } from '@/packages/shared/src/events';
 
+export type EventCategory = 'conversion' | 'friction' | 'creation' | 'engagement' | 'navigation' | 'general';
+
 export interface TimelineStep {
   id: string;
   name: string;
@@ -8,9 +10,11 @@ export interface TimelineStep {
   formattedTime: string;
   relativeTime: string;
   sessionId: string;
+  category: EventCategory;
   properties: Record<string, string | number | boolean | null>;
   isFailure: boolean;
   isMilestone: boolean;
+  isBrowsing: boolean;
   isLast: boolean;
   narrative: string;
 }
@@ -21,20 +25,23 @@ export interface LastActionSummary {
   occurredAt: string;
   relativeTime: string;
   formattedTime: string;
+  category: EventCategory;
   properties: Record<string, string | number | boolean | null>;
   isFailure: boolean;
   isMilestone: boolean;
+  isBrowsing: boolean;
   narrative: string;
 }
 
 export interface OnboardingDiagnosis {
-  stage: 'signup' | 'dashboard' | 'project' | 'integration' | 'first_value' | 'checkout' | 'paid';
+  stage: string;
   stageLabel: string;
   isBroke: boolean;
   brokeAt: string | null;
   summary: string;
   progressPercent: number;
   recommendation: string;
+  archetype: 'explorer' | 'evaluator' | 'creator' | 'converted' | 'friction_stalled' | 'general';
 }
 
 export interface CustomerMemoryCapsule {
@@ -42,9 +49,11 @@ export interface CustomerMemoryCapsule {
   summary: string;
   intent: string;
   techStack: string[];
+  interests: string[];
   frictionPoints: string[];
   contextNotes: string[];
   suggestedAction: string;
+  archetype: string;
   founderNotes?: string;
   lastUpdated: string;
 }
@@ -89,97 +98,160 @@ export function formatFullDateTime(dateStr: string): string {
   }
 }
 
-/** Human-readable event title dictionary */
-const EVENT_READABLE_NAMES: Record<string, string> = {
-  trial_started: 'Signed up & started trial',
-  signup: 'Account registered',
-  user_signed_up: 'Account registered',
-  identified: 'Identified user session',
-  page_view: 'Viewed page',
-  dashboard_opened: 'Opened workspace dashboard',
-  project_created: 'Created new project',
-  workspace_created: 'Created workspace',
-  goal_set: 'Configured onboarding goal',
-  integration_connect_attempted: 'Attempted integration connection',
-  integration_connected: 'Connected integration',
-  repository_connected: 'Connected code repository',
-  githubconnected: 'Connected GitHub account',
-  integration_connection_failed: 'Integration connection failed',
-  integration_failed: 'Integration connection failed',
-  repository_connection_failed: 'Repository connection failed',
-  githuboauthfailed: 'GitHub OAuth authorization failed',
-  oauth_failed: 'OAuth authorization failed',
-  first_map_generated: 'Generated first architecture map',
-  first_value_reached: 'Reached first product value',
-  activation_completed: 'Completed activation milestone',
-  summary_viewed: 'Viewed architecture summary',
-  checkout_started: 'Initiated subscription checkout',
-  payment_completed: 'Completed subscription payment',
-  subscription_created: 'Subscription activated',
-  subscription_cancelled: 'Subscription cancelled',
-  api_key_created: 'Created API project key',
-  team_invited: 'Invited team member',
-  meaningful_action: 'Completed milestone action',
-};
-
+/**
+ * Universal dynamic event name formatter.
+ * Converts ANY event string (snake_case, camelCase, kebab-case, dots) into human-readable Title Case.
+ * Works dynamically across any organization domain without hardcoded lookup tables.
+ */
 export function getReadableEventName(name: string): string {
-  if (EVENT_READABLE_NAMES[name]) return EVENT_READABLE_NAMES[name];
-  return name
-    .replace(/[_-]/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  if (!name) return 'Unknown Action';
+  const cleaned = name
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[._\-:/]+/g, ' ')
+    .trim();
+
+  return cleaned
+    .split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
 }
 
-/** Builds human narrative for an individual event */
+/**
+ * Dynamic event classifier.
+ * Infers behavioral semantics (failure, milestone, engagement, creation) from ANY event name or properties.
+ */
+export function classifyEvent(event: ActivationEvent): {
+  category: EventCategory;
+  isFailure: boolean;
+  isMilestone: boolean;
+  isBrowsing: boolean;
+} {
+  const name = event.name.toLowerCase();
+  const props = (event.properties ?? {}) as Record<string, unknown>;
+
+  // 1. Friction / Failure detection
+  const isFailure =
+    /(?:fail|error|denied|reject|abort|cancel|block|drop|stalled|crash|exception|timeout|invalid|limit|conflict)/i.test(
+      name
+    ) ||
+    Boolean(props.error) ||
+    Boolean(props.errorCode) ||
+    Boolean(props.errorMessage) ||
+    Boolean(props.failureReason) ||
+    (typeof props.status === 'number' && props.status >= 400) ||
+    props.success === false;
+
+  // 2. Conversion / Milestone detection
+  const isMilestone =
+    /(?:activated|completed|paid|purchase|subscribed|converted|finished|first_|milestone|goal_reached|success|map_generated)/i.test(
+      name
+    ) ||
+    props.verified === true ||
+    props.status === 'success' ||
+    Boolean(props.orderId) ||
+    Boolean(props.transactionId);
+
+  // 3. Browsing / Engagement / Scrolling
+  const isBrowsing =
+    /(?:scroll|view|read|watch|listen|browse|search|hover|tap|click|navigate|explore|open|feed|page|screen)/i.test(
+      name
+    ) &&
+    !isFailure &&
+    !isMilestone;
+
+  // Category determination
+  let category: EventCategory = 'general';
+  if (isFailure) {
+    category = 'friction';
+  } else if (isMilestone) {
+    category = 'conversion';
+  } else if (
+    /(?:create|setup|new|add|connect|install|config|register|signup|start|init)/i.test(name)
+  ) {
+    category = 'creation';
+  } else if (isBrowsing) {
+    category = 'engagement';
+  } else if (/(?:view|page|screen|tab|navigate|url)/i.test(name)) {
+    category = 'navigation';
+  }
+
+  return { category, isFailure, isMilestone, isBrowsing };
+}
+
+/**
+ * Dynamic narrative generator.
+ * Formulates a natural English sentence for ANY event based on its properties and category.
+ */
 export function buildEventNarrative(event: ActivationEvent): string {
-  const props = event.properties ?? {};
-  const name = event.name;
+  const props = (event.properties ?? {}) as Record<string, unknown>;
+  const readable = getReadableEventName(event.name);
+  const { category, isFailure } = classifyEvent(event);
 
-  if (name === 'trial_started') {
-    const plan = props.plan ? `on ${props.plan}` : '';
-    const src = props.source ? `via ${props.source}` : '';
-    return `User created their account ${plan} ${src}`.trim() + '.';
-  }
-  if (name === 'goal_set' && props.goal) {
-    return `Stated activation goal: "${props.goal}".`;
-  }
-  if (name === 'project_created') {
-    return `Created project "${props.name ?? props.projectName ?? 'Default'}".`;
-  }
-  if (name === 'dashboard_opened' || name === 'page_view') {
-    return `Opened ${props.name ?? props.page ?? event.url ?? 'dashboard'}.`;
-  }
-  if (name === 'integration_connect_attempted' || name === 'github_connect_started') {
-    const provider = props.provider ?? 'GitHub';
-    return `Attempted to connect ${provider} OAuth integration.`;
-  }
-  if (name === 'integration_connection_failed' || name === 'githuboauthfailed' || name === 'repository_connection_failed') {
-    const provider = props.provider ?? 'GitHub';
-    const error = props.errorCode ?? props.error ?? 'OAuth authorization failed';
-    return `Connection to ${provider} failed (${error}).`;
-  }
-  if (name === 'integration_connected' || name === 'repository_connected' || name === 'githubconnected') {
-    const provider = props.provider ?? 'GitHub';
-    const repo = props.repo ?? props.repository;
-    return `Successfully linked ${provider}${repo ? ` (${repo})` : ''}.`;
-  }
-  if (name === 'first_map_generated' || name === 'first_value_reached' || name === 'activation_completed') {
-    return 'Generated first architecture map and reached core product value.';
-  }
-  if (name === 'checkout_started') {
-    return `Opened checkout session for ${props.tier ?? props.plan ?? 'Pro'} plan.`;
-  }
-  if (name === 'payment_completed' || name === 'subscription_created') {
-    return `Payment verified: converted to ${props.tier ?? props.plan ?? 'Pro'} subscription.`;
+  // Search or query action
+  if (props.query || props.searchQuery || props.search) {
+    const q = props.query || props.searchQuery || props.search;
+    return `Searched for "${q}".`;
   }
 
-  // Fallback narrative from properties
-  const propPairs = Object.entries(props)
+  // Scrolling depth or position
+  if (props.scrollDepth || props.depth || props.scrolledPixels || props.percent) {
+    const depth = props.scrollDepth || props.depth || props.percent || `${props.scrolledPixels}px`;
+    const target = props.page || props.screen || props.feed || event.url || 'content';
+    return `Scrolled ${depth} through ${target}.`;
+  }
+
+  // Stated goal / intent
+  if (props.goal || props.intent || props.objective) {
+    const goal = props.goal || props.intent || props.objective;
+    return `Stated objective: "${goal}".`;
+  }
+
+  // Error / failure condition
+  if (isFailure) {
+    const err = props.errorMessage || props.errorCode || props.error || props.failureReason;
+    return err ? `${readable} encountered error: ${err}.` : `${readable} failed.`;
+  }
+
+  // Specific content or item interaction (products, videos, articles, posts)
+  if (props.item || props.product || props.title || props.article || props.video || props.post) {
+    const item = props.item || props.product || props.title || props.article || props.video || props.post;
+    return `${readable} on "${item}".`;
+  }
+
+  // External repository, integration, or provider
+  if (props.provider || props.repo || props.repository) {
+    const provider = props.provider ? `${props.provider} ` : '';
+    const repo = props.repo || props.repository ? `(${props.repo || props.repository})` : '';
+    return `${readable}: ${provider}${repo}`.trim() + '.';
+  }
+
+  // Created project, workspace, document, or entity
+  if (props.name || props.projectName || props.workspaceName || props.docName) {
+    const entity = props.name || props.projectName || props.workspaceName || props.docName;
+    return `${readable}: "${entity}".`;
+  }
+
+  // Plan, pricing, or billing tier
+  if (props.plan || props.tier || props.amount || props.price) {
+    const plan = props.plan || props.tier ? `plan "${props.plan || props.tier}"` : '';
+    const price = props.amount || props.price ? `$${props.amount || props.price}` : '';
+    return `${readable} for ${plan} ${price}`.trim() + '.';
+  }
+
+  // Navigation page or screen
+  if (props.page || props.screen || props.path || event.url) {
+    const dest = props.page || props.screen || props.path || event.url;
+    return `${readable}: ${dest}.`;
+  }
+
+  // Dynamic fallback from properties
+  const safeEntries = Object.entries(props)
     .filter(([k]) => !['password', 'token', 'secret'].includes(k))
-    .slice(0, 3)
+    .slice(0, 2)
     .map(([k, v]) => `${k}=${v}`)
     .join(', ');
 
-  return propPairs ? `${getReadableEventName(name)} (${propPairs}).` : `${getReadableEventName(name)}.`;
+  return safeEntries ? `${readable} (${safeEntries}).` : `${readable}.`;
 }
 
 /** Formats the user's event history into an interactive timeline sequence */
@@ -188,19 +260,7 @@ export function buildTimelineSequence(events: ActivationEvent[]): TimelineStep[]
   const total = sorted.length;
 
   return sorted.map((evt, idx) => {
-    const isFailure =
-      evt.name.includes('failed') ||
-      evt.name.includes('error') ||
-      Boolean(evt.properties?.error) ||
-      Boolean(evt.properties?.errorCode);
-
-    const isMilestone =
-      evt.name === 'first_map_generated' ||
-      evt.name === 'first_value_reached' ||
-      evt.name === 'activation_completed' ||
-      evt.name === 'payment_completed' ||
-      evt.name === 'integration_connected' ||
-      evt.name === 'repository_connected';
+    const { category, isFailure, isMilestone, isBrowsing } = classifyEvent(evt);
 
     return {
       id: evt.id,
@@ -210,9 +270,11 @@ export function buildTimelineSequence(events: ActivationEvent[]): TimelineStep[]
       formattedTime: formatFullDateTime(evt.occurredAt),
       relativeTime: formatRelativeTime(evt.occurredAt),
       sessionId: evt.sessionId,
+      category,
       properties: (evt.properties ?? {}) as Record<string, string | number | boolean | null>,
       isFailure,
       isMilestone,
+      isBrowsing,
       isLast: idx === total - 1,
       narrative: buildEventNarrative(evt),
     };
@@ -224,18 +286,7 @@ export function extractLastRecordedAction(events: ActivationEvent[]): LastAction
   if (!events.length) return null;
   const sorted = [...events].sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
   const last = sorted[sorted.length - 1];
-
-  const isFailure =
-    last.name.includes('failed') ||
-    last.name.includes('error') ||
-    Boolean(last.properties?.error) ||
-    Boolean(last.properties?.errorCode);
-
-  const isMilestone =
-    last.name === 'first_map_generated' ||
-    last.name === 'first_value_reached' ||
-    last.name === 'activation_completed' ||
-    last.name === 'payment_completed';
+  const { category, isFailure, isMilestone, isBrowsing } = classifyEvent(last);
 
   return {
     name: last.name,
@@ -243,147 +294,133 @@ export function extractLastRecordedAction(events: ActivationEvent[]): LastAction
     occurredAt: last.occurredAt,
     relativeTime: formatRelativeTime(last.occurredAt),
     formattedTime: formatFullDateTime(last.occurredAt),
+    category,
     properties: (last.properties ?? {}) as Record<string, string | number | boolean | null>,
     isFailure,
     isMilestone,
+    isBrowsing,
     narrative: buildEventNarrative(last),
   };
 }
 
-/** Diagnoses where onboarding broke or progressed */
+/**
+ * Universal dynamic journey diagnosis.
+ * Analyzes where the user stopped, whether they encountered friction, browsed casually,
+ * or completed a conversion milestone — without requiring hardcoded funnel names.
+ */
 export function diagnoseOnboarding(events: ActivationEvent[]): OnboardingDiagnosis {
   if (!events.length) {
     return {
-      stage: 'signup',
-      stageLabel: 'Not Started',
-      isBroke: true,
-      brokeAt: 'No actions received',
+      stage: 'none',
+      stageLabel: 'No Activity',
+      isBroke: false,
+      brokeAt: null,
       summary: 'No product actions have been recorded yet.',
       progressPercent: 0,
       recommendation: 'Verify SDK installation and event streaming.',
+      archetype: 'general',
     };
   }
 
   const sorted = [...events].sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
   const last = sorted[sorted.length - 1];
   const lastTime = new Date(last.occurredAt).getTime();
-  const inactiveHours = Math.max(0, Math.round((Date.now() - lastTime) / 3600000));
-  const isStalled = inactiveHours >= 1; // stopped for more than 1 hour
+  const inactiveHours = Math.max(0, Math.round(Math.abs(Date.now() - lastTime) / 3600000));
+  const isAttemptWithoutCompletion = /attempt|try|start|init|request|pending/i.test(last.name);
+  const isStalled = inactiveHours >= 1 || isAttemptWithoutCompletion;
 
-  const hasPaid = sorted.some((e) => e.name === 'payment_completed' || e.name === 'subscription_created');
-  const hasCheckout = sorted.some((e) => e.name === 'checkout_started');
-  const hasValue = sorted.some((e) => e.name === 'first_map_generated' || e.name === 'first_value_reached' || e.name === 'activation_completed');
-  const hasConnected = sorted.some((e) => e.name === 'integration_connected' || e.name === 'repository_connected' || e.name === 'githubconnected');
-  const hasAttemptedConnect = sorted.some((e) => e.name === 'integration_connect_attempted' || e.name === 'github_connect_started');
-  const hasFailedConnect = sorted.some((e) => e.name.includes('failed') || e.name.includes('error') || e.name === 'githuboauthfailed');
-  const hasProject = sorted.some((e) => e.name === 'project_created' || e.name === 'workspace_created');
-  const hasDashboard = sorted.some((e) => e.name === 'dashboard_opened' || e.name === 'page_view');
+  const classified = sorted.map((e) => ({ event: e, ...classifyEvent(e) }));
+  const failureEvent = classified.slice().reverse().find((c) => c.isFailure);
+  const milestoneEvent = classified.slice().reverse().find((c) => c.isMilestone);
+  const creationEvent = classified.slice().reverse().find((c) => c.category === 'creation');
+  const browsingEvents = classified.filter((c) => c.isBrowsing);
 
-  if (hasPaid) {
+  const lastClassified = classified[classified.length - 1];
+  const lastReadable = getReadableEventName(last.name);
+
+  // 1. Friction / Failure encountered:
+  if (failureEvent) {
+    const errorProp =
+      failureEvent.event.properties?.errorCode ??
+      failureEvent.event.properties?.errorMessage ??
+      failureEvent.event.properties?.error ??
+      'Operation failed';
+
     return {
-      stage: 'paid',
-      stageLabel: 'Paid Account',
-      isBroke: false,
-      brokeAt: null,
-      summary: 'User successfully completed onboarding and converted to paid subscription.',
-      progressPercent: 100,
-      recommendation: 'Deliver premium onboarding and monitor recurring value delivery.',
-    };
-  }
-
-  if (hasCheckout) {
-    return {
-      stage: 'checkout',
-      stageLabel: 'Checkout Initiated',
-      isBroke: isStalled,
-      brokeAt: isStalled ? 'Checkout Abandonment' : null,
-      summary: isStalled
-        ? `User opened checkout ${formatRelativeTime(last.occurredAt)} but has not completed payment.`
-        : 'User is currently in checkout process.',
-      progressPercent: 85,
-      recommendation: 'Send checkout recovery reminder or offer billing assistance.',
-    };
-  }
-
-  if (hasValue) {
-    return {
-      stage: 'first_value',
-      stageLabel: 'First Value Reached',
-      isBroke: false,
-      brokeAt: null,
-      summary: 'User successfully connected integration and achieved core value milestone.',
-      progressPercent: 75,
-      recommendation: 'User is highly activated. Offer annual plan or invite teammates.',
-    };
-  }
-
-  // Broken or stalled at Integration stage
-  if (hasFailedConnect || (hasAttemptedConnect && !hasConnected)) {
-    const errorProp = last.properties?.errorCode ?? last.properties?.error ?? 'OAuth permission denied';
-    return {
-      stage: 'integration',
-      stageLabel: 'Integration Setup',
+      stage: 'friction',
+      stageLabel: `${getReadableEventName(failureEvent.event.name)} Error`,
       isBroke: true,
-      brokeAt: `Integration connection failed (${errorProp})`,
-      summary: `User tried to connect an integration but halted after encountering an error: ${errorProp}. Last recorded action: ${formatRelativeTime(last.occurredAt)}.`,
-      progressPercent: 40,
-      recommendation: 'Send integration troubleshooting guide or check organization OAuth permissions.',
+      brokeAt: `${getReadableEventName(failureEvent.event.name)} failed (${errorProp})`,
+      summary: `User encountered friction at "${getReadableEventName(failureEvent.event.name)}": ${errorProp}. Last recorded action: ${formatRelativeTime(last.occurredAt)}.`,
+      progressPercent: Math.max(20, Math.min(80, Math.round((events.length / 8) * 100))),
+      recommendation: `Check error logs for "${errorProp}" or reach out to assist with ${getReadableEventName(failureEvent.event.name)}.`,
+      archetype: 'friction_stalled',
     };
   }
 
-  if (hasConnected && !hasValue) {
+  // 2. Conversion / Milestone achieved:
+  if (milestoneEvent) {
     return {
-      stage: 'integration',
-      stageLabel: 'Integration Connected',
+      stage: 'milestone',
+      stageLabel: getReadableEventName(milestoneEvent.event.name),
+      isBroke: false,
+      brokeAt: null,
+      summary: `User achieved milestone "${getReadableEventName(milestoneEvent.event.name)}" ${formatRelativeTime(milestoneEvent.event.occurredAt)}.`,
+      progressPercent: 100,
+      recommendation: `User is highly engaged. Encourage team sharing or expansion.`,
+      archetype: 'converted',
+    };
+  }
+
+  // 3. Casual Browsing / Scrolling on app (e.g. users who just scroll on feeds, explore content, or search):
+  if (browsingEvents.length >= Math.ceil(events.length * 0.6)) {
+    return {
+      stage: 'exploration',
+      stageLabel: 'Content Browsing',
       isBroke: isStalled,
-      brokeAt: isStalled ? 'Stopped before reaching first value' : null,
+      brokeAt: isStalled ? `Stopped browsing after ${lastReadable}` : null,
       summary: isStalled
-        ? `User successfully linked integration, but stopped before generating their first map or reaching value.`
-        : 'Integration linked. User is actively preparing first milestone.',
-      progressPercent: 50,
-      recommendation: 'Prompt the first-value action (e.g. generate map or run initial sync).',
+        ? `User engaged in casual browsing (${events.length} actions recorded, e.g. ${lastReadable}) and left ${formatRelativeTime(last.occurredAt)}.`
+        : `User is actively browsing content (${lastReadable}).`,
+      progressPercent: Math.min(60, events.length * 10),
+      recommendation: `Surface relevant content or call-to-action aligned with what they viewed.`,
+      archetype: 'explorer',
     };
   }
 
-  if (hasProject) {
+  // 4. Creation / Setup in progress:
+  if (creationEvent) {
     return {
-      stage: 'project',
-      stageLabel: 'Project Created',
+      stage: 'creation',
+      stageLabel: getReadableEventName(creationEvent.event.name),
       isBroke: isStalled,
-      brokeAt: isStalled ? 'Stopped before connecting integration' : null,
+      brokeAt: isStalled ? `Halted after ${lastReadable}` : null,
       summary: isStalled
-        ? `User created a project ${formatRelativeTime(last.occurredAt)} but stopped before connecting an integration.`
-        : 'Project created. Awaiting integration connection.',
-      progressPercent: 30,
-      recommendation: 'Highlight one-click connectors in their workspace dashboard.',
+        ? `User performed "${getReadableEventName(creationEvent.event.name)}" but halted after "${lastReadable}" ${formatRelativeTime(last.occurredAt)}.`
+        : `User is actively configuring setup (${lastReadable}).`,
+      progressPercent: Math.min(70, Math.max(30, events.length * 15)),
+      recommendation: `Prompt the next milestone action following ${lastReadable}.`,
+      archetype: 'creator',
     };
   }
 
-  if (hasDashboard) {
-    return {
-      stage: 'dashboard',
-      stageLabel: 'Dashboard Opened',
-      isBroke: isStalled,
-      brokeAt: isStalled ? 'Stopped after opening dashboard' : null,
-      summary: `User opened the dashboard ${formatRelativeTime(last.occurredAt)} but has not created a project or connected any data source.`,
-      progressPercent: 20,
-      recommendation: 'Trigger automated onboarding checklist guide.',
-    };
-  }
-
-  // Dropped off right at signup
+  // 5. General interaction flow:
   return {
-    stage: 'signup',
-    stageLabel: 'Signed Up',
+    stage: 'general',
+    stageLabel: lastReadable,
     isBroke: isStalled,
-    brokeAt: isStalled ? 'Drop-off immediately after sign up' : null,
-    summary: `User registered an account ${formatRelativeTime(last.occurredAt)} but stopped before exploring the dashboard or creating a project.`,
-    progressPercent: 10,
-    recommendation: 'Send welcome email with quickstart video walkthrough.',
+    brokeAt: isStalled ? `Inactive after ${lastReadable}` : null,
+    summary: `User performed ${events.length} interaction${events.length === 1 ? '' : 's'}. Last recorded action was "${lastReadable}" ${formatRelativeTime(last.occurredAt)}.`,
+    progressPercent: Math.min(50, events.length * 10),
+    recommendation: `Monitor user activity or trigger onboarding assistance.`,
+    archetype: isStalled ? 'friction_stalled' : 'general',
   };
 }
 
-/** Synthesizes the Customer Memory Capsule: what the team should remember about this specific user */
+/**
+ * Universal Customer Memory Capsule synthesis.
+ * Captures what the team should remember about this specific user across ANY organization domain.
+ */
 export function buildCustomerMemoryCapsule(
   userId: string,
   events: ActivationEvent[],
@@ -392,29 +429,48 @@ export function buildCustomerMemoryCapsule(
   const diagnosis = diagnoseOnboarding(events);
   const lastAction = extractLastRecordedAction(events);
 
-  // Extract goal
-  const goalEvent = events.find((e) => e.name === 'goal_set' && e.properties?.goal);
-  const statedGoal = goalEvent?.properties?.goal ? String(goalEvent.properties.goal) : '';
-
-  // Extract tech stack & environment clues from properties
-  const stack = new Set<string>();
+  // Extract explicit or implicit intent / goals
+  let statedGoal = '';
   events.forEach((e) => {
-    const p = e.properties ?? {};
-    if (p.provider) stack.add(String(p.provider));
-    if (p.repo || p.repository) stack.add(String(p.repo ?? p.repository));
-    if (p.language) stack.add(String(p.language));
-    if (p.framework) stack.add(String(p.framework));
-    if (p.format) stack.add(String(p.format).toUpperCase());
-    if (p.platform) stack.add(String(p.platform));
-    if (e.name.includes('github')) stack.add('GitHub');
-    if (e.name.includes('slack')) stack.add('Slack');
+    const p = (e.properties ?? {}) as Record<string, unknown>;
+    if (p.goal || p.intent || p.objective) {
+      statedGoal = String(p.goal || p.intent || p.objective);
+    } else if (!statedGoal && (p.query || p.searchQuery || p.search)) {
+      statedGoal = `Interested in searching for "${p.query || p.searchQuery || p.search}"`;
+    }
   });
 
-  // Friction points
+  // Extract tech stack, tools, and platforms dynamically
+  const techStack = new Set<string>();
+  events.forEach((e) => {
+    const p = (e.properties ?? {}) as Record<string, unknown>;
+    ['provider', 'repo', 'repository', 'platform', 'framework', 'language', 'stack', 'os', 'browser'].forEach(
+      (key) => {
+        if (p[key] && typeof p[key] === 'string') {
+          techStack.add(String(p[key]));
+        }
+      }
+    );
+  });
+
+  // Extract interests (content, categories, viewed pages, products)
+  const interests = new Set<string>();
+  events.forEach((e) => {
+    const p = (e.properties ?? {}) as Record<string, unknown>;
+    ['category', 'topic', 'product', 'item', 'title', 'article', 'video', 'page'].forEach((key) => {
+      if (p[key] && typeof p[key] === 'string') {
+        interests.add(String(p[key]));
+      }
+    });
+  });
+
+  // Collect friction points
   const frictionPoints: string[] = [];
   events.forEach((e) => {
-    if (e.name.includes('failed') || e.name.includes('error')) {
-      const err = e.properties?.errorCode ?? e.properties?.error ?? e.name;
+    const { isFailure } = classifyEvent(e);
+    if (isFailure) {
+      const p = (e.properties ?? {}) as Record<string, unknown>;
+      const err = p.errorMessage || p.errorCode || p.error || p.failureReason || e.name;
       frictionPoints.push(`${getReadableEventName(e.name)}: ${err}`);
     }
   });
@@ -422,42 +478,51 @@ export function buildCustomerMemoryCapsule(
     frictionPoints.push(diagnosis.brokeAt);
   }
 
-  // Key context notes for the team
+  // Key bulleted context notes for the team
   const contextNotes: string[] = [];
   if (statedGoal) {
-    contextNotes.push(`Goal: ${statedGoal}`);
+    contextNotes.push(`Intent: ${statedGoal}`);
   }
-  if (stack.size > 0) {
-    contextNotes.push(`Stack & Tools: ${Array.from(stack).join(', ')}`);
+  if (interests.size > 0) {
+    contextNotes.push(`Interests / Viewed: ${Array.from(interests).slice(0, 4).join(', ')}`);
+  }
+  if (techStack.size > 0) {
+    contextNotes.push(`Stack & Tools: ${Array.from(techStack).join(', ')}`);
   }
   if (lastAction) {
-    contextNotes.push(`Last activity: ${lastAction.readableName} (${lastAction.relativeTime})`);
+    contextNotes.push(`Last recorded action: ${lastAction.readableName} (${lastAction.relativeTime})`);
   }
   if (diagnosis.isBroke) {
-    contextNotes.push(`Onboarding roadblock: ${diagnosis.brokeAt}`);
+    contextNotes.push(`Roadblock: ${diagnosis.brokeAt}`);
   } else {
     contextNotes.push(`Status: ${diagnosis.stageLabel} (${diagnosis.progressPercent}% milestone progression)`);
   }
 
-  // High-level narrative summary
-  const summary = `User "${userId}" ${
-    statedGoal ? `signed up to ${statedGoal.toLowerCase()}` : 'signed up for evaluation'
-  }. ${
-    diagnosis.isBroke
-      ? `Onboarding stalled at the ${diagnosis.stageLabel} stage: ${diagnosis.summary}`
-      : `Progressing through onboarding (${diagnosis.stageLabel}).`
-  }`;
+  // Executive summary tailored to user's real behavior (e.g. browsing vs creating vs hitting errors)
+  let summary = '';
+  if (diagnosis.archetype === 'explorer') {
+    const browsed = Array.from(interests).slice(0, 3).join(', ');
+    summary = `User "${userId}" spent time browsing content (${events.length} actions recorded, e.g. ${lastAction?.readableName})${browsed ? ` focusing on ${browsed}` : ''}. Stopped browsing ${lastAction?.relativeTime}.`;
+  } else if (diagnosis.isBroke) {
+    summary = `User "${userId}" was active ${lastAction?.relativeTime} but halted: ${diagnosis.summary}`;
+  } else if (diagnosis.archetype === 'converted') {
+    summary = `User "${userId}" completed milestone "${diagnosis.stageLabel}" ${lastAction?.relativeTime}. High engagement account.`;
+  } else {
+    summary = `User "${userId}" performed ${events.length} action${events.length === 1 ? '' : 's'} (last: ${lastAction?.readableName} ${lastAction?.relativeTime}).`;
+  }
 
   return {
     title: diagnosis.isBroke
-      ? `Onboarding Friction: ${diagnosis.brokeAt ?? diagnosis.stageLabel}`
-      : `Active User: ${diagnosis.stageLabel}`,
+      ? `Friction: ${diagnosis.brokeAt ?? diagnosis.stageLabel}`
+      : `${diagnosis.stageLabel} (${userId})`,
     summary,
-    intent: statedGoal || 'Evaluate application capabilities and setup workflow.',
-    techStack: Array.from(stack),
+    intent: statedGoal || (diagnosis.archetype === 'explorer' ? 'Explore & browse application content' : 'Evaluate product capabilities'),
+    techStack: Array.from(techStack),
+    interests: Array.from(interests),
     frictionPoints,
     contextNotes,
     suggestedAction: diagnosis.recommendation,
+    archetype: diagnosis.archetype,
     founderNotes: existingNotes,
     lastUpdated: lastAction?.occurredAt ?? new Date().toISOString(),
   };
