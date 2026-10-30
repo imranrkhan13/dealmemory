@@ -276,13 +276,40 @@ export default function OverviewProduct() {
     }
   };
 
-  // Copy API key snippet
+  // Snippet copy handling
+  const [snippetMode, setSnippetMode] = useState<'curl' | 'fetch'>('curl');
   const scriptHost = typeof window !== 'undefined' ? window.location.origin : 'https://dealmemory.vercel.app';
-  const embedSnippet = `<script src="${scriptHost}/v1.js" data-key="${apiKeyPrefix || 'YOUR_PROJECT_API_KEY'}" async></script>`;
+  const keyToUse = apiKeyPrefix || 'pk_live_your_project_key';
+
+  const curlSnippet = `curl -X POST '${scriptHost}/api/v1/events/batch' \\
+  -H 'Content-Type: application/json' \\
+  -H 'x-project-key: ${keyToUse}' \\
+  -d '{"events":[{"id":"'$(uuidgen || echo "evt-$(date +%s)")'","projectKey":"${keyToUse}","name":"user_signed_up","userId":"sarah@acme.inc","anonymousId":"anon_1","sessionId":"sess_1","occurredAt":"'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'","properties":{"plan":"growth"}}]}'`;
+
+  const fetchSnippet = `await fetch('${scriptHost}/api/v1/events/batch', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-project-key': '${keyToUse}'
+  },
+  body: JSON.stringify({
+    events: [{
+      id: crypto.randomUUID(),
+      projectKey: '${keyToUse}',
+      name: 'user_signed_up',
+      userId: 'sarah@acme.inc',
+      anonymousId: 'anon_1',
+      sessionId: 'sess_1',
+      occurredAt: new Date().toISOString(),
+      properties: { plan: 'growth' }
+    }]
+  })
+});`;
 
   const handleCopySnippet = async () => {
     try {
-      await navigator.clipboard.writeText(embedSnippet);
+      const activeText = snippetMode === 'curl' ? curlSnippet : fetchSnippet;
+      await navigator.clipboard.writeText(activeText);
       setCopiedKey(true);
       setTimeout(() => setCopiedKey(false), 2000);
     } catch {}
@@ -376,14 +403,14 @@ export default function OverviewProduct() {
 
       {/* QUICK SETUP DRAWER (If toggled) */}
       {showSetup && (
-        <div className="rounded-2xl border border-sky-200/90 bg-gradient-to-br from-sky-50/80 via-white to-white p-4 shadow-2xs space-y-3">
+        <div className="rounded-2xl border border-sky-200/90 bg-gradient-to-br from-sky-50/80 via-white to-white p-5 shadow-2xs space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-white text-[10px] font-bold">
                 ✓
               </span>
               <h3 className="font-bold text-xs text-slate-900">
-                1-Line Website Setup: Stream Live Telemetry in 30 Seconds
+                Live Ingestion Setup: Connect &amp; Stream Events in 30 Seconds
               </h3>
             </div>
             <button
@@ -395,28 +422,54 @@ export default function OverviewProduct() {
           </div>
 
           <p className="text-xs text-slate-600">
-            Add this script tag to your web app header. Every button click, scroll, and page view will stream dynamically to your DealMemory console:
+            Stream events directly to DealMemory over standard HTTP. Send from any frontend app, backend service, or terminal command:
           </p>
 
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-900 text-slate-100 px-4 py-2.5 font-mono text-xs overflow-x-auto">
-            <code>{embedSnippet}</code>
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setSnippetMode('curl')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  snippetMode === 'curl'
+                    ? 'bg-sky-600 text-white font-semibold shadow-2xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                cURL (Terminal)
+              </button>
+              <button
+                onClick={() => setSnippetMode('fetch')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  snippetMode === 'fetch'
+                    ? 'bg-sky-600 text-white font-semibold shadow-2xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                JavaScript fetch (Web / React / Node)
+              </button>
+            </div>
+
             <button
               onClick={handleCopySnippet}
-              className="ml-4 shrink-0 rounded-lg bg-slate-800 border border-slate-700 px-2.5 py-1 text-[11px] font-sans font-medium text-slate-200 hover:text-white transition inline-flex items-center gap-1.5"
+              className="rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 transition inline-flex items-center gap-1.5"
             >
               {copiedKey ? (
                 <>
-                  <Check size={12} className="text-emerald-400" />
-                  <span className="text-emerald-400">Copied!</span>
+                  <Check size={12} className="text-emerald-600" />
+                  <span className="text-emerald-600 font-semibold">Copied!</span>
                 </>
               ) : (
                 <>
                   <Copy size={12} />
-                  <span>Copy</span>
+                  <span>Copy Code</span>
                 </>
               )}
             </button>
           </div>
+
+          <pre className="rounded-xl border border-slate-800 bg-slate-900 p-3.5 font-mono text-xs text-sky-200 overflow-x-auto leading-relaxed shadow-inner">
+            {snippetMode === 'curl' ? curlSnippet : fetchSnippet}
+          </pre>
         </div>
       )}
 

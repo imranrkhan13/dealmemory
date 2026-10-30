@@ -1,12 +1,65 @@
-export const sdkInstall = { npmPackage:'dealmemory-sdk-local', pypiPackage:'dealmemory-sdk-local', published:false, directHttp:true } as const;
-export type SnippetRuntime = 'script' | 'fetch' | 'curl' | 'python';
-export function installSnippet(runtime: SnippetRuntime, apiUrl: string, key = '<YOUR_PUBLIC_KEY>') {
-  const origin = apiUrl.replace(/\/api\/?$/, '');
-  if (runtime === 'script') {
-    return `<!-- DealMemory 1-line Drop-in Snippet -->\n<script src="${origin}/v1.js" data-key="${key}" async></script>\n\n<!-- Optional: identify user or track actions in JavaScript -->\n<script>\n  // dealmemory.identify('sarah@acme.inc', { plan: 'growth' });\n  // dealmemory.track('integration_connected', { provider: 'Slack' });\n</script>`;
+export const sdkInstall = { npmPackage: 'dealmemory-sdk-local', pypiPackage: 'dealmemory-sdk-local', published: false, directHttp: true } as const;
+export type SnippetRuntime = 'curl' | 'fetch' | 'python';
+
+export function installSnippet(runtime: SnippetRuntime, apiUrl: string, key = '<YOUR_PROJECT_KEY>') {
+  const event = {
+    id: 'replace-with-a-unique-uuid',
+    projectKey: key,
+    name: 'user_signed_up',
+    userId: 'sarah@acme.inc',
+    anonymousId: 'anon_123',
+    sessionId: 'sess_123',
+    occurredAt: new Date().toISOString(),
+    properties: { plan: 'growth', teamSize: 12 },
+  };
+
+  if (runtime === 'curl') {
+    return `# 1. Send live product events via standard HTTP cURL
+curl -X POST '${apiUrl}/v1/events/batch' \\
+  -H 'Content-Type: application/json' \\
+  -H 'x-project-key: ${key}' \\
+  -d '${JSON.stringify({ events: [event] }, null, 2)}'`;
   }
-  const event = { id: 'replace-with-a-unique-event-id', projectKey: key, name: 'trial_started', userId: 'user_123', anonymousId: 'anonymous_123', sessionId: 'session_123', occurredAt: '<ISO_TIMESTAMP>', properties: {} };
-  if (runtime === 'python') return `import json, uuid\nfrom datetime import datetime, timezone\nfrom urllib.request import Request, urlopen\n\nevent = ${JSON.stringify(event,null,2)}\nevent['id'] = str(uuid.uuid4())\nevent['occurredAt'] = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')\nrequest = Request('${apiUrl}/v1/events/batch',\n    data=json.dumps({'events': [event]}).encode(),\n    headers={'Content-Type': 'application/json', 'x-project-key': '${key}'})\nwith urlopen(request, timeout=5) as response:\n    print(response.read().decode())`;
-  if (runtime === 'curl') return `curl '${apiUrl}/v1/events/batch' \\\n  -H 'Content-Type: application/json' \\\n  -H 'x-project-key: ${key}' \\\n  --data '${JSON.stringify({events:[event]},null,2)}'\n# Replace <ISO_TIMESTAMP> with the current UTC time, and use a unique id per event.\n# Reuse the same id and payload only when retrying that event.`;
-  return `const event = ${JSON.stringify(event,null,2)};\nevent.id = crypto.randomUUID();\nevent.occurredAt = new Date().toISOString();\nconst response = await fetch('${apiUrl}/v1/events/batch', {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json', 'x-project-key': '${key}' },\n  body: JSON.stringify({ events: [event] })\n});\nconsole.log(response.status, await response.json());`;
+
+  if (runtime === 'fetch') {
+    return `// Send live product events via standard JavaScript fetch (Browser, Node.js, Next.js)
+const event = {
+  id: crypto.randomUUID(),
+  projectKey: '${key}',
+  name: 'user_signed_up',
+  userId: 'sarah@acme.inc',
+  anonymousId: 'anon_123',
+  sessionId: 'sess_123',
+  occurredAt: new Date().toISOString(),
+  properties: { plan: 'growth', teamSize: 12 }
+};
+
+const res = await fetch('${apiUrl}/v1/events/batch', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-project-key': '${key}'
+  },
+  body: JSON.stringify({ events: [event] })
+});
+
+console.log('DealMemory Ingestion:', res.status, await res.json());`;
+  }
+
+  return `# Send live product events via standard Python urllib
+import json, uuid
+from datetime import datetime, timezone
+from urllib.request import Request, urlopen
+
+event = ${JSON.stringify(event, null, 2)}
+event['id'] = str(uuid.uuid4())
+event['occurredAt'] = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+
+req = Request(
+    '${apiUrl}/v1/events/batch',
+    data=json.dumps({'events': [event]}).encode(),
+    headers={'Content-Type': 'application/json', 'x-project-key': '${key}'}
+)
+with urlopen(req, timeout=5) as res:
+    print('DealMemory Ingestion:', res.status, res.read().decode())`;
 }

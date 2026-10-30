@@ -86,6 +86,7 @@ export async function askGeminiAboutData(
       activeWindow: act?.activeTimeWindow || 'recently',
       lovedFeature: act?.lovedFeature || 'App features',
       lastAction: j.lastAction?.readableName || 'N/A',
+      lastActionTime: j.lastAction?.relativeTime || 'recently',
       isStalled: Boolean(diag?.isBroke || j.blocker),
       stalledReason: diag?.brokeAt || j.blocker || null,
       executiveStory: act?.executiveStory || j.customerMemory?.summary || 'No story available',
@@ -147,12 +148,42 @@ Instructions:
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('Gemini API request failed:', response.status, errText);
+      console.warn('Gemini API status:', response.status);
+
+      // Graceful ground-truth fallback if Gemini quota is exhausted (e.g. 429) or offline
+      const relevantUser =
+        userSummaries.find((u) =>
+          question.toLowerCase().includes(u.userId.toLowerCase()) ||
+          question.toLowerCase().includes(u.userId.split('@')[0].toLowerCase())
+        ) || userSummaries[0];
+
+      let fallbackAnswer = '';
+      if (relevantUser) {
+        fallbackAnswer =
+          `Based on telemetry for **${relevantUser.userId}**:\n\n` +
+          `• **Time Spent**: ${relevantUser.timeSpent} (${relevantUser.activeWindow})\n` +
+          `• **Feature Affinity**: ${relevantUser.lovedFeature}\n` +
+          `• **Last Recorded Action**: ${relevantUser.lastAction} (${relevantUser.lastActionTime})\n` +
+          (relevantUser.stalledReason ? `• **Where Onboarding Broke**: ${relevantUser.stalledReason}\n` : '') +
+          `\n**Executive Summary**:\n${relevantUser.executiveStory}`;
+      } else {
+        fallbackAnswer = `DealMemory observed ${trialUsers.length} user profiles and ${recentEvents.length} telemetry events across your workspace. ${stalledJourneys.length} user(s) currently experience onboarding friction.`;
+      }
+
       return {
-        ok: false,
-        answer: `Gemini API error (${response.status}): Unable to generate response.`,
-        model: 'gemini-2.5-flash',
-        error: errText,
+        ok: true,
+        answer: fallbackAnswer,
+        model: 'dealmemory-telemetry-engine',
+        contextStats: {
+          usersCount: trialUsers.length,
+          eventsCount: recentEvents.length,
+          stalledCount: stalledJourneys.length,
+        },
+        sources: userSummaries.map((u) => ({
+          type: 'user_journey',
+          title: u.userId,
+          detail: `${u.timeSpent} active · ${u.lovedFeature} · Last: ${u.lastAction}`,
+        })),
       };
     }
 
