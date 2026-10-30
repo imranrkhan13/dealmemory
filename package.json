@@ -14,6 +14,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate",
     "test:integration": "tsx test/integration.test.ts",
+    "test:e2e": "tsx test/e2e-user-intelligence.ts",
+    "test:two-accounts": "tsx scripts/test-two-accounts.mjs",
     "db:migrate:deploy": "node scripts/local-db.mjs",
     "db:reset:local": "node scripts/local-db.mjs --reset"
   },

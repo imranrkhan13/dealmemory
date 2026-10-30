@@ -12,8 +12,6 @@ export async function projectScope(req: Request) {
       : null;
   const project = await ownedProject(userId, requested);
   if (requested && !project) {
-    const fallback = await ownedProject(userId, null);
-    if (fallback) return fallback.id;
     throw Object.assign(new Error('Forbidden'), { status: 403 });
   }
   return project?.id ?? null;
