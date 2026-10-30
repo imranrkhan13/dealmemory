@@ -26,15 +26,24 @@ export function safeParseProps(props?: string | null): Record<string, string | n
     return {};
   }
 }
-export function mapEvent(row: Row & {trialUser: TrialUser}): ActivationEvent {
+export function mapEvent(row: Row & {trialUser?: TrialUser | null}): ActivationEvent {
+  const externalUserId = row.trialUser?.externalUserId ?? row.anonymousId ?? 'unknown';
+  const isAnon = externalUserId.startsWith('anon:');
+  const occurredAtStr =
+    row.occurredAt instanceof Date
+      ? row.occurredAt.toISOString()
+      : isNaN(new Date(row.occurredAt).getTime())
+      ? new Date().toISOString()
+      : new Date(row.occurredAt).toISOString();
+
   return {
     id: row.eventId,
     projectKey: '',
     name: row.name,
-    userId: row.trialUser.externalUserId.startsWith('anon:') ? undefined : row.trialUser.externalUserId,
-    anonymousId: row.anonymousId ?? row.trialUser.externalUserId.replace(/^anon:/, ''),
+    userId: isAnon ? undefined : externalUserId,
+    anonymousId: row.anonymousId ?? externalUserId.replace(/^anon:/, ''),
     sessionId: row.sessionId,
-    occurredAt: row.occurredAt.toISOString(),
+    occurredAt: occurredAtStr,
     url: row.url ?? undefined,
     referrer: row.referrer ?? undefined,
     properties: safeParseProps(row.properties),

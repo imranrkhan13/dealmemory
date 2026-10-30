@@ -341,7 +341,8 @@ export function diagnoseOnboarding(events: ActivationEvent[]): OnboardingDiagnos
 
   const sorted = [...events].sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
   const last = sorted[sorted.length - 1];
-  const lastTime = new Date(last.occurredAt).getTime();
+  const rawLastTime = new Date(last.occurredAt).getTime();
+  const lastTime = isNaN(rawLastTime) ? Date.now() : rawLastTime;
   const inactiveHours = Math.max(0, Math.round(Math.abs(Date.now() - lastTime) / 3600000));
   const isAttemptWithoutCompletion = /attempt|try|start|init|request|pending/i.test(last.name);
   const isStalled = inactiveHours >= 1 || isAttemptWithoutCompletion;
@@ -457,13 +458,15 @@ export function computeUserActivitySummary(
 
   // 1. Time Spent calculation (grouping by sessions separated by >= 90 mins inactivity)
   let totalActiveMs = 0;
-  let sessionStart = new Date(sorted[0].occurredAt).getTime();
+  const rawStart = new Date(sorted[0].occurredAt).getTime();
+  let sessionStart = isNaN(rawStart) ? Date.now() : rawStart;
   let sessionEnd = sessionStart;
 
   const sessions: Array<{ start: Date; end: Date; count: number }> = [];
 
   for (let i = 1; i < sorted.length; i++) {
-    const t = new Date(sorted[i].occurredAt).getTime();
+    const rawT = new Date(sorted[i].occurredAt).getTime();
+    const t = isNaN(rawT) ? sessionEnd : rawT;
     if (t - sessionEnd > 90 * 60 * 1000) {
       const dur = Math.max(60 * 1000, sessionEnd - sessionStart);
       totalActiveMs += dur;
