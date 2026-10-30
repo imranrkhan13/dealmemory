@@ -61,7 +61,16 @@ export function isRepositoryConnectionFailed(event: ActivationEvent) {
 }
 
 export function isActivationEvent(event: ActivationEvent) {
-  return event.name === 'first_map_generated' || event.name === 'activation_completed';
+  return (
+    event.name === 'first_map_generated' ||
+    event.name === 'activation_completed' ||
+    event.name === 'first_value_reached' ||
+    event.name === 'feature_used' ||
+    event.name === 'project_created' ||
+    event.name === 'workflow_completed' ||
+    event.properties?.milestone === true ||
+    event.properties?.activated === true
+  );
 }
 
 export function isPaymentCompleted(event: ActivationEvent) {

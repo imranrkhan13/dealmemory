@@ -166,18 +166,24 @@ Instructions:
         const cleanWindow = relevantUser.activeWindow.replace(/^around\s+/i, '');
         const cleanLoved = relevantUser.lovedFeature.replace(/^Loved:\s*/i, '');
         const targetFeature = cleanLoved.replace(/\s*\([^)]*\)/, '').trim();
-        const hasRealFriction = relevantUser.isStalled && relevantUser.stalledReason;
+        const isFalseAlarm =
+          relevantUser.stalledReason === 'First value not reached' &&
+          (relevantUser.lastAction === 'Feature Used' ||
+            relevantUser.lastAction === 'First Value Reached' ||
+            relevantUser.archetype === 'creator');
+        const hasRealFriction = Boolean(relevantUser.isStalled && relevantUser.stalledReason && !isFalseAlarm);
+        const effectiveReason = isFalseAlarm ? null : relevantUser.stalledReason;
 
         fallbackAnswer =
           `### Telemetry Intelligence: **${relevantUser.userId}**\n\n` +
           `• **Active Dwell Time**: ${relevantUser.timeSpent} (${cleanWindow})\n` +
           `• **Top Feature Affinity**: ${cleanLoved}\n` +
           `• **Last Recorded Action**: ${relevantUser.lastAction} (${relevantUser.lastActionTime})\n` +
-          `• **Onboarding Status**: ${hasRealFriction ? `Friction detected (${relevantUser.stalledReason})` : 'Healthy · No friction detected'}\n\n` +
+          `• **Onboarding Status**: ${hasRealFriction && effectiveReason ? `Friction detected (${effectiveReason})` : 'Healthy · No friction detected'}\n\n` +
           `**Executive Summary**:\n${relevantUser.executiveStory}\n\n` +
           `**Recommended Next Step**:\n` +
-          (hasRealFriction
-            ? `Send an in-app prompt or reach out directly to resolve: "${relevantUser.stalledReason}".`
+          (hasRealFriction && effectiveReason
+            ? `Send an in-app prompt or reach out directly to resolve: "${effectiveReason}".`
             : `Reach out with tailored tips or advanced workflows for ${targetFeature}.`);
       } else {
         fallbackAnswer = `DealMemory observed ${trialUsers.length} user profiles and ${recentEvents.length} telemetry events across your workspace. ${stalledJourneys.length} user(s) currently experience onboarding friction.`;

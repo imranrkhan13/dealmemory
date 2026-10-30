@@ -118,6 +118,207 @@ interface GeminiAnswer {
   error?: string;
 }
 
+function cleanField(val?: string | null): string | null {
+  if (!val) return null;
+  return val.replace(/^[:\s*#•\-]+|[:\s*#•\-]+$/g, '').trim();
+}
+
+function parseInlineMarkdown(text: string): React.ReactNode {
+  const clean = text.replace(/^[#•\-*]+\s*/, '');
+  const parts = clean.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={i} className="font-semibold text-slate-900">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part.replace(/\*\*/g, '');
+  });
+}
+
+function GenericMarkdownRenderer({ content }: { content: string }) {
+  if (!content) return null;
+  const lines = content.split('\n');
+  const elements: React.ReactNode[] = [];
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      elements.push(<div key={`sp-${idx}`} className="h-1.5" />);
+      return;
+    }
+
+    if (trimmed.startsWith('###') || trimmed.startsWith('##')) {
+      const title = trimmed.replace(/^#+\s*/, '').replace(/\*\*/g, '');
+      elements.push(
+        <h4 key={`h-${idx}`} className="text-xs font-bold text-slate-900 mt-2 mb-1">
+          {title}
+        </h4>
+      );
+      return;
+    }
+
+    if (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('* ')) {
+      elements.push(
+        <div key={`b-${idx}`} className="flex items-start gap-2 py-0.5 text-xs text-slate-700">
+          <span className="h-1.5 w-1.5 rounded-full bg-sky-500 mt-1.5 shrink-0" />
+          <span className="leading-relaxed">{parseInlineMarkdown(trimmed)}</span>
+        </div>
+      );
+      return;
+    }
+
+    elements.push(
+      <p key={`p-${idx}`} className="text-xs text-slate-700 leading-relaxed py-0.5">
+        {parseInlineMarkdown(trimmed)}
+      </p>
+    );
+  });
+
+  return <div className="space-y-1">{elements}</div>;
+}
+
+function FormattedAiResponse({ content }: { content: string }) {
+  if (!content) return null;
+
+  const isTelemetryReport =
+    /Telemetry Intelligence/i.test(content) &&
+    (/Active Dwell Time/i.test(content) || /Feature Affinity/i.test(content) || /Executive Summary/i.test(content));
+
+  if (isTelemetryReport) {
+    const userMatch = content.match(/Telemetry Intelligence:?\s*\**([^\n*]+)\**/i);
+    const dwellMatch = content.match(/(?:Active Dwell Time|Time Spent)\**:\s*([^\n]+)/i);
+    const affinityMatch = content.match(/(?:Top Feature Affinity|Feature Affinity)\**:\s*([^\n]+)/i);
+    const lastActionMatch = content.match(/Last Recorded Action\**:\s*([^\n]+)/i);
+    const statusMatch = content.match(/(?:Onboarding Status|Where Onboarding Broke)\**:\s*([^\n]+)/i);
+    const summaryMatch = content.match(/\**Executive Summary\**:\s*\n+([\s\S]*?)(?=\n+\**Recommended|\n*$)/i);
+    const nextStepMatch = content.match(/\**Recommended Next (?:Step|Action)\**:\s*\n+([\s\S]*?)$/i);
+
+    const user = cleanField(userMatch?.[1]);
+    const dwell = cleanField(dwellMatch?.[1]);
+    const affinity = cleanField(affinityMatch?.[1]);
+    const lastAction = cleanField(lastActionMatch?.[1]);
+    let rawStatus = cleanField(statusMatch?.[1]);
+    const summary = cleanField(summaryMatch?.[1]);
+    let nextStep = cleanField(nextStepMatch?.[1]);
+
+    // Handle false alarm of First value not reached if user performed feature_used
+    if (rawStatus && /First value not reached/i.test(rawStatus) && lastAction && /Feature Used/i.test(lastAction)) {
+      rawStatus = 'Healthy · Active session completed';
+      if (nextStep && /First value not reached/i.test(nextStep)) {
+        nextStep = `Follow up with tailored workflows or advanced tips for ${affinity ? affinity.replace(/\s*\([^)]*\)/, '') : 'key features'}.`;
+      }
+    }
+
+    const isFriction = rawStatus
+      ? /friction|stalled|broke|halted|failed|error/i.test(rawStatus) && !/healthy|completed|smooth/i.test(rawStatus)
+      : false;
+
+    return (
+      <div className="space-y-3 pt-1">
+        {user && (
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-sky-100/60">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-xs text-slate-500 uppercase tracking-wider font-mono">
+                Telemetry Intelligence
+              </span>
+              <span className="rounded-md bg-sky-100/80 px-2 py-0.5 text-xs font-mono font-bold text-sky-900 border border-sky-200">
+                {user}
+              </span>
+            </div>
+            {rawStatus && (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-mono font-semibold border ${
+                  isFriction
+                    ? 'bg-rose-50 border-rose-200 text-rose-700'
+                    : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                }`}
+              >
+                {isFriction ? (
+                  <AlertTriangle size={11} className="text-rose-500 shrink-0" />
+                ) : (
+                  <CheckCircle2 size={11} className="text-emerald-500 shrink-0" />
+                )}
+                <span>{rawStatus}</span>
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Structured Metric Badges Grid */}
+        <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {dwell && (
+            <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs flex items-start gap-2.5">
+              <Clock size={14} className="mt-0.5 text-sky-600 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                  Active Dwell Time
+                </p>
+                <p className="text-xs font-semibold text-slate-800 truncate">{dwell}</p>
+              </div>
+            </div>
+          )}
+
+          {affinity && (
+            <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs flex items-start gap-2.5">
+              <Heart size={14} className="mt-0.5 text-rose-500 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                  Top Feature Affinity
+                </p>
+                <p className="text-xs font-semibold text-slate-800 truncate">{affinity}</p>
+              </div>
+            </div>
+          )}
+
+          {lastAction && (
+            <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs flex items-start gap-2.5 sm:col-span-2 lg:col-span-1">
+              <Activity size={14} className="mt-0.5 text-indigo-500 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                  Last Recorded Action
+                </p>
+                <p className="text-xs font-semibold text-slate-800 truncate">{lastAction}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Executive Summary Card */}
+        {summary && (
+          <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs space-y-1">
+            <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+              Executive Summary
+            </p>
+            <p className="text-xs text-slate-700 leading-relaxed font-normal">
+              {summary}
+            </p>
+          </div>
+        )}
+
+        {/* Recommended Next Step Card */}
+        {nextStep && (
+          <div className="rounded-xl border border-sky-200/90 bg-gradient-to-r from-sky-50/80 to-blue-50/50 p-3 flex items-start gap-2.5">
+            <Zap size={14} className="mt-0.5 text-sky-600 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-900">
+                Recommended Next Step
+              </p>
+              <p className="text-xs text-sky-900 leading-relaxed font-medium mt-0.5">
+                {nextStep}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return <GenericMarkdownRenderer content={content} />;
+}
+
 export default function OverviewProduct() {
   const { data: session } = useSession();
   const [project, setProject] = useState<any>(null);
@@ -580,9 +781,7 @@ export default function OverviewProduct() {
               </button>
             </div>
 
-            <div className="leading-relaxed whitespace-pre-line font-medium text-slate-700">
-              {aiAnswer.answer}
-            </div>
+            <FormattedAiResponse content={aiAnswer.answer} />
 
             {aiAnswer.sources && aiAnswer.sources.length > 0 && (
               <div className="mt-2 flex flex-wrap items-center gap-1.5 pt-2 border-t border-sky-100/70">
@@ -1075,10 +1274,10 @@ export default function OverviewProduct() {
                     className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed ${
                       msg.sender === 'user'
                         ? 'bg-sky-600 text-white font-medium rounded-br-xs'
-                        : 'bg-white border border-slate-200 text-slate-800 shadow-2xs whitespace-pre-line rounded-bl-xs'
+                        : 'bg-white border border-slate-200 text-slate-800 shadow-2xs rounded-bl-xs'
                     }`}
                   >
-                    {msg.text}
+                    {msg.sender === 'user' ? msg.text : <FormattedAiResponse content={msg.text} />}
                   </div>
                   <span className="mt-1 text-[9px] font-mono text-slate-400 px-1">
                     {msg.time}
