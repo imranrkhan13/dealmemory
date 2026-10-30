@@ -104,7 +104,12 @@ function JourneysView() {
       );
       const journeysData = await journeysResponse.json();
       if (!journeysResponse.ok) {
-        throw new Error(journeysData?.error ?? 'Could not load journeys');
+        console.warn('Journeys request warning:', journeysResponse.status, journeysData);
+        if (journeysResponse.status === 401 || journeysResponse.status === 403) {
+          throw new Error(journeysData?.error || 'Authentication required');
+        }
+        setJourneys([]);
+        return;
       }
       setJourneys(Array.isArray(journeysData?.journeys) ? journeysData.journeys : []);
     } catch (reason) {

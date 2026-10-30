@@ -17,8 +17,28 @@ export function cleanUrl(value?: string) {
   if (!value) return undefined;
   try { const url = new URL(value); url.search=''; url.hash=''; return url.toString(); } catch { return undefined; }
 }
+export function safeParseProps(props?: string | null): Record<string, string | number | boolean | null> {
+  if (!props) return {};
+  try {
+    const parsed = JSON.parse(props);
+    return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, string | number | boolean | null>) : {};
+  } catch {
+    return {};
+  }
+}
 export function mapEvent(row: Row & {trialUser: TrialUser}): ActivationEvent {
-  return {id:row.eventId, projectKey:'', name:row.name, userId:row.trialUser.externalUserId.startsWith('anon:') ? undefined : row.trialUser.externalUserId, anonymousId:row.anonymousId ?? row.trialUser.externalUserId.replace(/^anon:/,''), sessionId:row.sessionId, occurredAt:row.occurredAt.toISOString(), url:row.url ?? undefined, referrer:row.referrer ?? undefined, properties:JSON.parse(row.properties)};
+  return {
+    id: row.eventId,
+    projectKey: '',
+    name: row.name,
+    userId: row.trialUser.externalUserId.startsWith('anon:') ? undefined : row.trialUser.externalUserId,
+    anonymousId: row.anonymousId ?? row.trialUser.externalUserId.replace(/^anon:/, ''),
+    sessionId: row.sessionId,
+    occurredAt: row.occurredAt.toISOString(),
+    url: row.url ?? undefined,
+    referrer: row.referrer ?? undefined,
+    properties: safeParseProps(row.properties),
+  };
 }
 export async function events(projectId: string) {
   if (!projectId) return [];

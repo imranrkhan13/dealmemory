@@ -11,6 +11,14 @@ export async function projectScope(req:Request) {
   return project?.id ?? null;
 }
 export function scopeError(e:unknown) {
-  const status=(e as {status?:number})?.status;
-  return Response.json({ok:false,error:status===401?'Authentication required':status===403?'Forbidden':'Unable to load project data'}, {status:status===401||status===403?status:500});
+  console.error('[scopeError]', e);
+  const status = (e as { status?: number })?.status;
+  const message = e instanceof Error ? e.message : 'Unable to load project data';
+  return Response.json(
+    {
+      ok: false,
+      error: status === 401 ? 'Authentication required' : status === 403 ? 'Forbidden' : (message || 'Unable to load project data'),
+    },
+    { status: status === 401 || status === 403 ? status : 500 }
+  );
 }

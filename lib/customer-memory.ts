@@ -97,9 +97,10 @@ export function formatRelativeTime(dateStr: string): string {
 export function formatClockTime(dateStr: string): string {
   try {
     const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'recently';
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   } catch {
-    return dateStr;
+    return 'recently';
   }
 }
 
@@ -107,9 +108,10 @@ export function formatClockTime(dateStr: string): string {
 export function formatFullDateTime(dateStr: string): string {
   try {
     const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'recently';
     return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   } catch {
-    return dateStr;
+    return 'recently';
   }
 }
 
@@ -491,10 +493,17 @@ export function computeUserActivitySummary(
 
   // 2. Active Time Window of most recent session
   const latestSession = sessions[sessions.length - 1];
-  const startClock = formatClockTime(latestSession.start.toISOString());
-  const endClock = formatClockTime(latestSession.end.toISOString());
-  const activeTimeWindow =
-    startClock === endClock ? `around ${startClock}` : `around ${startClock} – ${endClock}`;
+  let activeTimeWindow = 'recently';
+  if (latestSession && !isNaN(latestSession.start.getTime()) && !isNaN(latestSession.end.getTime())) {
+    try {
+      const startClock = formatClockTime(latestSession.start.toISOString());
+      const endClock = formatClockTime(latestSession.end.toISOString());
+      activeTimeWindow =
+        startClock === endClock ? `around ${startClock}` : `around ${startClock} – ${endClock}`;
+    } catch {
+      activeTimeWindow = 'recently';
+    }
+  }
 
   // 3. Affinity & "What they loved" calculation
   const itemCounts = new Map<string, { label: string; count: number; category: LovedItem['category'] }>();
