@@ -277,10 +277,12 @@ export default function OverviewProduct() {
   };
 
   // Copy API key snippet
+  const scriptHost = typeof window !== 'undefined' ? window.location.origin : 'https://dealmemory.vercel.app';
+  const embedSnippet = `<script src="${scriptHost}/v1.js" data-key="${apiKeyPrefix || 'YOUR_PROJECT_API_KEY'}" async></script>`;
+
   const handleCopySnippet = async () => {
     try {
-      const snippet = `<script src="https://cdn.dealmemory.com/v1.js" data-key="${apiKeyPrefix}"></script>`;
-      await navigator.clipboard.writeText(snippet);
+      await navigator.clipboard.writeText(embedSnippet);
       setCopiedKey(true);
       setTimeout(() => setCopiedKey(false), 2000);
     } catch {}
@@ -397,7 +399,7 @@ export default function OverviewProduct() {
           </p>
 
           <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-900 text-slate-100 px-4 py-2.5 font-mono text-xs overflow-x-auto">
-            <code>{`<script src="https://cdn.dealmemory.com/v1.js" data-key="${apiKeyPrefix}" async></script>`}</code>
+            <code>{embedSnippet}</code>
             <button
               onClick={handleCopySnippet}
               className="ml-4 shrink-0 rounded-lg bg-slate-800 border border-slate-700 px-2.5 py-1 text-[11px] font-sans font-medium text-slate-200 hover:text-white transition inline-flex items-center gap-1.5"

@@ -13,7 +13,7 @@ export default function InstallationGuide({
   creatingKey: boolean;
   onCreatePublicKey: () => void;
 }) {
-  const [runtime, setRuntime] = useState<SnippetRuntime>('fetch');
+  const [runtime, setRuntime] = useState<SnippetRuntime>('script');
   const [apiUrl, setApiUrl] = useState('/api');
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
@@ -68,7 +68,7 @@ export default function InstallationGuide({
 
         {/* Language Tabs */}
         <div className="mt-6 flex flex-wrap items-center gap-2">
-          {(['fetch', 'curl', 'python'] as const).map((t) => (
+          {(['script', 'fetch', 'curl', 'python'] as const).map((t) => (
             <button
               key={t}
               aria-pressed={runtime === t}
@@ -79,7 +79,7 @@ export default function InstallationGuide({
               }`}
               onClick={() => setRuntime(t)}
             >
-              {t === 'fetch' ? 'JavaScript / TypeScript' : t === 'curl' ? 'cURL' : 'Python'}
+              {t === 'script' ? 'HTML <script> Tag' : t === 'fetch' ? 'JavaScript / TypeScript' : t === 'curl' ? 'cURL' : 'Python'}
             </button>
           ))}
         </div>
@@ -94,7 +94,7 @@ export default function InstallationGuide({
             <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
             <span className="ml-2 font-mono text-[11px] text-slate-400">
-              {runtime === 'fetch' ? 'dealmemory.ts' : runtime === 'curl' ? 'curl.sh' : 'dealmemory.py'}
+              {runtime === 'script' ? 'index.html' : runtime === 'fetch' ? 'dealmemory.ts' : runtime === 'curl' ? 'curl.sh' : 'dealmemory.py'}
             </span>
           </div>
 
