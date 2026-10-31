@@ -43,6 +43,7 @@ Visit [http://localhost:3000](http://localhost:3000):
 
 | Guide | Description |
 | :--- | :--- |
+| [**Full Architecture & Roadmap**](APP_OVERVIEW_AND_ROADMAP.md) | Comprehensive system architecture, operational requirements, gap analysis, and future roadmap. |
 | [**Installation & Self-Hosting Guide**](docs/INSTALLATION.md) | PostgreSQL setup, Docker, Prisma migrations, environment variables, and production deployment. |
 | [**Client SDK & Integration Guide**](docs/SDK-GUIDE.md) | TypeScript, Python, cURL, standard milestone catalog, edge privacy redaction, and offline queues. |
 | [**API Reference**](docs/API-REFERENCE.md) | Batch ingestion endpoints, idempotency, keys API, Dodo Payments, and webhooks. |

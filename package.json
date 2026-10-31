@@ -24,6 +24,7 @@
     "@prisma/client": "^5.14.0",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.3",
+    "dealmemory": "^0.1.0",
     "dodopayments": "^2.42.2",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.468.0",

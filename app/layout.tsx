@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "./providers";
+import 'dealmemory/auto';
 
 export const metadata: Metadata = {
   title: "DealMemory · Activation Memory & Copilot for AI SaaS",
