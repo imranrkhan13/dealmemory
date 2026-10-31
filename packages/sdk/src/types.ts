@@ -8,8 +8,17 @@ export type PrivacyOptions = {
 };
 
 export type ActivationOptions = {
-  projectKey: string;
-  apiUrl: string;
+  /**
+   * Your `pk_live_...` project key. Optional: when omitted the SDK reads
+   * `DEALMEMORY_KEY` from the environment automatically, so a normal `.env`
+   * is the only setup required.
+   */
+  projectKey?: string;
+  /**
+   * Ingestion base URL (origin + `/api`). Optional: defaults to DealMemory's
+   * hosted endpoint, override only for self-hosting.
+   */
+  apiUrl?: string;
   privacy?: PrivacyOptions;
   flushIntervalMs?: number;
   /** Capture page views, clicks, and form submissions without collecting form values. Defaults to true. */

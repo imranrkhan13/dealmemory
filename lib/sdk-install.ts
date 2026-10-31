@@ -1,11 +1,33 @@
-export const sdkInstall = { npmPackage: 'dealmemory-sdk-local', pypiPackage: 'dealmemory-sdk-local', published: false, directHttp: true } as const;
-export type SnippetRuntime = 'curl' | 'fetch' | 'python';
+export const sdkInstall = { npmPackage: 'dealmemory', pypiPackage: 'dealmemory', published: false, directHttp: true } as const;
+export type SnippetRuntime = 'npm' | 'curl' | 'fetch' | 'python';
+
+/**
+ * The default path: install the package, drop ONE key in .env, use it.
+ * Nothing else to configure — no project id, no apiUrl, no init file.
+ */
+export function npmSnippet(key = '<YOUR_PROJECT_KEY>') {
+  return `# 1. Install (only dependency you need)
+npm install dealmemory
+
+# 2. Put your one key in .env
+DEALMEMORY_KEY=${key}
+
+# 3. Use it — no project id, no apiUrl, no config file
+import { DealMemory } from 'dealmemory'
+
+const dm = new DealMemory()
+dm.identify('user_123', { plan: 'trial' })
+dm.track('trial_started')
+await dm.flush()`;
+}
 
 // Fixed example timestamp: snippets are rendered on both server and client, so a
 // live `new Date()` here would cause a hydration mismatch.
 const EXAMPLE_OCCURRED_AT = '2026-01-01T12:00:00.000Z';
 
 export function installSnippet(runtime: SnippetRuntime, apiUrl: string, key = '<YOUR_PROJECT_KEY>') {
+  if (runtime === 'npm') return npmSnippet(key);
+
   const event = {
     id: 'replace-with-a-unique-uuid',
     projectKey: key,

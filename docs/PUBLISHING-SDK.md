@@ -1,6 +1,6 @@
 # SDK publishing — owner decision, not executed
 
-The registry packages named agentlens belong to other authors (see BASELINE). Never install those as this product. Local npm and Python distributions are named dealmemory-sdk-local; npm is private and cannot publish by default. They are not published.
+The registry packages named agentlens belong to other authors (see BASELINE). Never install those as this product. The npm package is named `dealmemory` (packages/sdk/package.json) and the Python distribution is `dealmemory` too; both are still unpublished — `lib/sdk-install.ts` keeps `published: false` until that changes.
 
 Imran chooses and checks new registry names first. After approval: update package names and lockfiles, remove npm private, `npm pack --dry-run`, inspect contents, then `npm publish --access public` with his npm account. An earlier saved token was rejected; he may need a new token. Never paste it into chat or this repository. For Python: `python -m build packages/python` then inspect distributions and `python -m twine upload dist/*`. Do not run these publishing commands from an agent session. After ownership and installation have been verified, update lib/sdk-install.ts and its published flag and add the verified registry installation flows.
 

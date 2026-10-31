@@ -316,14 +316,10 @@ npx prisma db push`}
                 </p>
               </div>
               <button
-                onClick={() => copyToClipboard(`import { DealMemory } from '@dealmemory/sdk';
+                onClick={() => copyToClipboard(`import { DealMemory } from 'dealmemory';
 
-const dm = new DealMemory({
-  projectKey: 'pk_live_your_key',
-  apiUrl: 'http://localhost:3000/api',
-  flushIntervalMs: 5000,
-  autoCapture: true
-});
+// key + endpoint come from DEALMEMORY_KEY in .env
+const dm = new DealMemory();
 
 // Identify user
 dm.identify('user_123', { plan: 'trial' });
@@ -341,14 +337,10 @@ dm.firstValueReached();`, 'ts-sdk')}
             </div>
 
             <pre className="rounded-lg bg-ink p-4 font-mono text-[11.5px] leading-relaxed text-[#cfd6df] overflow-x-auto">
-{`import { DealMemory } from '@dealmemory/sdk';
+{`import { DealMemory } from 'dealmemory';
 
-const dm = new DealMemory({
-  projectKey: 'pk_live_your_key',
-  apiUrl: 'http://localhost:3000/api',
-  flushIntervalMs: 5000,
-  autoCapture: true
-});
+// key + endpoint come from DEALMEMORY_KEY in .env
+const dm = new DealMemory();
 
 // Identify authenticated user
 dm.identify('user_123', { plan: 'trial' });
