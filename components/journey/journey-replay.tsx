@@ -36,7 +36,7 @@ export default function JourneyReplay({
                                 User Journey Replay
                             </h1>
 
-                            <p className="mt-1 text-gray-500">
+                            <p className="mt-1 text-ink-faint">
                                 AI explanation of this customer&apos;s complete journey.
                             </p>
 
@@ -75,7 +75,7 @@ export default function JourneyReplay({
 
                         <div>
 
-                            <p className="text-xs uppercase text-gray-400">
+                            <p className="text-xs uppercase text-ink-faint">
                                 User
                             </p>
 
@@ -100,7 +100,7 @@ export default function JourneyReplay({
 
                         <div>
 
-                            <p className="text-xs uppercase text-gray-400">
+                            <p className="text-xs uppercase text-ink-faint">
                                 Inactive
                             </p>
 
@@ -125,7 +125,7 @@ export default function JourneyReplay({
 
                         <div>
 
-                            <p className="text-xs uppercase text-gray-400">
+                            <p className="text-xs uppercase text-ink-faint">
                                 Goal
                             </p>
 
@@ -150,7 +150,7 @@ export default function JourneyReplay({
 
                         <div>
 
-                            <p className="text-xs uppercase text-gray-400">
+                            <p className="text-xs uppercase text-ink-faint">
                                 Blocker
                             </p>
 

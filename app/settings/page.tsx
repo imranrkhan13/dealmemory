@@ -1,10 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { KeyRound, CheckCircle2, Radio, Copy, Plus, Check, ShieldCheck } from 'lucide-react';
+import { KeyRound, CheckCircle2, Radio, Copy, Plus, Check, ShieldCheck, ArrowRight } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import InstallationGuide from '@/components/installation-guide';
 import CustomerPortalButton from '@/components/customer-portal-button';
+import { ProTag } from '@/components/pro-upsell';
+import { usePlan } from '@/components/use-plan';
 
 type Key = { prefix: string; type: string; createdAt: string; revokedAt: string | null };
 
@@ -18,6 +20,7 @@ export default function Settings() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [copiedRaw, setCopiedRaw] = useState(false);
+  const { plan, isPro } = usePlan();
 
   const refresh = useCallback(async (id: string) => {
     const r = await fetch(`/api/projects/keys/list?projectId=${encodeURIComponent(id)}`, { cache: 'no-store' });
@@ -108,19 +111,34 @@ export default function Settings() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start rounded-md border border-line bg-white px-2.5 py-1.5 sm:self-auto">
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${
-                status?.eventCount ? 'bg-success' : 'bg-warn'
-              }`}
-            />
-            <span className="font-mono text-[11px] text-ink-soft">
-              {loading
-                ? 'Loading workspace…'
-                : status?.eventCount
-                ? 'Receiving events'
-                : 'Ready to connect'}
-            </span>
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            <div className="flex items-center gap-2 rounded-md border border-line bg-white px-2.5 py-1.5">
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  status?.eventCount ? 'bg-success' : 'bg-warn'
+                }`}
+              />
+              <span className="font-mono text-[11px] text-ink-soft">
+                {loading
+                  ? 'Loading workspace…'
+                  : status?.eventCount
+                  ? 'Receiving events'
+                  : 'Ready to connect'}
+              </span>
+            </div>
+
+            {isPro ? (
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-accent-line bg-accent-tint px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.04em] text-accent">
+                Pro plan
+              </span>
+            ) : (
+              <a
+                href="/pricing"
+                className="inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.04em] text-ink-soft transition-colors hover:border-accent-line hover:text-accent"
+              >
+                Starter plan · Upgrade
+              </a>
+            )}
           </div>
         </div>
 
@@ -156,7 +174,11 @@ export default function Settings() {
             <p className="mt-2 text-3xl font-extrabold text-ink tabular-nums tracking-tight">
               {loading ? '—' : status?.eventCount || 0}
             </p>
-            <p className="mt-1 text-xs text-ink-soft">Total actions persisted</p>
+            <p className="mt-1 text-xs text-ink-soft">
+              {isPro
+                ? 'Total actions persisted · unlimited'
+                : `${(plan?.usage.eventsThisMonth ?? 0).toLocaleString()} of 10,000 account events used this month`}
+            </p>
           </section>
 
           <section className="rounded-card border border-line bg-white p-6 ">
@@ -290,13 +312,27 @@ export default function Settings() {
             <div className="rounded-lg border border-line bg-paper p-5">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-ink">Supermemory Vector Store</p>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-line text-ink-soft font-medium">
-                  {status?.supermemory ? 'Configured' : 'Standby'}
-                </span>
+                {isPro ? (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-line text-ink-soft font-medium">
+                    {status?.supermemory ? 'Configured' : 'Standby'}
+                  </span>
+                ) : (
+                  <ProTag />
+                )}
               </div>
               <p className="mt-2 text-xs leading-relaxed text-ink-soft">
-                Provides semantic vector retrieval over user goals and historical failure notes. Core telemetry operates autonomously.
+                {isPro
+                  ? 'Provides semantic vector retrieval over user goals and historical failure notes. Core telemetry operates autonomously.'
+                  : 'Semantic retrieval over user goals and failure notes is a Growth Pro feature. Core telemetry keeps flowing on Starter.'}
               </p>
+              {!isPro && (
+                <a
+                  href="/pricing"
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-deep"
+                >
+                  Upgrade to unlock <ArrowRight size={12} />
+                </a>
+              )}
             </div>
 
             <div className="rounded-lg border border-line bg-paper p-5">

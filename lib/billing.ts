@@ -7,6 +7,38 @@ export type ProStatus = {
 
 const PRO_STATUSES = new Set<string>(['active', 'renewed']);
 
+export type PlanId = 'starter' | 'pro';
+
+/**
+ * Null means unlimited.
+ */
+export type PlanLimits = {
+  projects: number | null;
+  monthlyEvents: number | null;
+};
+
+export const STARTER_LIMITS: PlanLimits = { projects: 1, monthlyEvents: 10_000 };
+export const PRO_LIMITS: PlanLimits = { projects: null, monthlyEvents: null };
+
+export type PlanUsage = {
+  projects: number;
+  eventsThisMonth: number;
+};
+
+export type PlanState = {
+  plan: PlanId;
+  isPro: boolean;
+  reason?: string;
+  status: string | null;
+  currentPeriodEnd: string | null;
+  limits: PlanLimits;
+  usage: PlanUsage;
+};
+
+function currentMonthStart(now = new Date()) {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+}
+
 /**
  * Determine if a user has an active Pro subscription.
  */
@@ -26,6 +58,52 @@ export async function isProUser(userId: string): Promise<ProStatus> {
   }
 
   return { isPro: true };
+}
+
+/**
+ * Full plan picture for a user: tier, enforced limits and current usage.
+ */
+export async function getPlanState(userId: string): Promise<PlanState> {
+  const [pro, latest, projects, eventsThisMonth] = await Promise.all([
+    isProUser(userId),
+    prisma.subscription.findFirst({ where: { userId }, orderBy: { createdAt: 'desc' } }),
+    prisma.project.count({ where: { ownerId: userId } }),
+    prisma.activationEvent.count({
+      where: { project: { ownerId: userId }, receivedAt: { gte: currentMonthStart() } },
+    }),
+  ]);
+
+  return {
+    plan: pro.isPro ? 'pro' : 'starter',
+    isPro: pro.isPro,
+    ...(pro.reason ? { reason: pro.reason } : {}),
+    status: latest?.status ?? null,
+    currentPeriodEnd: latest?.currentPeriodEnd ? latest.currentPeriodEnd.toISOString() : null,
+    limits: pro.isPro ? PRO_LIMITS : STARTER_LIMITS,
+    usage: { projects, eventsThisMonth },
+  };
+}
+
+/**
+ * Plan state for the owner of a project (used by key-authenticated ingest).
+ */
+export async function getProjectPlanState(projectId: string): Promise<PlanState | null> {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { ownerId: true },
+  });
+  if (!project) return null;
+  return getPlanState(project.ownerId);
+}
+
+export function projectLimitReached(plan: PlanState) {
+  const limit = plan.limits.projects;
+  return limit !== null && plan.usage.projects >= limit;
+}
+
+export function eventQuotaExceeded(plan: PlanState) {
+  const limit = plan.limits.monthlyEvents;
+  return limit !== null && plan.usage.eventsThisMonth >= limit;
 }
 
 /**

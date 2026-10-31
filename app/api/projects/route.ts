@@ -5,6 +5,7 @@ export const revalidate = 0;
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { error, ok } from '@/lib/api';
+import { getPlanState, projectLimitReached } from '@/lib/billing';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/nextauth';
 import { NextResponse } from 'next/server';
@@ -19,6 +20,18 @@ export async function POST(req: Request) {
 	if (!body.success) return error(body.error.issues[0].message, 400);
 	const user = await prisma.user.findUnique({ where: { email: session.user.email } });
 	if (!user) return error('Authenticated user not found', 401);
+
+	const plan = await getPlanState(user.id);
+	if (projectLimitReached(plan)) {
+		return NextResponse.json(
+			{
+				ok: false,
+				code: 'plan_limit_exceeded',
+				error: `The Starter plan includes ${plan.limits.projects} project workspace. Upgrade to Growth Pro for unlimited workspaces.`,
+			},
+			{ status: 402 }
+		);
+	}
 
 	const slugBase = body.data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 	const slug = `${slugBase || 'project'}-${Math.random().toString(36).slice(2, 8)}`;

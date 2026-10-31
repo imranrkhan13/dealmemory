@@ -19,6 +19,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
+import { usePlan } from '@/components/use-plan';
 
 interface Project {
   id: string;
@@ -60,6 +61,7 @@ const publicLinks = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
+  const { plan, isPro } = usePlan();
   const pathname = usePathname();
   const [project, setProject] = useState<Project | null>(null);
   const [projectMenuOpen, setProjectMenuOpen] = useState(false);
@@ -126,96 +128,68 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   /* ── Public layout ───────────────────────────────────────────────── */
   if (!isConsoleRoute) {
     return (
-      <div className="min-h-screen bg-white text-ink">
-        <header className="sticky top-0 z-50 border-b border-line bg-white/90 backdrop-blur-sm">
-          <div className="mx-auto flex h-14 max-w-[1240px] items-center justify-between px-4 sm:px-6">
-            <Link href="/" className="flex items-center" aria-label="dealmemory home">
-              <Wordmark />
-            </Link>
+      <div className="min-h-screen">
+        <header className="header header--sticky">
+          <Link href="/" className="flex items-center gap-2" aria-label="dealmemory home">
+            <Mark />
+            <span className="text-[15px] font-semibold tracking-[-0.015em] text-ink">
+              dealmemory
+              <span className="ml-0.5 align-super text-[9px] font-medium tracking-normal text-ink-faint">
+                ™
+              </span>
+            </span>
+          </Link>
 
-            <div className="flex shrink-0 items-center gap-1 whitespace-nowrap sm:gap-2">
-              <nav className="hidden items-center gap-0.5 md:flex" aria-label="Main">
-                {publicLinks.map((link) => {
-                  const active = pathname === link.href;
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={`rounded-md px-2.5 py-1.5 text-[13px] transition-colors ${
-                        active
-                          ? 'font-medium text-ink'
-                          : 'text-ink-soft hover:bg-paper hover:text-ink'
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              <span className="mx-1 hidden h-4 w-px bg-line md:block" />
-
-              {session ? (
-                <div className="flex items-center gap-2">
-                  <Link href="/overview" className="btn btn-primary shrink-0 whitespace-nowrap">
-                    Console
-                    <ArrowRight size={13} />
-                  </Link>
-                  <button
-                    onClick={() => signOut()}
-                    title="Sign out"
-                    className="hidden h-8 w-8 items-center justify-center rounded-md border border-line text-ink-faint transition-colors hover:border-line-strong hover:text-ink sm:flex"
-                  >
-                    <LogOut size={14} />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <Link
-                    href="/auth/signin"
-                    className="hidden rounded-md px-2 py-1.5 text-[13px] text-ink-soft transition-colors hover:bg-paper hover:text-ink min-[360px]:block sm:px-2.5"
-                  >
-                    Sign in
-                  </Link>
-                  <Link href="/signup" className="btn btn-primary shrink-0 whitespace-nowrap">
-                    Get started
-                  </Link>
-                </div>
-              )}
-
-              <button
-                onClick={() => setMobileNavOpen((v) => !v)}
-                className="ml-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-ink-soft transition-colors hover:bg-paper hover:text-ink md:hidden"
-                aria-label="Toggle menu"
-              >
-                {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
-              </button>
-            </div>
-          </div>
-
-          {mobileNavOpen && (
-            <div className="border-t border-line bg-white px-4 py-2 md:hidden">
-              {publicLinks.map((link) => (
+          <nav className="nav" aria-label="Main">
+            {publicLinks.map((link) => {
+              const active = pathname === link.href;
+              return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={() => setMobileNavOpen(false)}
-                  className="block rounded-md px-2 py-2 text-sm text-ink-soft hover:bg-paper hover:text-ink"
+                  className={`nav-item ${active ? 'nav-item--active' : ''}`}
                 >
                   {link.label}
                 </Link>
-              ))}
-              {!session && (
-                <Link
-                  href="/auth/signin"
-                  onClick={() => setMobileNavOpen(false)}
-                  className="block rounded-md px-2 py-2 text-sm text-ink-soft hover:bg-paper hover:text-ink"
+              );
+            })}
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-1.5">
+            {session ? (
+              <>
+                <Link href="/overview" className="btn btn--primary btn--text">
+                  Console
+                  <ArrowRight size={13} />
+                </Link>
+                <button
+                  onClick={() => signOut()}
+                  title="Sign out"
+                  className="btn btn--icon"
+                  aria-label="Sign out"
                 >
+                  <LogOut size={14} />
+                </button>
+              </>
+            ) : (
+              <div className="flex shrink-0 items-center gap-1.5">
+                <Link href="/auth/signin" className="nav-item">
                   Sign in
                 </Link>
-              )}
-            </div>
-          )}
+                <Link href="/signup" className="btn btn--primary">
+                  Get started
+                </Link>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => setMobileNavOpen((v) => !v)}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-ink-soft transition-colors hover:bg-paper hover:text-ink md:hidden"
+            aria-label="Toggle menu"
+          >
+            {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </header>
 
         <main className="mx-auto max-w-[1240px] px-4 pb-20 pt-10 sm:px-6 md:pt-14">
@@ -231,13 +205,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </span>
             </div>
             <div className="flex items-center gap-4 text-[12px] text-ink-faint">
-              <Link href="/docs" className="hover:text-ink">
+              <Link href="/docs" className="nav-item">
                 Docs
               </Link>
-              <Link href="/pricing" className="hover:text-ink">
+              <Link href="/pricing" className="nav-item">
                 Pricing
               </Link>
-              <Link href="/auth/signin" className="hover:text-ink">
+              <Link href="/auth/signin" className="nav-item">
                 Sign in
               </Link>
             </div>
@@ -345,7 +319,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   sidebarCollapsed ? 'left-full ml-2 top-0' : 'left-0'
                 }`}
               >
-                <p className="px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">
+                <p className="px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-ink-soft">
                   Workspace
                 </p>
                 <div className="flex items-center gap-2 rounded-md bg-paper px-2 py-1.5">
@@ -356,7 +330,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     {project?.name || 'Default Workspace'}
                   </span>
                 </div>
-                <div className="my-1 h-px bg-line" />
+                <div className="my-1 h-px border-b border-line" />
                 <Link
                   href="/settings"
                   onClick={() => setProjectMenuOpen(false)}
@@ -391,13 +365,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       sidebarCollapsed ? 'md:justify-center md:px-0 gap-2.5 px-2' : 'gap-2.5 px-2'
                     } py-1.5 ${
                       item.active
-                        ? 'bg-muted font-medium text-ink'
+                        ? 'bg-paper font-medium text-ink'
                         : 'text-ink-soft hover:bg-paper hover:text-ink'
                     }`}
                   >
                     <Icon
                       size={15}
-                      className={`shrink-0 ${item.active ? 'text-ink' : 'text-ink-faint group-hover:text-ink-soft'}`}
+                      className={`shrink-0 ${item.active ? 'text-ink' : 'text-ink-faint group-hover:text-ink'}`}
                     />
                     <span className={`truncate ${sidebarCollapsed ? 'md:hidden' : ''}`}>
                       {item.label}
@@ -437,32 +411,48 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Footer */}
         <div className={`border-t border-line ${sidebarCollapsed ? 'p-2' : 'p-2.5'} space-y-2`}>
           {!sidebarCollapsed ? (
-            <div className="rounded-md border border-line bg-paper px-2.5 py-2">
-              <div className="flex items-center justify-between">
+            <Link
+              href={isPro ? '/settings' : '/pricing'}
+              className="flex items-center gap-2.5 rounded-md border border-line bg-white px-2.5 py-2 transition-colors hover:border-line-strong hover:bg-paper"
+            >
+              <div className="flex min-w-0 items-center gap-2">
                 <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-soft">
-                  System
+                  Plan
                 </span>
-                <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-success">
-                  <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                  Live
-                </span>
+                {isPro ? (
+                  <span className="inline-flex items-center gap-1 rounded-[4px] bg-accent-tint px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.04em] text-accent">
+                    Pro
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-[4px] border border-line px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.04em] text-ink-soft transition-colors hover:border-accent-line hover:text-accent">
+                    Starter
+                  </span>
+                )}
               </div>
               <p className="mt-1 text-[11px] leading-snug text-ink-faint">
-                PostgreSQL &amp; Gemini 2.5 Flash
+                {isPro
+                  ? 'Unlimited projects & events'
+                  : plan
+                  ? `${plan.usage.eventsThisMonth.toLocaleString()} of 10,000 events this month`
+                  : 'Upgrade for unlimited ingestion'}
               </p>
-            </div>
-          ) : (
-            <div className="group relative flex justify-center">
-              <span className="grid h-8 w-8 place-items-center rounded-md border border-line bg-paper">
-                <span className="h-1.5 w-1.5 rounded-full bg-success" />
+            </Link>
+          ) : null}
+
+          <div className="rounded-md border border-line bg-paper px-2.5 py-2">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-soft">
+                System
               </span>
-              <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 hidden -translate-y-1/2 md:group-hover:block">
-                <div className="whitespace-nowrap rounded-md bg-ink px-2 py-1 text-[11px] text-white shadow-md">
-                  System live
-                </div>
-              </div>
+              <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-success">
+                <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                Live
+              </span>
             </div>
-          )}
+            <p className="mt-1 text-[11px] leading-snug text-ink-faint">
+              PostgreSQL &amp; Gemini 2.5 Flash
+            </p>
+          </div>
 
           <div className="relative">
             {!sidebarCollapsed ? (
@@ -512,15 +502,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Link
                   href="/settings"
                   onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] text-ink-soft hover:bg-paper hover:text-ink"
+                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] text-ink-soft transition-colors hover:bg-paper hover:text-ink"
                 >
                   <KeyRound size={13} />
                   Workspace &amp; keys
                 </Link>
-                <div className="my-1 h-px bg-line" />
+                <div className="my-1 h-px border-t border-line" />
                 <button
                   onClick={() => signOut()}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[13px] text-danger hover:bg-danger-tint"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[13px] text-danger transition-colors hover:bg-danger-tint"
                 >
                   <LogOut size={13} />
                   Sign out
@@ -537,7 +527,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           sidebarCollapsed ? 'md:pl-[64px]' : 'md:pl-[232px]'
         }`}
       >
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-white/95 px-4 backdrop-blur-sm md:px-6">
+        <header className="header header--sticky">
           <div className="flex min-w-0 items-center gap-2">
             <button
               onClick={toggleSidebar}
@@ -548,7 +538,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
             <button
               onClick={() => setMobileSidebarOpen(true)}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-ink-soft hover:bg-paper md:hidden"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-ink-soft hover:bg-paper hover:text-ink md:hidden"
               aria-label="Open navigation"
             >
               <Menu size={16} />
@@ -568,20 +558,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="hidden items-center gap-1.5 rounded-md border border-line px-2 py-1 font-mono text-[10px] uppercase tracking-[0.05em] text-ink-soft sm:inline-flex">
+            <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-success">
               <span className="h-1.5 w-1.5 rounded-full bg-success" />
               Ingest live
             </span>
-            <Link
-              href="/docs"
-              className="group inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] text-ink-soft transition-colors hover:bg-paper hover:text-ink"
-            >
-              <span className="hidden sm:inline">Documentation</span>
-              <span className="sm:hidden">Docs</span>
-              <ExternalLink
-                size={12}
-                className="text-ink-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-              />
+            <Link href="/docs" className="nav-item">
+              Documentation
             </Link>
           </div>
         </header>

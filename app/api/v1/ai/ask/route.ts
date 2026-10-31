@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { ownedProject, scopeError } from '@/lib/project-scope';
 import { askGeminiAboutData } from '@/lib/gemini';
+import { getPlanState } from '@/lib/billing';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +16,18 @@ export async function POST(req: NextRequest) {
 
     if (!project) {
       return NextResponse.json({ ok: false, error: 'Project not found' }, { status: 404 });
+    }
+
+    const plan = await getPlanState(userId);
+    if (!plan.isPro) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: 'pro_required',
+          error: 'The AI copilot is part of the Growth Pro plan.',
+        },
+        { status: 402 }
+      );
     }
 
     const body = await req.json().catch(() => ({}));
