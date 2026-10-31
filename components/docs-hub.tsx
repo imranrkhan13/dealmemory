@@ -54,6 +54,12 @@ export default function DocsHub() {
 
         <div className="flex items-center gap-2 shrink-0">
           <Link
+            href="/how-it-works"
+            className="btn btn-outline text-xs py-2 px-3 inline-flex items-center gap-1.5"
+          >
+            How it works
+          </Link>
+          <Link
             href="/settings"
             className="btn btn-outline text-xs py-2 px-3 inline-flex items-center gap-1.5"
           >
