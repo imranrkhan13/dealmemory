@@ -1,22 +1,408 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { AlertTriangle, Check, ChevronDown, Circle, ExternalLink, Github, Loader2, Map, RotateCcw, ShieldCheck, Sparkles } from 'lucide-react';
+"use client";
+import { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  AlertTriangle,
+  Check,
+  ChevronDown,
+  Circle,
+  ExternalLink,
+  Github,
+  Loader2,
+  Map,
+  RotateCcw,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 type State = any;
-const stages = ['Define goal','Connect GitHub','Generate first map','Activated','Upgrade'];
-async function api(url:string, body?:unknown) { const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const d=await r.json();if(!r.ok)throw new Error(d.error);return d; }
-export default function Workspace(){
- const [state,setState]=useState<State>();const [notice,setNotice]=useState('');const [busy,setBusy]=useState('');const [modal,setModal]=useState(false);const reduced=useReducedMotion();
- const load=()=>fetch('/api/state').then(r=>r.json()).then(setState);useEffect(()=>{load()},[]);
- const run=async(label:string,task:()=>Promise<unknown>)=>{setBusy(label);setNotice('');try{await task();await load()}catch(e){setNotice(e instanceof Error?e.message:'Something went wrong.')}finally{setBusy('')}};
- if(!state)return <main className="mx-auto max-w-7xl p-8 text-sm text-[#6B6B6B]">Loading trial workspace…</main>;
- const u=state.user;const step=u.planStatus==='paid'?5:u.planStatus==='checkoutstarted'||u.firstMapGenerated?4:u.githubConnected?2:u.goal?1:0;
- let label='Activation complete';let action=()=>{};if(!u.goal){label='Set your goal';action=()=>{void run('goal',()=>api('/api/demo/event',{action:'goal'}))}}else if(!u.githubConnected){label='Connect GitHub';action=()=>setModal(true)}else if(!u.firstMapGenerated){label='Generate first map';action=()=>{void run('map',()=>api('/api/architecture/generate'))}};
- return <main className="mx-auto max-w-7xl px-5 py-8"><div className="mb-7 flex items-start justify-between"><div><p className="text-sm font-medium text-[#4F46E5]">Trial workspace</p><h1 className="mt-1 text-2xl font-bold tracking-tight">Turn intent into a first useful outcome.</h1></div><button className="btn" onClick={()=>void run('reset',()=>api('/api/demo/reset'))}><RotateCcw size={15}/> Start demo</button></div><div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]"><section className="space-y-5"><div className="surface rounded-lg p-6"><div className="flex gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#EEF2FF] text-[#4F46E5]"><Sparkles size={17}/></span><div><p className="font-semibold">Activation guide</p><p className="mt-1 leading-6 text-[#6B6B6B]">{!u.goal?'Tell RepoMap what you want to accomplish. We’ll preserve only your goal and product activity.':u.currentBlocker?'You came here to connect a GitHub repo and generate an architecture map. Last time, GitHub authorization failed at the callback step. Let’s reconnect it.':u.githubConnected&&!u.firstMapGenerated?'GitHub is connected. Generate your first architecture map to reach the activation milestone.':u.firstMapGenerated?'You generated your first architecture map. Your useful outcome is complete.':'Your goal is saved. Let’s connect GitHub.'}</p></div></div><div className="mt-5 border-t border-[#E8E7E3] pt-4"><button className="btn btn-primary" disabled={busy!==''||u.planStatus==='paid'} onClick={action}>{busy?<Loader2 className="animate-spin" size={16}/>:<Sparkles size={16}/>} {label}</button></div>{notice&&<p className="mt-3 flex gap-2 text-sm text-[#B91C1C]"><AlertTriangle size={16}/>{notice}</p>}</div>{u.githubConnected&&<Repo busy={busy==='map'} generated={u.firstMapGenerated} onMap={()=>void run('map',()=>api('/api/architecture/generate'))}/>} {u.firstMapGenerated&&<MapPreview/>}{u.firstMapGenerated&&<Upgrade configured={state.providers.checkout} status={u.planStatus} busy={busy==='checkout'} onCheckout={()=>void run('checkout',async()=>{const d=await api('/api/checkout/create');if(d.checkoutUrl)window.location.assign(d.checkoutUrl)})}/>}</section><aside className="space-y-5"><Progress step={step}/><Memory memories={state.memories} configured={state.providers.memory} reduced={Boolean(reduced)}/></aside></div>{modal&&<Connect onClose={()=>setModal(false)} onConnect={()=>void run('connect',async()=>{setModal(false);await api('/api/github/connect',{attempt:u.currentBlocker?2:1})})}/>}</main>;
+const stages = [
+  "Define goal",
+  "Connect GitHub",
+  "Generate first map",
+  "Activated",
+  "Upgrade",
+];
+async function api(url: string, body?: unknown) {
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error);
+  return d;
 }
-function Progress({step}:{step:number}){return <div className="surface rounded-lg p-5"><p className="font-semibold">Activation progress</p><div className="mt-5 space-y-4">{stages.map((x,i)=><div className="flex items-center gap-3 text-sm" key={x}>{i<step?<Check className="rounded-full bg-[#DCFCE7] p-1 text-[#15803D]" size={20}/>:<Circle className={i===step?'text-[#4F46E5]':'text-[#D4D3CE]'} size={18}/>}<span className={i<=step?'font-medium':'text-[#8A8985]'}>{x}</span></div>)}</div></div>}
-function Memory({memories,configured,reduced}:{memories:any[];configured:boolean;reduced:boolean}){return <div className="surface rounded-lg p-5"><div className="flex justify-between"><p className="font-semibold">What I remember</p><ChevronDown size={17}/></div>{!configured&&<p className="mt-3 rounded-md bg-[#FFF7ED] p-3 text-xs leading-5 text-[#B45309]">Memory connection needs setup. Add <span className="mono">SUPERMEMORYAPIKEY</span>.</p>}<div className="mt-4 space-y-3">{memories.length?memories.slice(0,5).map((m:any,i:number)=><motion.div initial={reduced?false:{opacity:0,y:4}} animate={{opacity:1,y:0}} key={i} className="border-l-2 border-[#C7D2FE] pl-3"><p className="text-sm leading-5">{m.content}</p><p className="mono mt-1 text-[10px] uppercase text-[#8A8985]">{m.source==='usermessage'?'From your goal':'From product activity'}</p></motion.div>):<p className="text-sm leading-5 text-[#6B6B6B]">No memories yet. Your goal and product actions will appear here as evidence.</p>}</div></div>}
-function Repo({onMap,busy,generated}:{onMap:()=>void;busy:boolean;generated:boolean}){return <div className="surface rounded-lg p-5"><div className="flex justify-between"><div className="flex gap-3"><Github className="text-[#4F46E5]"/><div><p className="font-semibold">agentlens</p><p className="mt-1 text-sm text-[#6B6B6B]">1,248 files · TypeScript · Python</p></div></div><span className="text-xs font-medium text-[#15803D]">Connected</span></div><button className="btn btn-primary mt-5" disabled={busy||generated} onClick={onMap}>{busy?<Loader2 size={15} className="animate-spin"/>:<Map size={15}/>} {generated?'First map generated':'Generate architecture map'}</button></div>}
-function MapPreview(){return <div className="surface rounded-lg p-5"><p className="font-semibold">First architecture map</p><p className="mt-1 text-sm text-[#6B6B6B]">A lightweight view of your repo’s main flow.</p><div className="mt-5 grid grid-cols-3 gap-2 text-center text-xs"><div className="rounded-lg border border-[#C7D2FE] bg-[#EEF2FF] p-3">Web app</div><div className="rounded-lg border border-[#E8E7E3] p-3">API routes</div><div className="rounded-lg border border-[#BBF7D0] bg-[#F0FDF4] p-3">Data layer</div></div></div>}
-function Upgrade({configured,status,onCheckout,busy}:{configured:boolean;status:string;onCheckout:()=>void;busy:boolean}){return <div className="rounded-lg border border-[#BBF7D0] bg-[#F7FDF8] p-5"><ShieldCheck className="text-[#15803D]" size={21}/><p className="mt-3 font-semibold">You generated your first architecture map.</p><p className="mt-1 text-sm text-[#4B5563]">Upgrade to RepoMap Pro for private repositories and unlimited projects.</p>{status==='checkoutstarted'?<p className="mt-4 text-sm text-[#B45309]">Checkout started — awaiting verified Dodo payment.</p>:status==='paid'?<p className="mt-4 text-sm text-[#15803D]">RepoMap Pro is active.</p>:!configured?<p className="mt-4 text-sm text-[#B45309]">Checkout needs setup: <span className="mono">DODOPAYMENTSAPIKEY</span> and <span className="mono">DODOPRODUCTID</span>.</p>:<button className="btn btn-primary mt-4" onClick={onCheckout} disabled={busy}>{busy?<Loader2 className="animate-spin" size={15}/>:<ExternalLink size={15}/>} Upgrade to Pro</button>}</div>}
-function Connect({onClose,onConnect}:{onClose:()=>void;onConnect:()=>void}){return <div className="fixed inset-0 grid place-items-center bg-black/20 p-5"><div className="surface w-full max-w-md rounded-lg p-6"><Github className="text-[#4F46E5]"/><h2 className="mt-4 text-lg font-bold">Connect GitHub</h2><p className="mt-2 text-sm leading-6 text-[#6B6B6B]">This is a hackathon demo flow, not live GitHub OAuth. The first callback intentionally fails; the next attempt connects agentlens.</p><div className="mt-5 flex justify-end gap-2"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" onClick={onConnect}>Continue demo OAuth</button></div></div></div>}
+export default function Workspace() {
+  const [state, setState] = useState<State>();
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState("");
+  const [modal, setModal] = useState(false);
+  const reduced = useReducedMotion();
+  const load = () =>
+    fetch("/api/state")
+      .then((r) => r.json())
+      .then(setState);
+  useEffect(() => {
+    load();
+  }, []);
+  const run = async (label: string, task: () => Promise<unknown>) => {
+    setBusy(label);
+    setNotice("");
+    try {
+      await task();
+      await load();
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setBusy("");
+    }
+  };
+  if (!state)
+    return (
+      <main className="mx-auto max-w-7xl p-8 text-sm text-[#6B6B6B]">
+        Loading trial workspace…
+      </main>
+    );
+  const u = state.user;
+  const step =
+    u.planStatus === "paid"
+      ? 5
+      : u.planStatus === "checkoutstarted" || u.firstMapGenerated
+        ? 4
+        : u.githubConnected
+          ? 2
+          : u.goal
+            ? 1
+            : 0;
+  let label = "Activation complete";
+  let action = () => {};
+  if (!u.goal) {
+    label = "Set your goal";
+    action = () => {
+      void run("goal", () => api("/api/demo/event", { action: "goal" }));
+    };
+  } else if (!u.githubConnected) {
+    label = "Connect GitHub";
+    action = () => setModal(true);
+  } else if (!u.firstMapGenerated) {
+    label = "Generate first map";
+    action = () => {
+      void run("map", () => api("/api/architecture/generate"));
+    };
+  }
+  return (
+    <main className="mx-auto max-w-7xl px-5 py-8">
+      <div className="mb-7 flex items-start justify-between">
+        <div>
+          <p className="text-sm font-medium text-[#4F46E5]">Trial workspace</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight">
+            Turn intent into a first useful outcome.
+          </h1>
+        </div>
+        <button
+          className="btn"
+          onClick={() => void run("reset", () => api("/api/demo/reset"))}
+        >
+          <RotateCcw size={15} /> Start demo
+        </button>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <section className="space-y-5">
+          <div className="surface rounded-lg p-6">
+            <div className="flex gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#EEF2FF] text-[#4F46E5]">
+                <Sparkles size={17} />
+              </span>
+              <div>
+                <p className="font-semibold">Activation guide</p>
+                <p className="mt-1 leading-6 text-[#6B6B6B]">
+                  {!u.goal
+                    ? "Tell RepoMap what you want to accomplish. We’ll preserve only your goal and product activity."
+                    : u.currentBlocker
+                      ? "You came here to connect a GitHub repo and generate an architecture map. Last time, GitHub authorization failed at the callback step. Let’s reconnect it."
+                      : u.githubConnected && !u.firstMapGenerated
+                        ? "GitHub is connected. Generate your first architecture map to reach the activation milestone."
+                        : u.firstMapGenerated
+                          ? "You generated your first architecture map. Your useful outcome is complete."
+                          : "Your goal is saved. Let’s connect GitHub."}
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 border-t border-[#E8E7E3] pt-4">
+              <button
+                className="btn btn-primary"
+                disabled={busy !== "" || u.planStatus === "paid"}
+                onClick={action}
+              >
+                {busy ? (
+                  <Loader2 className="animate-spin" size={16} />
+                ) : (
+                  <Sparkles size={16} />
+                )}{" "}
+                {label}
+              </button>
+            </div>
+            {notice && (
+              <p className="mt-3 flex gap-2 text-sm text-[#B91C1C]">
+                <AlertTriangle size={16} />
+                {notice}
+              </p>
+            )}
+          </div>
+          {u.githubConnected && (
+            <Repo
+              busy={busy === "map"}
+              generated={u.firstMapGenerated}
+              onMap={() =>
+                void run("map", () => api("/api/architecture/generate"))
+              }
+            />
+          )}{" "}
+          {u.firstMapGenerated && <MapPreview />}
+          {u.firstMapGenerated && (
+            <Upgrade
+              configured={state.providers.checkout}
+              status={u.planStatus}
+              busy={busy === "checkout"}
+              onCheckout={() =>
+                void run("checkout", async () => {
+                  const d = await api("/api/checkout/create");
+                  if (d.checkoutUrl) window.location.assign(d.checkoutUrl);
+                })
+              }
+            />
+          )}
+        </section>
+        <aside className="space-y-5">
+          <Progress step={step} />
+          <Memory
+            memories={state.memories}
+            configured={state.providers.memory}
+            reduced={Boolean(reduced)}
+          />
+        </aside>
+      </div>
+      {modal && (
+        <Connect
+          onClose={() => setModal(false)}
+          onConnect={() =>
+            void run("connect", async () => {
+              setModal(false);
+              await api("/api/github/connect", {
+                attempt: u.currentBlocker ? 2 : 1,
+              });
+            })
+          }
+        />
+      )}
+    </main>
+  );
+}
+function Progress({ step }: { step: number }) {
+  return (
+    <div className="surface rounded-lg p-5">
+      <p className="font-semibold">Activation progress</p>
+      <div className="mt-5 space-y-4">
+        {stages.map((x, i) => (
+          <div className="flex items-center gap-3 text-sm" key={x}>
+            {i < step ? (
+              <Check
+                className="rounded-full bg-[#DCFCE7] p-1 text-[#15803D]"
+                size={20}
+              />
+            ) : (
+              <Circle
+                className={i === step ? "text-[#4F46E5]" : "text-[#D4D3CE]"}
+                size={18}
+              />
+            )}
+            <span className={i <= step ? "font-medium" : "text-[#8A8985]"}>
+              {x}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+function Memory({
+  memories,
+  configured,
+  reduced,
+}: {
+  memories: any[];
+  configured: boolean;
+  reduced: boolean;
+}) {
+  return (
+    <div className="surface rounded-lg p-5">
+      <div className="flex justify-between">
+        <p className="font-semibold">What I remember</p>
+        <ChevronDown size={17} />
+      </div>
+      {!configured && (
+        <p className="mt-3 rounded-md bg-[#FFF7ED] p-3 text-xs leading-5 text-[#B45309]">
+          Memory connection needs setup. Add{" "}
+          <span className="mono">SUPERMEMORYAPIKEY</span>.
+        </p>
+      )}
+      <div className="mt-4 space-y-3">
+        {memories.length ? (
+          memories.slice(0, 5).map((m: any, i: number) => (
+            <motion.div
+              initial={reduced ? false : { opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              key={i}
+              className="border-l-2 border-[#C7D2FE] pl-3"
+            >
+              <p className="text-sm leading-5">{m.content}</p>
+              <p className="mono mt-1 text-[10px] uppercase text-[#8A8985]">
+                {m.source === "usermessage"
+                  ? "From your goal"
+                  : "From product activity"}
+              </p>
+            </motion.div>
+          ))
+        ) : (
+          <p className="text-sm leading-5 text-[#6B6B6B]">
+            No memories yet. Your goal and product actions will appear here as
+            evidence.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+function Repo({
+  onMap,
+  busy,
+  generated,
+}: {
+  onMap: () => void;
+  busy: boolean;
+  generated: boolean;
+}) {
+  return (
+    <div className="surface rounded-lg p-5">
+      <div className="flex justify-between">
+        <div className="flex gap-3">
+          <Github className="text-[#4F46E5]" />
+          <div>
+            <p className="font-semibold">agentlens</p>
+            <p className="mt-1 text-sm text-[#6B6B6B]">
+              1,248 files · TypeScript · Python
+            </p>
+          </div>
+        </div>
+        <span className="text-xs font-medium text-[#15803D]">Connected</span>
+      </div>
+      <button
+        className="btn btn-primary mt-5"
+        disabled={busy || generated}
+        onClick={onMap}
+      >
+        {busy ? (
+          <Loader2 size={15} className="animate-spin" />
+        ) : (
+          <Map size={15} />
+        )}{" "}
+        {generated ? "First map generated" : "Generate architecture map"}
+      </button>
+    </div>
+  );
+}
+function MapPreview() {
+  return (
+    <div className="surface rounded-lg p-5">
+      <p className="font-semibold">First architecture map</p>
+      <p className="mt-1 text-sm text-[#6B6B6B]">
+        A lightweight view of your repo’s main flow.
+      </p>
+      <div className="mt-5 grid grid-cols-3 gap-2 text-center text-xs">
+        <div className="rounded-lg border border-[#C7D2FE] bg-[#EEF2FF] p-3">
+          Web app
+        </div>
+        <div className="rounded-lg border border-[#E8E7E3] p-3">API routes</div>
+        <div className="rounded-lg border border-[#BBF7D0] bg-[#F0FDF4] p-3">
+          Data layer
+        </div>
+      </div>
+    </div>
+  );
+}
+function Upgrade({
+  configured,
+  status,
+  onCheckout,
+  busy,
+}: {
+  configured: boolean;
+  status: string;
+  onCheckout: () => void;
+  busy: boolean;
+}) {
+  return (
+    <div className="rounded-lg border border-[#BBF7D0] bg-[#F7FDF8] p-5">
+      <ShieldCheck className="text-[#15803D]" size={21} />
+      <p className="mt-3 font-semibold">
+        You generated your first architecture map.
+      </p>
+      <p className="mt-1 text-sm text-[#4B5563]">
+        Upgrade to RepoMap Pro for private repositories and unlimited projects.
+      </p>
+      {status === "checkoutstarted" ? (
+        <p className="mt-4 text-sm text-[#B45309]">
+          Checkout started — awaiting verified Dodo payment.
+        </p>
+      ) : status === "paid" ? (
+        <p className="mt-4 text-sm text-[#15803D]">RepoMap Pro is active.</p>
+      ) : !configured ? (
+        <p className="mt-4 text-sm text-[#B45309]">
+          Checkout needs setup: <span className="mono">DODOPAYMENTSAPIKEY</span>{" "}
+          and <span className="mono">DODOPRODUCTID</span>.
+        </p>
+      ) : (
+        <button
+          className="btn btn-primary mt-4"
+          onClick={onCheckout}
+          disabled={busy}
+        >
+          {busy ? (
+            <Loader2 className="animate-spin" size={15} />
+          ) : (
+            <ExternalLink size={15} />
+          )}{" "}
+          Upgrade to Pro
+        </button>
+      )}
+    </div>
+  );
+}
+function Connect({
+  onClose,
+  onConnect,
+}: {
+  onClose: () => void;
+  onConnect: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 grid place-items-center bg-black/20 p-5">
+      <div className="surface w-full max-w-md rounded-lg p-6">
+        <Github className="text-[#4F46E5]" />
+        <h2 className="mt-4 text-lg font-bold">Connect GitHub</h2>
+        <p className="mt-2 text-sm leading-6 text-[#6B6B6B]">
+          This is a hackathon demo flow, not live GitHub OAuth. The first
+          callback intentionally fails; the next attempt connects agentlens.
+        </p>
+        <div className="mt-5 flex justify-end gap-2">
+          <button className="btn" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="btn btn-primary" onClick={onConnect}>
+            Continue demo OAuth
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

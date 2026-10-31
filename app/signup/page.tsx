@@ -80,7 +80,7 @@ export default function Signup() {
         />
 
         {isSignInError ? (
-          <div className="flex items-start gap-2.5 rounded-lg border border-amber-400/25 bg-amber-400/10 p-3 text-[12px] text-amber-200">
+          <div className="flex items-start gap-2.5 rounded-lg border border-amber-400/25 bg-amber-400/10 p-3 text-[12px] text-warn">
             <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span className="leading-relaxed">
               Could not sign you in. If you already have an account,{' '}

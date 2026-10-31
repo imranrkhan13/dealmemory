@@ -8,6 +8,7 @@ import { z } from "zod";
 import { activationEventSchema } from "@/packages/shared/src/events";
 import { ingest } from "@/lib/intelligence";
 import { resolveProjectByRawKey } from "@/lib/keys";
+import { eventQuotaExceeded, getProjectPlanState } from "@/lib/billing";
 
 
 const schema = z.object({
@@ -65,6 +66,14 @@ export async function POST(req: NextRequest) {
     const resolved=rawKey ? await resolveProjectByRawKey(rawKey) : null;
     if(!rawKey || !resolved || !resolved.keyPrefix.startsWith('pk_')) return respond({ok:false,error:'Invalid project API key.'},401);
     if(body.data.events.some(e=>e.projectKey!==rawKey)) return respond({ok:false,error:'Project key does not match event tenant.'},403);
+    const plan=await getProjectPlanState(resolved.projectId);
+    if(plan && eventQuotaExceeded(plan)) return respond({
+      ok:false,
+      code:'plan_limit_exceeded',
+      error:`The Starter plan includes ${plan.limits.monthlyEvents} events per month. Upgrade to Growth Pro for unlimited ingestion.`,
+      limit:plan.limits.monthlyEvents,
+      usage:plan.usage.eventsThisMonth,
+    },402);
     const result=await ingest(resolved.projectId,body.data.events);
     return respond({ok:result.conflicts.length===0,...result},result.conflicts.length ? 409 : 200);
   } catch(error) {

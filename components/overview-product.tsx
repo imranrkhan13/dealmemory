@@ -27,6 +27,8 @@ import {
   Activity,
   UserCheck,
 } from 'lucide-react';
+import { usePlan } from '@/components/use-plan';
+import ProUpsell from '@/components/pro-upsell';
 
 interface MetricState {
   documents: number;
@@ -317,6 +319,7 @@ function FormattedAiResponse({ content }: { content: string }) {
 
 export default function OverviewProduct() {
   const { data: session } = useSession();
+  const { isPro, loading: planLoading } = usePlan();
   const [project, setProject] = useState<any>(null);
   const [metrics, setMetrics] = useState<MetricState>({
     documents: 0,
@@ -689,7 +692,13 @@ export default function OverviewProduct() {
         </div>
       )}
 
-      {/* GEMINI AI SEARCH & ASK BAR (Powered by GEMINI_API_KEY) */}
+      {/* GEMINI AI SEARCH & ASK BAR (Powered by GEMINI_API_KEY) — Growth Pro only */}
+      {planLoading ? null : !isPro ? (
+        <ProUpsell
+          title="AI copilot synthesis & recommendations"
+          description="Ask questions about your telemetry and get grounded next-best actions. Included with Growth Pro, alongside semantic memory retrieval and unlimited ingestion."
+        />
+      ) : (
       <div className="rounded-card border border-line bg-white p-4  space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <div className="relative flex-1">
@@ -799,6 +808,7 @@ export default function OverviewProduct() {
           </div>
         )}
       </div>
+      )}
 
       {/* 5 DYNAMIC METRIC CARDS (Exact Supermemory Console Layout) */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -1218,7 +1228,8 @@ export default function OverviewProduct() {
         </div>
       </div>
 
-      {/* FLOATING AI CHAT BUBBLE (Exact Supermemory Console Chat Widget) */}
+      {/* FLOATING AI CHAT BUBBLE (Exact Supermemory Console Chat Widget) — Growth Pro only */}
+      {isPro && (
       <div className="fixed bottom-5 right-4 z-40 sm:bottom-6 sm:right-6">
         <button
           onClick={() => setAiDrawerOpen(!aiDrawerOpen)}
@@ -1228,9 +1239,10 @@ export default function OverviewProduct() {
           {aiDrawerOpen ? <X size={20} /> : <MessageSquare size={20} />}
         </button>
       </div>
+      )}
 
       {/* GEMINI AI ASSISTANT DRAWER */}
-      {aiDrawerOpen && (
+      {isPro && aiDrawerOpen && (
         <div className="fixed bottom-[4.75rem] left-3 right-3 z-50 flex h-[min(520px,calc(100dvh-7rem))] flex-col overflow-hidden rounded-card border border-line bg-white animate-in fade-in slide-in-from-bottom-5 sm:bottom-20 sm:left-auto sm:right-6 sm:w-96">
           {/* Drawer Header */}
           <div className="flex items-center justify-between border-b border-line bg-ink p-4 text-white">

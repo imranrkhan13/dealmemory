@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { requireAuth } from '@/lib/auth';
 import { ownedProject, scopeError } from '@/lib/project-scope';
 import { ingest } from '@/lib/event-store';
+import { eventQuotaExceeded, getProjectPlanState } from '@/lib/billing';
 import type { ActivationEvent } from '@/packages/shared/src/events';
 
 export async function POST(req: Request) {
@@ -13,6 +14,20 @@ export async function POST(req: Request) {
     const project = await ownedProject(userId, requested);
     if (!project) {
       return Response.json({ ok: false, error: 'Project not found' }, { status: 404 });
+    }
+
+    const plan = await getProjectPlanState(project.id);
+    if (plan && eventQuotaExceeded(plan)) {
+      return Response.json(
+        {
+          ok: false,
+          code: 'plan_limit_exceeded',
+          error: `The Starter plan includes ${plan.limits.monthlyEvents} events per month. Upgrade to Growth Pro for unlimited ingestion.`,
+          limit: plan.limits.monthlyEvents,
+          usage: plan.usage.eventsThisMonth,
+        },
+        { status: 402 }
+      );
     }
 
     const body = await req.json().catch(() => ({}));

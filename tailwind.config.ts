@@ -26,18 +26,9 @@ const config: Config = {
           line: '#cfdcfb',
         },
         muted: '#f1f2f4',
-        success: {
-          DEFAULT: '#1a7f4b',
-          tint: '#edf7f0',
-        },
-        warn: {
-          DEFAULT: '#8a5a00',
-          tint: '#fbf4e6',
-        },
-        danger: {
-          DEFAULT: '#b42318',
-          tint: '#fdf1f0',
-        },
+        success: '#1a7f4b',
+        warn: '#8a5a00',
+        danger: '#b42318',
       },
       fontFamily: {
         sans: ['Geist', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],

@@ -44,9 +44,7 @@ export default function PricingPage() {
           <section className="flex flex-col rounded-card border border-line bg-white">
             <div className="border-b border-line px-6 py-5">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft">
-                  Starter
-                </span>
+                <span className="mono-label">Starter</span>
                 <span className="tag-mono">Forever free</span>
               </div>
               <div className="mt-5 flex items-baseline gap-1.5">
@@ -59,9 +57,7 @@ export default function PricingPage() {
             </div>
 
             <div className="flex-1 px-6 py-5">
-              <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">
-                Included
-              </p>
+              <p className="mono-label">Included</p>
               <ul className="mt-3 space-y-2.5">
                 {freeFeatures.map((f) => (
                   <li key={f} className="flex items-start gap-2.5 text-[13px] text-ink-soft">
@@ -83,9 +79,7 @@ export default function PricingPage() {
           <section className="flex flex-col rounded-card border border-accent bg-white">
             <div className="border-b border-accent-line px-6 py-5">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-accent">
-                  Growth Pro
-                </span>
+                <span className="mono-label">Growth Pro</span>
                 <span className="inline-flex items-center rounded-[4px] bg-accent px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.04em] text-white">
                   Recommended
                 </span>
@@ -100,9 +94,7 @@ export default function PricingPage() {
             </div>
 
             <div className="flex-1 px-6 py-5">
-              <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">
-                Everything in Starter, plus
-              </p>
+              <p className="mono-label">Everything in Starter, plus</p>
               <ul className="mt-3 space-y-2.5">
                 {proFeatures.map((f) => (
                   <li key={f} className="flex items-start gap-2.5 text-[13px] text-ink">
