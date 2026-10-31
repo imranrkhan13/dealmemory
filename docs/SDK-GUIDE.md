@@ -92,21 +92,31 @@ The DealMemory TypeScript SDK is located in `packages/sdk` and can be imported i
 ### Installation
 
 ```bash
-# Using the local workspace package
-npm install ./packages/sdk
+npm install dealmemory
+```
 
-# Or after publishing to your private registry
-npm install @dealmemory/sdk
+That is the whole install. Drop your key in `.env` and the client configures itself:
+
+```bash
+# .env
+DEALMEMORY_KEY=pk_live_your_project_key
 ```
 
 ### Initializing the Client
 
 ```typescript
-import { DealMemory } from '@dealmemory/sdk';
+import { DealMemory } from 'dealmemory';
 
+// Zero-config: reads DEALMEMORY_KEY (and the hosted apiUrl) from the environment
+export const dm = new DealMemory();
+```
+
+Every option is optional — only override when you self-host or need privacy controls:
+
+```typescript
 export const dm = new DealMemory({
-  projectKey: 'pk_live_your_project_key',
-  apiUrl: 'https://your-dealmemory-host.com/api',
+  projectKey: 'pk_live_your_project_key', // defaults to process.env.DEALMEMORY_KEY
+  apiUrl: 'https://your-dealmemory-host.com/api', // defaults to the hosted endpoint
   flushIntervalMs: 5000, // Flush frequency (default: 5000ms)
   autoCapture: true,     // Captures page views and element actions
   privacy: {

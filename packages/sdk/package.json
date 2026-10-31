@@ -1,7 +1,7 @@
 {
-  "name": "dealmemory-sdk-local",
+  "name": "dealmemory",
   "version": "0.1.0",
-  "description": "Privacy-safe product action tracking for founders.",
+  "description": "Privacy-safe product memory & event tracking for any application. One key in .env, nothing else.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -25,17 +25,18 @@
     "prepack": "npm run build"
   },
   "keywords": [
+    "dealmemory",
     "activation",
     "analytics",
     "saas",
     "sdk",
-    "journeys"
+    "journeys",
+    "product-memory"
   ],
   "devDependencies": {
     "typescript": "^5.7.2"
   },
   "engines": {
     "node": ">=18"
-  },
-  "private": true
+  }
 }

@@ -3,17 +3,20 @@
 Browser and Node.js SDK for DealMemory. It records privacy-safe product milestone actions without blocking host application threads or capturing sensitive form values.
 
 ```bash
-npm install ./packages/sdk
-# or npm install @dealmemory/sdk
+npm install dealmemory
+```
+
+One key in your environment — no project id, no apiUrl, no config file:
+
+```bash
+# .env
+DEALMEMORY_KEY=pk_live_your_project_key
 ```
 
 ```ts
-import { DealMemory } from '@dealmemory/sdk';
+import { DealMemory } from 'dealmemory';
 
-const dm = new DealMemory({
-  projectKey: 'pk_live_your_project_key',
-  apiUrl: 'https://api.your-domain.com/api'
-});
+const dm = new DealMemory(); // reads DEALMEMORY_KEY from the environment
 
 dm.identify('user_123', { plan: 'trial' });
 dm.track('trial_started');

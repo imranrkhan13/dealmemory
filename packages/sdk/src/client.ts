@@ -4,6 +4,33 @@ import type { ActivationOptions, ActivationProperties, QueuedEvent } from './typ
 const storageKey = (project: string, name: string) => `agentlens:${project}:${name}`;
 const createId = () => crypto.randomUUID();
 
+/** Hosted DealMemory endpoint used when no apiUrl is configured. */
+export const DEFAULT_API_URL = 'https://dealmemory.vercel.app/api';
+
+/** Environment variables the SDK reads so users only ever set one key. */
+export const KEY_ENV_VARS = ['DEALMEMORY_KEY', 'DEALMEMORY_PROJECT_KEY'] as const;
+
+function readEnv(...names: string[]): string | undefined {
+  // Bundlers inline DEALMEMORY_* vars; read through globalThis so browsers
+  // without a `process` global never throw.
+  const env = (globalThis as {
+    process?: { env?: Record<string, string | undefined> };
+  }).process?.env;
+  for (const name of names) {
+    const value = env?.[name]?.trim();
+    if (value) return value;
+  }
+  return undefined;
+}
+
+function getStorage(): Storage | undefined {
+  try {
+    return typeof localStorage !== 'undefined' ? localStorage : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 const CREDENTIAL_PATTERNS = [
   /(?:pk_live|sk_live|whsec)_[a-zA-Z0-9_]{16,}/,
   /\bBearer(?:\s|%20)+[a-zA-Z0-9_\-\.~+/]{16,}={0,2}/i,
@@ -17,8 +44,11 @@ function containsCredential(value: unknown): boolean {
   return CREDENTIAL_PATTERNS.some((pattern) => pattern.test(value));
 }
 
+/** Options after defaults (key from env, hosted apiUrl) are applied. */
+type ResolvedOptions = ActivationOptions & { projectKey: string; apiUrl: string };
+
 export class AgentLens {
-  private readonly options: ActivationOptions;
+  private readonly options: ResolvedOptions;
   private userId?: string;
   private anonymousId: string;
   private sessionId: string;
@@ -30,21 +60,36 @@ export class AgentLens {
   private clickHandler?: (event: MouseEvent) => void;
   private submitHandler?: (event: SubmitEvent) => void;
 
-  constructor(options: ActivationOptions) {
-    this.options = options;
-    this.anonymousId = localStorage.getItem(storageKey(this.options.projectKey, 'anonymous')) ?? createId();
+  constructor(options: ActivationOptions = {}) {
+    // Zero-config: the key comes from the environment unless passed explicitly.
+    const projectKey = (options.projectKey ?? readEnv(...KEY_ENV_VARS) ?? '').trim();
+    if (!projectKey) {
+      throw new Error(
+        `DealMemory: no project key found. Set ${KEY_ENV_VARS[0]}=pk_live_... in your .env, or pass { projectKey }.`
+      );
+    }
+    this.options = {
+      ...options,
+      projectKey,
+      apiUrl: (options.apiUrl ?? readEnv('DEALMEMORY_API_URL') ?? DEFAULT_API_URL).replace(/\/+$/, ''),
+    };
+
+    const storage = getStorage();
+    this.anonymousId = storage?.getItem(storageKey(projectKey, 'anonymous')) ?? createId();
     this.sessionId = createId();
-    this.userId = localStorage.getItem(storageKey(this.options.projectKey, 'user')) ?? undefined;
+    this.userId = storage?.getItem(storageKey(projectKey, 'user')) ?? undefined;
     try {
-      this.queue = JSON.parse(localStorage.getItem(storageKey(this.options.projectKey, 'queue')) ?? '[]') as QueuedEvent[];
+      this.queue = JSON.parse(storage?.getItem(storageKey(projectKey, 'queue')) ?? '[]') as QueuedEvent[];
     } catch {
       this.queue = [];
     }
-    this.queue = Array.isArray(this.queue) ? this.queue.filter(e=>e.projectKey===this.options.projectKey).slice(-1000) : [];
-    localStorage.setItem(storageKey(this.options.projectKey, 'anonymous'), this.anonymousId);
-    this.timer = window.setInterval(() => void this.flush(), options.flushIntervalMs ?? 5000);
+    this.queue = Array.isArray(this.queue) ? this.queue.filter(e=>e.projectKey===projectKey).slice(-1000) : [];
+    storage?.setItem(storageKey(projectKey, 'anonymous'), this.anonymousId);
+    if (typeof window !== 'undefined') {
+      this.timer = window.setInterval(() => void this.flush(), options.flushIntervalMs ?? 5000);
+    }
 
-    if (options.autoCapture !== false) {
+    if (options.autoCapture !== false && typeof document !== 'undefined') {
       this.enableAutoCapture();
       this.track('page_view');
     }
@@ -52,7 +97,7 @@ export class AgentLens {
 
   identify(userId: string, traits: ActivationProperties = {}) {
     this.userId = userId;
-    localStorage.setItem(storageKey(this.options.projectKey, 'user'), userId);
+    getStorage()?.setItem(storageKey(this.options.projectKey, 'user'), userId);
     this.track('identified', traits);
   }
   setGoal(goal: string) { this.track('goal_set', { goal }); }
@@ -70,8 +115,8 @@ export class AgentLens {
       )
     ) as ActivationProperties;
     const event: QueuedEvent = { id: createId(), projectKey: this.options.projectKey, name, userId: this.userId, anonymousId: this.anonymousId, sessionId: this.sessionId, occurredAt: new Date().toISOString(), properties: safe };
-    if (this.options.privacy?.capturePageUrl !== false) event.url = this.pageUrl(location.href);
-    if (this.options.privacy?.captureReferrer !== false) event.referrer = this.pageUrl(document.referrer);
+    if (this.options.privacy?.capturePageUrl !== false && typeof location !== 'undefined') event.url = this.pageUrl(location.href);
+    if (this.options.privacy?.captureReferrer !== false && typeof document !== 'undefined') event.referrer = this.pageUrl(document.referrer);
     this.queue.push(event); this.persist(); void this.flush();
   }
 
@@ -122,8 +167,9 @@ export class AgentLens {
     this.userId = undefined;
     this.sessionId = createId();
     this.anonymousId = createId();
-    localStorage.removeItem(storageKey(this.options.projectKey, 'user'));
-    localStorage.setItem(storageKey(this.options.projectKey, 'anonymous'), this.anonymousId);
+    const storage = getStorage();
+    storage?.removeItem(storageKey(this.options.projectKey, 'user'));
+    storage?.setItem(storageKey(this.options.projectKey, 'anonymous'), this.anonymousId);
   }
 
   destroy() {

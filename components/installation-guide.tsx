@@ -13,7 +13,7 @@ export default function InstallationGuide({
   creatingKey: boolean;
   onCreatePublicKey: () => void;
 }) {
-  const [runtime, setRuntime] = useState<SnippetRuntime>('curl');
+  const [runtime, setRuntime] = useState<SnippetRuntime>('npm');
   const [apiUrl, setApiUrl] = useState('/api');
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
@@ -47,10 +47,11 @@ export default function InstallationGuide({
               <span className="text-[11px] font-mono text-ink-faint">Zero Dependencies</span>
             </div>
             <h2 className="mt-2 text-[26px] font-medium leading-tight tracking-[-0.025em] text-ink">
-              Connect in 3 lines of code
+              One install. One key. Nothing else.
             </h2>
             <p className="mt-1 text-xs text-ink-soft">
-              Send privacy-safe product actions directly over HTTP. No heavy tracking bundles required.
+              <code className="font-mono">npm install dealmemory</code>, drop your key in{' '}
+              <code className="font-mono">.env</code>, and the client is ready — no project id, no apiUrl, no config file.
             </p>
           </div>
 
@@ -68,7 +69,7 @@ export default function InstallationGuide({
 
         {/* Language Tabs */}
         <div className="mt-6 flex flex-wrap items-center gap-2">
-          {(['curl', 'fetch', 'python'] as const).map((t) => (
+          {(['npm', 'curl', 'fetch', 'python'] as const).map((t) => (
             <button
               key={t}
               aria-pressed={runtime === t}
@@ -79,7 +80,7 @@ export default function InstallationGuide({
               }`}
               onClick={() => setRuntime(t)}
             >
-              {t === 'curl' ? 'Terminal (cURL)' : t === 'fetch' ? 'JavaScript / Node (fetch)' : 'Python'}
+              {t === 'npm' ? 'npm install (recommended)' : t === 'curl' ? 'Terminal (cURL)' : t === 'fetch' ? 'JavaScript / Node (fetch)' : 'Python'}
             </button>
           ))}
         </div>
@@ -94,7 +95,7 @@ export default function InstallationGuide({
             <span className="h-2.5 w-2.5 rounded-full bg-warn/80" />
             <span className="h-2.5 w-2.5 rounded-full bg-success/80" />
             <span className="ml-2 font-mono text-[11px] text-ink-faint">
-              {runtime === 'curl' ? 'terminal-curl.sh' : runtime === 'fetch' ? 'dealmemory.ts' : 'dealmemory.py'}
+              {runtime === 'npm' ? 'quickstart' : runtime === 'curl' ? 'terminal-curl.sh' : runtime === 'fetch' ? 'dealmemory.ts' : 'dealmemory.py'}
             </span>
           </div>
 

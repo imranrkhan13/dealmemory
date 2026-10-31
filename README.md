@@ -83,16 +83,20 @@ const response = await fetch('http://localhost:3000/api/v1/events/batch', {
 ### 2. TypeScript / JavaScript Web SDK
 
 ```bash
-npm install ./packages/sdk
-# or npm install @dealmemory/sdk
+npm install dealmemory
+```
+
+Add your one key to `.env` — that is the entire setup (no project id, no apiUrl, no config file):
+
+```bash
+# .env
+DEALMEMORY_KEY=pk_live_your_key_here
 ```
 
 ```typescript
-import { DealMemory } from '@dealmemory/sdk';
+import { DealMemory } from 'dealmemory';
 
 const dm = new DealMemory({
-  projectKey: 'pk_live_your_key_here',
-  apiUrl: 'http://localhost:3000/api',
   flushIntervalMs: 5000,
   autoCapture: true
 });

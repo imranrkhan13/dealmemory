@@ -61,9 +61,10 @@ const faqs = [
   },
 ];
 
-const codeSnippet = `import { DealMemory } from '@dealmemory/sdk';
+const codeSnippet = `import { DealMemory } from 'dealmemory';
 
-const dm = new DealMemory({ projectKey: 'pk_live_production' });
+// the key is read from DEALMEMORY_KEY in .env — nothing else to configure
+const dm = new DealMemory();
 
 dm.identify('usr_maya_chen', { plan: 'trial' });
 dm.trialStarted({ goal: 'Map repository architecture' });
@@ -221,12 +222,13 @@ export default function Page() {
                   </button>
                 </div>
                 <pre className="bg-paper px-4 py-3.5 font-mono text-[11.5px] leading-relaxed text-ink">
-                  {`npm install @dealmemory/sdk
+                  {`npm install dealmemory
 
-const dm = new DealMemory({
-  projectKey: 'pk_live_...'
-});
+// .env
+DEALMEMORY_KEY=pk_live_...
 
+// app code
+const dm = new DealMemory();
 dm.trialStarted({ goal: '...' });`}
                 </pre>
                 <div className="flex items-center justify-between border-t border-line px-4 py-2.5">
@@ -354,7 +356,7 @@ dm.trialStarted({ goal: '...' });`}
                   Install, identify the trial user, and emit the events that matter. No tag manager, no cookies.
                 </p>
                 <div className="mt-6 space-y-2 border-t border-line pt-5">
-                  {['npm install @dealmemory/sdk', 'set projectKey', 'emit milestones'].map((line, i) => (
+                  {['npm install dealmemory', 'DEALMEMORY_KEY in .env', 'emit milestones'].map((line, i) => (
                     <div key={line} className="flex items-center gap-2.5">
                       <span className="mono-label">0{i + 1}</span>
                       <span className="font-mono text-[12px] text-ink-soft">{line}</span>
