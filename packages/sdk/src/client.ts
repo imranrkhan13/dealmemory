@@ -7,10 +7,20 @@ const createId = () => crypto.randomUUID();
 /** Hosted DealMemory endpoint used when no apiUrl is configured. */
 export const DEFAULT_API_URL = 'https://dealmemory.vercel.app/api';
 
-/** Environment variables the SDK reads so users only ever set one key. */
-export const KEY_ENV_VARS = ['DEALMEMORY_KEY', 'DEALMEMORY_PROJECT_KEY'] as const;
+/**
+ * Environment variables the SDK reads, in order. The user only ever sets ONE:
+ * `DEALMEMORY_API_KEY`. The rest are fallbacks so existing setups keep working
+ * (and so bundlers that only inline `NEXT_PUBLIC_*` still find the key).
+ */
+export const KEY_ENV_VARS = [
+  'DEALMEMORY_API_KEY',
+  'NEXT_PUBLIC_DEALMEMORY_API_KEY',
+  'DEALMEMORY_KEY',
+  'DEALMEMORY_PROJECT_KEY',
+] as const;
 
-function readEnv(...names: string[]): string | undefined {
+/** Reads the first non-empty value among the given environment variables. */
+export function readEnv(...names: string[]): string | undefined {
   // Bundlers inline DEALMEMORY_* vars; read through globalThis so browsers
   // without a `process` global never throw.
   const env = (globalThis as {
@@ -65,7 +75,7 @@ export class AgentLens {
     const projectKey = (options.projectKey ?? readEnv(...KEY_ENV_VARS) ?? '').trim();
     if (!projectKey) {
       throw new Error(
-        `DealMemory: no project key found. Set ${KEY_ENV_VARS[0]}=pk_live_... in your .env, or pass { projectKey }.`
+        `DealMemory: no API key found. Add DEALMEMORY_API_KEY=pk_live_... to your .env, then run \`npx dealmemory init\`.`
       );
     }
     this.options = {

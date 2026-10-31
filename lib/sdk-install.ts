@@ -10,15 +10,15 @@ export function npmSnippet(key = '<YOUR_PROJECT_KEY>') {
 npm install dealmemory
 
 # 2. Put your one key in .env
-DEALMEMORY_KEY=${key}
+DEALMEMORY_API_KEY=${key}
 
-# 3. Use it — no project id, no apiUrl, no config file
-import { DealMemory } from 'dealmemory'
+# 3. Let DealMemory write the code into your app
+npx dealmemory init
 
-const dm = new DealMemory()
-dm.identify('user_123', { plan: 'trial' })
-dm.track('trial_started')
-await dm.flush()`;
+# that's it — page views and actions are recorded.
+# optional, for your own events:
+import { track } from 'dealmemory/auto'
+track('trial_started')`;
 }
 
 // Fixed example timestamp: snippets are rendered on both server and client, so a

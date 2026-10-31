@@ -1,28 +1,41 @@
 {
   "name": "dealmemory",
   "version": "0.1.0",
-  "description": "Privacy-safe product memory & event tracking for any application. One key in .env, nothing else.",
+  "description": "Privacy-safe product memory & event tracking. npm install, one DEALMEMORY_API_KEY in .env, done — no other setup.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "dealmemory": "./bin/dealmemory.mjs"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./auto": {
+      "types": "./dist/auto.d.ts",
+      "import": "./dist/auto.js",
+      "default": "./dist/auto.js"
     }
   },
   "files": [
     "dist",
+    "bin",
     "README.md"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/auto.js",
+    "./dist/index.js"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "postinstall": "node ./bin/dealmemory.mjs hint"
   },
   "keywords": [
     "dealmemory",

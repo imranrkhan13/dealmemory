@@ -50,8 +50,11 @@ export default function InstallationGuide({
               One install. One key. Nothing else.
             </h2>
             <p className="mt-1 text-xs text-ink-soft">
-              <code className="font-mono">npm install dealmemory</code>, drop your key in{' '}
-              <code className="font-mono">.env</code>, and the client is ready — no project id, no apiUrl, no config file.
+              <code className="font-mono">npm install dealmemory</code>, put{' '}
+              <code className="font-mono">DEALMEMORY_API_KEY</code> in{' '}
+              <code className="font-mono">.env</code>, then{' '}
+              <code className="font-mono">npx dealmemory init</code> — it writes the tracking code into your app.
+              Nothing to configure anywhere else: no project id, no apiUrl, no config file.
             </p>
           </div>
 

@@ -86,16 +86,23 @@ const response = await fetch('http://localhost:3000/api/v1/events/batch', {
 npm install dealmemory
 ```
 
-Add your one key to `.env` — that is the entire setup (no project id, no apiUrl, no config file):
+Add your one key to `.env`, then let the CLI write the tracking code into your app — there is nothing
+to configure anywhere else (no project id, no apiUrl, no init file):
 
 ```bash
 # .env
-DEALMEMORY_KEY=pk_live_your_key_here
+DEALMEMORY_API_KEY=pk_live_your_key_here
+
+# writes the bootstrap into your entry file
+npx dealmemory init
 ```
 
 ```typescript
-import { DealMemory } from 'dealmemory';
+// tracking starts on import — no client object required
+import 'dealmemory/auto';
 
+// or wire it manually if you prefer
+import { DealMemory } from 'dealmemory';
 const dm = new DealMemory({
   flushIntervalMs: 5000,
   autoCapture: true

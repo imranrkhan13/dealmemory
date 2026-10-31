@@ -20,6 +20,9 @@ export default function Settings() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [copiedRaw, setCopiedRaw] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [projectsCount, setProjectsCount] = useState(0);
+  const [creatingProject, setCreatingProject] = useState(false);
   const { plan, isPro } = usePlan();
 
   const refresh = useCallback(async (id: string) => {
@@ -37,6 +40,7 @@ export default function Settings() {
         if (!r.ok) throw new Error(d.error);
         const p = d.projects?.[0];
         setProject(p || null);
+        setProjectsCount(Array.isArray(d.projects) ? d.projects.length : 0);
         if (p) {
           await refresh(p.id);
           const s = await fetch(`/api/v1/integration-status?projectId=${encodeURIComponent(p.id)}`).then((x) => x.json());
@@ -48,7 +52,7 @@ export default function Settings() {
         setLoading(false);
       }
     })();
-  }, [refresh]);
+  }, [refresh, reloadKey]);
 
   const create = async () => {
     if (!project) return;
@@ -69,6 +73,29 @@ export default function Settings() {
       setError((e as Error).message);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const createProject = async () => {
+    const name = window.prompt('Name for the new project', 'Second product');
+    if (!name?.trim()) return;
+    setCreatingProject(true);
+    setError('');
+    try {
+      const r = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim().slice(0, 80) }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Could not create project');
+      setRaw(null);
+      setNotice(`Project “${d.project.name}” created. It is now your active workspace — generate a key below.`);
+      setReloadKey((k) => k + 1);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setCreatingProject(false);
     }
   };
 
@@ -157,7 +184,7 @@ export default function Settings() {
 
         {/* Status Panels */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <section className="rounded-card border border-line bg-white p-6 ">
+          <section className="rounded-card border border-line bg-white p-6">
             <p className="eyebrow">
               <KeyRound size={13} /> Project Workspace
             </p>
@@ -165,6 +192,36 @@ export default function Settings() {
               {project?.name || (loading ? 'Loading…' : 'No project')}
             </h2>
             <p className="mt-1 break-all font-mono text-xs text-ink-faint">{project?.id}</p>
+
+            <div className="mt-4 border-t border-line pt-3.5">
+              {isPro ? (
+                <>
+                  <button
+                    className="btn btn-primary inline-flex items-center gap-1.5 text-xs py-2 px-3"
+                    disabled={creatingProject || loading}
+                    onClick={() => void createProject()}
+                  >
+                    <Plus size={13} />
+                    {creatingProject ? 'Creating…' : 'New project'}
+                  </button>
+                  <p className="mt-2 font-mono text-[11px] text-ink-faint">
+                    {loading ? '—' : `${projectsCount} ${projectsCount === 1 ? 'project' : 'projects'} in use · unlimited`}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <a
+                    href="/pricing"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.04em] text-ink-soft transition-colors hover:border-accent-line hover:text-accent"
+                  >
+                    Starter is limited to 1 project · Upgrade
+                  </a>
+                  <p className="mt-2 font-mono text-[11px] text-ink-faint">
+                    {loading ? '—' : `${projectsCount} of 1 project used`}
+                  </p>
+                </>
+              )}
+            </div>
           </section>
 
           <section className="rounded-card border border-line bg-white p-6 ">

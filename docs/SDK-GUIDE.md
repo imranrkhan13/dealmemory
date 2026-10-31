@@ -95,27 +95,36 @@ The DealMemory TypeScript SDK is located in `packages/sdk` and can be imported i
 npm install dealmemory
 ```
 
-That is the whole install. Drop your key in `.env` and the client configures itself:
+That is the whole install. Drop your key in `.env` and let the CLI wire it up — no project id, no
+apiUrl, no config file anywhere:
 
 ```bash
 # .env
-DEALMEMORY_KEY=pk_live_your_project_key
+DEALMEMORY_API_KEY=pk_live_your_project_key
+
+# writes the tracking bootstrap into your entry file (app/layout.tsx or pages/_app.tsx)
+npx dealmemory init
 ```
 
 ### Initializing the Client
 
 ```typescript
-import { DealMemory } from 'dealmemory';
+// Zero-config: the CLI already wrote this import into your app
+import 'dealmemory/auto';
 
-// Zero-config: reads DEALMEMORY_KEY (and the hosted apiUrl) from the environment
-export const dm = new DealMemory();
+// Need custom events? The shared client is exported for you:
+import { track, identify } from 'dealmemory/auto';
+identify('user_94812');
+track('repository_connected', { provider: 'github' });
 ```
 
-Every option is optional — only override when you self-host or need privacy controls:
+Prefer an explicit client? Every option is optional — only override when you self-host or need privacy controls:
 
 ```typescript
+import { DealMemory } from 'dealmemory';
+
 export const dm = new DealMemory({
-  projectKey: 'pk_live_your_project_key', // defaults to process.env.DEALMEMORY_KEY
+  projectKey: 'pk_live_your_project_key', // defaults to process.env.DEALMEMORY_API_KEY
   apiUrl: 'https://your-dealmemory-host.com/api', // defaults to the hosted endpoint
   flushIntervalMs: 5000, // Flush frequency (default: 5000ms)
   autoCapture: true,     // Captures page views and element actions
