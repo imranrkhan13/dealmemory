@@ -1,9 +1,9 @@
-export const sdkInstall = { npmPackage: 'dealmemory', pypiPackage: 'dealmemory', published: false, directHttp: true } as const;
+export const sdkInstall = { npmPackage: 'dealmemory', pypiPackage: 'dealmemory', npmPublished: true, pypiPublished: false, directHttp: true } as const;
 export type SnippetRuntime = 'npm' | 'curl' | 'fetch' | 'python';
 
 /**
  * The default path: install the package, drop ONE key in .env, use it.
- * Nothing else to configure — no project id, no apiUrl, no init file.
+ * Nothing else to configure â no project id, no apiUrl, no init file.
  */
 export function npmSnippet(key = '<YOUR_PROJECT_KEY>') {
   return `# 1. Install (only dependency you need)
@@ -15,7 +15,7 @@ DEALMEMORY_API_KEY=${key}
 # 3. Let DealMemory write the code into your app
 npx dealmemory init
 
-# that's it — page views and actions are recorded.
+# that's it â page views and actions are recorded.
 # optional, for your own events:
 import { track } from 'dealmemory/auto'
 track('trial_started')`;
