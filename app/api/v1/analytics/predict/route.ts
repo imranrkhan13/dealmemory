@@ -1,19 +1,25 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextRequest } from 'next/server';
 import { predictConversionProbability, discoverFunnels, identifyAtRiskUsers, predictNextAction, buildUserPredictionSummary, behavioralClustering } from '@/lib/predictive-analytics';
 import { getProjectPlanState } from '@/lib/billing';
+import { projectScope, scopeError } from '@/lib/project-scope';
+import { ensureDatabaseSchema } from '@/lib/db';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { projectId: string } }
-) {
-  const { projectId } = params;
+export async function GET(request: NextRequest) {
+  try {
+    await ensureDatabaseSchema();
+    const url = new URL(request.url);
+    const requestedProject = url.searchParams.get('projectId');
+    const projectId = requestedProject || (await projectScope(request));
 
-  if (!projectId) {
-    return new Response(
-      JSON.stringify({ error: 'projectId is required' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
+    if (!projectId) {
+      return new Response(
+        JSON.stringify({ error: 'projectId is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
   // Get plan state to understand limits
   const planState = await getProjectPlanState(projectId);
@@ -80,4 +86,7 @@ export async function GET(
       headers: { 'Content-Type': 'application/json' },
     }
   );
+  } catch (err) {
+    return scopeError(err);
+  }
 }

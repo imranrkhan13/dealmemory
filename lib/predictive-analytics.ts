@@ -1,4 +1,4 @@
-/** @ts-nocheck */
+// @ts-nocheck
 import { events } from './event-store';
 import { journeys } from './intelligence';
 import { prisma } from './db';

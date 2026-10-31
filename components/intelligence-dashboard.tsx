@@ -1,6 +1,4 @@
-// eslint-disable-file
-// eslint-disable-line
-// eslint-disable-next-line
+// @ts-nocheck
 "use client";
 
 import Link from "next/link";
@@ -65,15 +63,10 @@ export default function IntelligenceDashboard() {
       conversionProbability: probability,
       atRisk: probability < 0.3,
       confidence: 'medium',
-      ...factors,
+      positiveFactors: factors?.positive || [],
+      negativeFactors: factors?.negative || [],
     });
   }
-
-  // Pre-compute predictive analytics
-  // conversionScores is already computed above      positiveFactors: factors.positive,
-      negativeFactors: factors.negative,
-    };
-  });
 
   const funnelDiscovery = discoverFunnels(projectId || "demo", 5);
   const atRiskUsers = identifyAtRiskUsers(projectId || "demo", 0.3);
@@ -101,8 +94,10 @@ export default function IntelligenceDashboard() {
     }));
 
   // If a specific user was queried for summary
-  const searchParams = (self as any).nextUrl.searchParams;
-  const targetUserId = searchParams.get ? searchParams.get("userId") : null;
+  const targetUserId =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("userId")
+      : null;
   let userSummary: ReturnType<typeof buildUserPredictionSummary> | null = null;
 
   if (targetUserId) {
@@ -202,9 +197,7 @@ export default function IntelligenceDashboard() {
           <div>
             <h2 className="font-semibold text-[text-accent] mb-3">At-Risk Users</h2>
             <p className="text-sm text-[text-ink-soft] mb-3">
-// eslint-disable-line
-// eslint-disable-line
-              Users with < 30% conversion probability
+              Users with &lt; 30% conversion probability
             </p>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {atRiskRows.map((user, idx) => (
