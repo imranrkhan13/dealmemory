@@ -576,6 +576,40 @@ body {
   color: #939aa3;
 }
 
+/* ── Auth pages (sign in / create workspace) ───────────── */
+
+.dark-auth .auth-field-input {
+  font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  letter-spacing: normal;
+  text-transform: none;
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+}
+
+.dark-auth .auth-field-input:-webkit-autofill,
+.dark-auth .auth-field-input:-webkit-autofill:hover,
+.dark-auth .auth-field-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f5f5f5;
+  -webkit-box-shadow: 0 0 0 1000px #0e0e11 inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.dark-auth .auth-submit {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  justify-content: center;
+}
+
+.dark-auth .auth-submit:hover:not(:disabled) {
+  background: #456cdf;
+  border-color: #456cdf;
+  color: #0b0b0d;
+}
+
 /* ── Motion accessibility ──────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
