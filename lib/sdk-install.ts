@@ -1,6 +1,10 @@
 export const sdkInstall = { npmPackage: 'dealmemory-sdk-local', pypiPackage: 'dealmemory-sdk-local', published: false, directHttp: true } as const;
 export type SnippetRuntime = 'curl' | 'fetch' | 'python';
 
+// Fixed example timestamp: snippets are rendered on both server and client, so a
+// live `new Date()` here would cause a hydration mismatch.
+const EXAMPLE_OCCURRED_AT = '2026-01-01T12:00:00.000Z';
+
 export function installSnippet(runtime: SnippetRuntime, apiUrl: string, key = '<YOUR_PROJECT_KEY>') {
   const event = {
     id: 'replace-with-a-unique-uuid',
@@ -9,7 +13,7 @@ export function installSnippet(runtime: SnippetRuntime, apiUrl: string, key = '<
     userId: 'sarah@acme.inc',
     anonymousId: 'anon_123',
     sessionId: 'sess_123',
-    occurredAt: new Date().toISOString(),
+    occurredAt: EXAMPLE_OCCURRED_AT,
     properties: { plan: 'growth', teamSize: 12 },
   };
 

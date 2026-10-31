@@ -24,10 +24,6 @@ import {
   Heart,
   Bot,
   HelpCircle,
-  Sun,
-  Settings,
-  Monitor,
-  Smartphone,
   Activity,
   UserCheck,
 } from 'lucide-react';
@@ -129,7 +125,7 @@ function parseInlineMarkdown(text: string): React.ReactNode {
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return (
-        <strong key={i} className="font-semibold text-slate-900">
+        <strong key={i} className="font-semibold text-ink">
           {part.slice(2, -2)}
         </strong>
       );
@@ -153,7 +149,7 @@ function GenericMarkdownRenderer({ content }: { content: string }) {
     if (trimmed.startsWith('###') || trimmed.startsWith('##')) {
       const title = trimmed.replace(/^#+\s*/, '').replace(/\*\*/g, '');
       elements.push(
-        <h4 key={`h-${idx}`} className="text-xs font-bold text-slate-900 mt-2 mb-1">
+        <h4 key={`h-${idx}`} className="text-xs font-bold text-ink mt-2 mb-1">
           {title}
         </h4>
       );
@@ -162,8 +158,8 @@ function GenericMarkdownRenderer({ content }: { content: string }) {
 
     if (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('* ')) {
       elements.push(
-        <div key={`b-${idx}`} className="flex items-start gap-2 py-0.5 text-xs text-slate-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-sky-500 mt-1.5 shrink-0" />
+        <div key={`b-${idx}`} className="flex items-start gap-2 py-0.5 text-xs text-ink-soft">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
           <span className="leading-relaxed">{parseInlineMarkdown(trimmed)}</span>
         </div>
       );
@@ -171,7 +167,7 @@ function GenericMarkdownRenderer({ content }: { content: string }) {
     }
 
     elements.push(
-      <p key={`p-${idx}`} className="text-xs text-slate-700 leading-relaxed py-0.5">
+      <p key={`p-${idx}`} className="text-xs text-ink-soft leading-relaxed py-0.5">
         {parseInlineMarkdown(trimmed)}
       </p>
     );
@@ -219,12 +215,12 @@ function FormattedAiResponse({ content }: { content: string }) {
     return (
       <div className="space-y-3 pt-1">
         {user && (
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-sky-100/60">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-line">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-xs text-slate-500 uppercase tracking-wider font-mono">
+              <span className="font-semibold text-xs text-ink-soft uppercase tracking-wider font-mono">
                 Telemetry Intelligence
               </span>
-              <span className="rounded-md bg-sky-100/80 px-2 py-0.5 text-xs font-mono font-bold text-sky-900 border border-sky-200">
+              <span className="rounded-md bg-accent-tint px-2 py-0.5 text-xs font-mono font-bold text-accent border border-line">
                 {user}
               </span>
             </div>
@@ -232,14 +228,14 @@ function FormattedAiResponse({ content }: { content: string }) {
               <span
                 className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-mono font-semibold border ${
                   isFriction
-                    ? 'bg-rose-50 border-rose-200 text-rose-700'
-                    : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                    ? 'bg-danger-tint border-danger/40 text-danger'
+                    : 'bg-success-tint border-success/40 text-success'
                 }`}
               >
                 {isFriction ? (
-                  <AlertTriangle size={11} className="text-rose-500 shrink-0" />
+                  <AlertTriangle size={11} className="text-danger shrink-0" />
                 ) : (
-                  <CheckCircle2 size={11} className="text-emerald-500 shrink-0" />
+                  <CheckCircle2 size={11} className="text-success shrink-0" />
                 )}
                 <span>{rawStatus}</span>
               </span>
@@ -250,37 +246,37 @@ function FormattedAiResponse({ content }: { content: string }) {
         {/* Structured Metric Badges Grid */}
         <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {dwell && (
-            <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs flex items-start gap-2.5">
-              <Clock size={14} className="mt-0.5 text-sky-600 shrink-0" />
+            <div className="rounded-lg border border-line bg-white p-2.5  flex items-start gap-2.5">
+              <Clock size={14} className="mt-0.5 text-accent shrink-0" />
               <div className="min-w-0">
-                <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-ink-faint font-semibold">
                   Active Dwell Time
                 </p>
-                <p className="text-xs font-semibold text-slate-800 truncate">{dwell}</p>
+                <p className="text-xs font-semibold text-ink truncate">{dwell}</p>
               </div>
             </div>
           )}
 
           {affinity && (
-            <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs flex items-start gap-2.5">
-              <Heart size={14} className="mt-0.5 text-rose-500 shrink-0" />
+            <div className="rounded-lg border border-line bg-white p-2.5  flex items-start gap-2.5">
+              <Heart size={14} className="mt-0.5 text-danger shrink-0" />
               <div className="min-w-0">
-                <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-ink-faint font-semibold">
                   Top Feature Affinity
                 </p>
-                <p className="text-xs font-semibold text-slate-800 truncate">{affinity}</p>
+                <p className="text-xs font-semibold text-ink truncate">{affinity}</p>
               </div>
             </div>
           )}
 
           {lastAction && (
-            <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs flex items-start gap-2.5 sm:col-span-2 lg:col-span-1">
-              <Activity size={14} className="mt-0.5 text-indigo-500 shrink-0" />
+            <div className="rounded-lg border border-line bg-white p-2.5  flex items-start gap-2.5 sm:col-span-2 lg:col-span-1">
+              <Activity size={14} className="mt-0.5 text-accent shrink-0" />
               <div className="min-w-0">
-                <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-ink-faint font-semibold">
                   Last Recorded Action
                 </p>
-                <p className="text-xs font-semibold text-slate-800 truncate">{lastAction}</p>
+                <p className="text-xs font-semibold text-ink truncate">{lastAction}</p>
               </div>
             </div>
           )}
@@ -288,11 +284,11 @@ function FormattedAiResponse({ content }: { content: string }) {
 
         {/* Executive Summary Card */}
         {summary && (
-          <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs space-y-1">
-            <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+          <div className="rounded-lg border border-line bg-white p-3.5  space-y-1">
+            <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-ink-soft">
               Executive Summary
             </p>
-            <p className="text-xs text-slate-700 leading-relaxed font-normal">
+            <p className="text-xs text-ink-soft leading-relaxed font-normal">
               {summary}
             </p>
           </div>
@@ -300,13 +296,13 @@ function FormattedAiResponse({ content }: { content: string }) {
 
         {/* Recommended Next Step Card */}
         {nextStep && (
-          <div className="rounded-xl border border-sky-200/90 bg-gradient-to-r from-sky-50/80 to-blue-50/50 p-3 flex items-start gap-2.5">
-            <Zap size={14} className="mt-0.5 text-sky-600 shrink-0" />
+          <div className="rounded-lg border border-line from-accent-tint to-accent-tint p-3 flex items-start gap-2.5">
+            <Zap size={14} className="mt-0.5 text-accent shrink-0" />
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-900">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-accent">
                 Recommended Next Step
               </p>
-              <p className="text-xs text-sky-900 leading-relaxed font-medium mt-0.5">
+              <p className="text-xs text-accent leading-relaxed font-medium mt-0.5">
                 {nextStep}
               </p>
             </div>
@@ -550,9 +546,9 @@ export default function OverviewProduct() {
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-2xs">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
-          <span className="text-xs font-medium text-slate-600">
+        <div className="flex items-center gap-3 rounded-lg border border-line bg-white px-5 py-3 ">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <span className="text-xs font-medium text-ink-soft">
             Streaming live telemetry and customer memories…
           </span>
         </div>
@@ -563,33 +559,27 @@ export default function OverviewProduct() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Top Greeting Header & Time Range Selector (Supermemory Console Header) */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <h1 className="text-[26px] font-medium leading-tight tracking-[-0.025em] text-ink">
             {greeting}, {firstName}
           </h1>
-          <p className="mt-1 text-xs text-slate-500 flex items-center gap-2">
-            <span>Onboard your agent to dealmemory</span>
-            <span className="flex items-center gap-1.5 text-slate-400">
-              <Sun size={13} className="text-amber-500 hover:scale-110 transition-transform cursor-pointer" />
-              <Settings size={13} className="text-slate-400 hover:scale-110 transition-transform cursor-pointer" />
-              <Monitor size={13} className="text-sky-500 hover:scale-110 transition-transform cursor-pointer" />
-              <Smartphone size={13} className="text-indigo-500 hover:scale-110 transition-transform cursor-pointer" />
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <span className="text-[13px] text-ink-soft">Here is what changed across your trials.</span>
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.05em] text-ink-soft">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" />
+              Real-time ingest
             </span>
-            <span className="inline-flex items-center gap-1.5 ml-2 text-[10px] font-mono font-medium text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200/80">
-              <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
-              Real-time Ingest Active
-            </span>
-          </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
           {/* Quick Setup Code Button */}
           <button
             onClick={() => setShowSetup(!showSetup)}
-            className="btn btn-outline text-xs py-1.5 px-3 inline-flex items-center gap-1.5 bg-white text-slate-700 hover:text-sky-700 hover:border-sky-300"
+            className="btn btn-outline text-xs py-1.5 px-3 inline-flex items-center gap-1.5 bg-white text-ink-soft hover:text-accent hover:border-accent-line"
           >
-            <Zap size={12} className="text-sky-600" />
+            <Zap size={12} className="text-accent" />
             <span>{showSetup ? 'Hide Setup' : 'Quick Setup'}</span>
           </button>
 
@@ -598,26 +588,26 @@ export default function OverviewProduct() {
             onClick={handleSimulate}
             disabled={simulating}
             title="Simulate realistic user onboarding drop-off sequence"
-            className="btn btn-outline text-xs py-1.5 px-3 inline-flex items-center gap-1.5 bg-white text-slate-700 hover:text-sky-700 hover:border-sky-300"
+            className="btn btn-outline text-xs py-1.5 px-3 inline-flex items-center gap-1.5 bg-white text-ink-soft hover:text-accent hover:border-accent-line"
           >
             {simulating ? (
-              <RefreshCw size={12} className="animate-spin text-sky-600" />
+              <RefreshCw size={12} className="animate-spin text-accent" />
             ) : (
-              <Sparkles size={12} className="text-sky-600" />
+              <Sparkles size={12} className="text-accent" />
             )}
             <span>{simulating ? 'Simulating…' : 'Simulate Onboarding'}</span>
           </button>
 
           {/* Time range selector pill (1d 7d 30d All) */}
-          <div className="flex items-center rounded-lg border border-slate-200/90 bg-white p-0.5 shadow-2xs text-xs font-medium text-slate-600">
+          <div className="flex items-center rounded-lg border border-line bg-white p-0.5  text-xs font-medium text-ink-soft">
             {(['1d', '7d', '30d', 'all'] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTimeRange(t)}
                 className={`rounded-md px-2.5 py-1 text-xs transition ${
                   timeRange === t
-                    ? 'bg-sky-50 text-sky-700 font-semibold'
-                    : 'hover:text-slate-900'
+                    ? 'bg-accent-tint text-accent font-semibold'
+                    : 'hover:text-ink'
                 }`}
               >
                 {t === 'all' ? 'All' : t}
@@ -629,36 +619,36 @@ export default function OverviewProduct() {
 
       {/* QUICK SETUP DRAWER (If toggled) */}
       {showSetup && (
-        <div className="rounded-2xl border border-sky-200/90 bg-gradient-to-br from-sky-50/80 via-white to-white p-5 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-white text-[10px]">
+        <div className="rounded-card border border-line bg-white p-5 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-2">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent text-white text-[10px]">
                 <Check size={11} className="stroke-[3]" />
               </span>
-              <h3 className="font-bold text-xs text-slate-900">
+              <h3 className="font-medium text-[12px] leading-snug text-ink">
                 Live Ingestion Setup: Connect &amp; Stream Events in 30 Seconds
               </h3>
             </div>
             <button
               onClick={() => setShowSetup(false)}
-              className="text-slate-400 hover:text-slate-600 p-1 text-xs"
+              className="text-ink-faint hover:text-ink-soft p-1 text-xs"
             >
               <X size={14} />
             </button>
           </div>
 
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-ink-soft">
             Stream events directly to DealMemory over standard HTTP. Send from any frontend app, backend service, or terminal command:
           </p>
 
-          <div className="flex items-center justify-between gap-2 pt-1">
-            <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <div className="flex flex-wrap items-center gap-1.5">
               <button
                 onClick={() => setSnippetMode('curl')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                   snippetMode === 'curl'
-                    ? 'bg-sky-600 text-white font-semibold shadow-2xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-accent text-white font-semibold '
+                    : 'bg-muted text-ink-soft hover:bg-line'
                 }`}
               >
                 cURL (Terminal)
@@ -667,8 +657,8 @@ export default function OverviewProduct() {
                 onClick={() => setSnippetMode('fetch')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                   snippetMode === 'fetch'
-                    ? 'bg-sky-600 text-white font-semibold shadow-2xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-accent text-white font-semibold '
+                    : 'bg-muted text-ink-soft hover:bg-line'
                 }`}
               >
                 JavaScript fetch (Web / React / Node)
@@ -677,12 +667,12 @@ export default function OverviewProduct() {
 
             <button
               onClick={handleCopySnippet}
-              className="rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 transition inline-flex items-center gap-1.5"
+              className="rounded-lg bg-muted hover:bg-line border border-line-strong px-2.5 py-1 text-xs font-medium text-ink-soft transition inline-flex items-center gap-1.5"
             >
               {copiedKey ? (
                 <>
-                  <Check size={12} className="text-emerald-600" />
-                  <span className="text-emerald-600 font-semibold">Copied!</span>
+                  <Check size={12} className="text-success" />
+                  <span className="text-success font-semibold">Copied!</span>
                 </>
               ) : (
                 <>
@@ -693,51 +683,61 @@ export default function OverviewProduct() {
             </button>
           </div>
 
-          <pre className="rounded-xl border border-slate-800 bg-slate-900 p-3.5 font-mono text-xs text-sky-200 overflow-x-auto leading-relaxed shadow-inner">
+          <pre className="rounded-lg border border-ink bg-ink p-3.5 font-mono text-xs text-accent overflow-x-auto leading-relaxed ">
             {snippetMode === 'curl' ? curlSnippet : fetchSnippet}
           </pre>
         </div>
       )}
 
       {/* GEMINI AI SEARCH & ASK BAR (Powered by GEMINI_API_KEY) */}
-      <div className="rounded-2xl border border-sky-100 bg-white p-4 shadow-2xs space-y-3">
-        <div className="flex items-center gap-3">
+      <div className="rounded-card border border-line bg-white p-4  space-y-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <div className="relative flex-1">
-            <Sparkles size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sky-500" />
+            <Sparkles size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-accent" />
             <input
               type="text"
               value={aiQuestion}
               onChange={(e) => setAiQuestion(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAskGemini()}
               placeholder="Ask DealMemory AI: 'Why did onboarding drop off today?' or 'What did users love most?'"
-              className="w-full rounded-xl border border-slate-200/90 bg-slate-50/70 pl-10 pr-24 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-400 focus:bg-white transition"
+              className="w-full rounded-lg border border-line bg-paper py-2.5 pl-10 pr-3 text-xs text-ink placeholder:text-ink-faint focus:outline-none focus:border-accent-line focus:bg-white transition sm:pr-12 lg:pr-28"
             />
             <button
               onClick={() => handleAskGemini()}
               disabled={aiLoading || !aiQuestion.trim()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5 transition inline-flex items-center gap-1.5 shadow-2xs"
+              aria-label="Ask Gemini"
+              className="absolute right-2 top-1/2 hidden -translate-y-1/2 items-center gap-1.5 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-accent-deep disabled:opacity-50 sm:inline-flex lg:px-3"
             >
               {aiLoading ? (
                 <RefreshCw size={12} className="animate-spin" />
               ) : (
                 <Send size={12} />
               )}
-              <span>{aiLoading ? 'Thinking…' : 'Ask Gemini'}</span>
+              <span className="hidden lg:inline">{aiLoading ? 'Thinking…' : 'Ask Gemini'}</span>
             </button>
           </div>
 
           <button
-            onClick={() => setAiDrawerOpen(true)}
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-700 hover:text-sky-700 hover:border-sky-300 transition shadow-2xs shrink-0"
+            onClick={() => handleAskGemini()}
+            disabled={aiLoading || !aiQuestion.trim()}
+            className="btn btn-primary w-full justify-center text-xs sm:hidden"
           >
-            <Bot size={15} className="text-sky-600" />
+            {aiLoading ? <RefreshCw size={12} className="animate-spin" /> : <Send size={12} />}
+            {aiLoading ? 'Thinking…' : 'Ask Gemini'}
+          </button>
+
+          <button
+            onClick={() => setAiDrawerOpen(true)}
+            className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3.5 py-2.5 text-xs font-medium text-ink-soft hover:text-accent hover:border-accent-line transition  shrink-0"
+          >
+            <Bot size={15} className="text-accent" />
             <span>AI Playground</span>
           </button>
         </div>
 
         {/* Quick Suggested Prompt Chips */}
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="text-[11px] font-mono text-slate-400 mr-1">Suggested:</span>
+          <span className="text-[11px] font-mono text-ink-faint mr-1">Suggested:</span>
           {[
             'Where did onboarding break today?',
             'What features did users love most?',
@@ -750,7 +750,7 @@ export default function OverviewProduct() {
                 setAiQuestion(prompt);
                 void handleAskGemini(prompt);
               }}
-              className="rounded-lg bg-slate-100/80 hover:bg-sky-50 hover:text-sky-800 border border-slate-200/60 px-2.5 py-1 text-[11px] font-medium text-slate-600 transition"
+              className="rounded-lg bg-muted hover:bg-accent-tint hover:text-accent border border-line px-2.5 py-1 text-[11px] font-medium text-ink-soft transition"
             >
               {prompt}
             </button>
@@ -759,23 +759,23 @@ export default function OverviewProduct() {
 
         {/* Live Gemini AI Response Banner */}
         {aiAnswer && (
-          <div className="mt-3 rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50/60 via-white to-white p-4 text-xs text-slate-800 shadow-2xs space-y-2 animate-in fade-in">
-            <div className="flex items-center justify-between pb-2 border-b border-sky-100">
+          <div className="mt-3 rounded-lg border border-line from-accent-tint via-white to-white p-4 text-xs text-ink  space-y-2 animate-in fade-in">
+            <div className="flex items-center justify-between pb-2 border-b border-line">
               <div className="flex items-center gap-2">
-                <div className="flex h-5 w-5 items-center justify-center rounded-md bg-sky-500 text-white">
+                <div className="flex h-5 w-5 items-center justify-center rounded-md bg-accent text-white">
                   <Sparkles size={12} />
                 </div>
-                <span className="font-bold text-slate-900">DealMemory AI Analysis</span>
-                <span className="rounded bg-sky-100 text-sky-800 font-mono text-[10px] font-bold px-1.5 py-0.5">
+                <span className="font-bold text-ink">DealMemory AI Analysis</span>
+                <span className="rounded bg-accent-tint text-accent font-mono text-[10px] font-bold px-1.5 py-0.5">
                   {aiAnswer.model}
                 </span>
-                <span className="text-[11px] font-mono text-slate-400">
+                <span className="text-[11px] font-mono text-ink-faint">
                   Ground-truth database telemetry verified
                 </span>
               </div>
               <button
                 onClick={() => setAiAnswer(null)}
-                className="text-slate-400 hover:text-slate-600 text-xs p-1"
+                className="text-ink-faint hover:text-ink-soft text-xs p-1"
               >
                 <X size={14} />
               </button>
@@ -784,12 +784,12 @@ export default function OverviewProduct() {
             <FormattedAiResponse content={aiAnswer.answer} />
 
             {aiAnswer.sources && aiAnswer.sources.length > 0 && (
-              <div className="mt-2 flex flex-wrap items-center gap-1.5 pt-2 border-t border-sky-100/70">
-                <span className="text-[10px] font-mono text-slate-400">Context used:</span>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5 pt-2 border-t border-line">
+                <span className="text-[10px] font-mono text-ink-faint">Context used:</span>
                 {aiAnswer.sources.slice(0, 3).map((s, i) => (
                   <span
                     key={i}
-                    className="rounded bg-white border border-sky-200/80 px-2 py-0.5 text-[10px] font-mono text-sky-800"
+                    className="rounded bg-white border border-line px-2 py-0.5 text-[10px] font-mono text-accent"
                   >
                     {s.title} ({s.detail})
                   </span>
@@ -803,59 +803,59 @@ export default function OverviewProduct() {
       {/* 5 DYNAMIC METRIC CARDS (Exact Supermemory Console Layout) */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {/* DOCUMENTS */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-2xs flex flex-col justify-between">
-          <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase font-mono">
+        <div className="rounded-lg border border-line bg-white p-4  flex flex-col justify-between">
+          <p className="text-[11px] font-semibold tracking-wider text-ink-faint uppercase font-mono">
             Documents
           </p>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
+            <span className="text-[26px] font-medium leading-tight tracking-[-0.025em] text-ink tabular-nums">
               {metrics.documents}
             </span>
-            <span className="text-[11px] font-medium text-emerald-600 font-mono">
+            <span className="text-[11px] font-medium text-success font-mono">
               {metrics.documents > 0 ? '~ +100%' : '0%'}
             </span>
           </div>
           <div className="mt-4 flex items-center h-4">
             <div
               className={`h-4 w-1 rounded-full ${
-                metrics.documents > 0 ? 'bg-sky-500' : 'bg-slate-200'
+                metrics.documents > 0 ? 'bg-accent' : 'bg-line'
               }`}
             />
           </div>
         </div>
 
         {/* MEMORIES */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-2xs flex flex-col justify-between">
-          <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase font-mono">
+        <div className="rounded-lg border border-line bg-white p-4  flex flex-col justify-between">
+          <p className="text-[11px] font-semibold tracking-wider text-ink-faint uppercase font-mono">
             Memories
           </p>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
+            <span className="text-[26px] font-medium leading-tight tracking-[-0.025em] text-ink tabular-nums">
               {metrics.memories}
             </span>
-            <span className="text-[11px] font-medium text-emerald-600 font-mono">
+            <span className="text-[11px] font-medium text-success font-mono">
               {metrics.memories > 0 ? '~ +100%' : '0%'}
             </span>
           </div>
           <div className="mt-4 flex items-center h-4">
             <div
               className={`h-4 w-1 rounded-full ${
-                metrics.memories > 0 ? 'bg-sky-500' : 'bg-slate-200'
+                metrics.memories > 0 ? 'bg-accent' : 'bg-line'
               }`}
             />
           </div>
         </div>
 
         {/* SEARCH REQUESTS / TELEMETRY */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-2xs flex flex-col justify-between">
-          <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase font-mono">
+        <div className="rounded-lg border border-line bg-white p-4  flex flex-col justify-between">
+          <p className="text-[11px] font-semibold tracking-wider text-ink-faint uppercase font-mono">
             Search Requests
           </p>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
+            <span className="text-[26px] font-medium leading-tight tracking-[-0.025em] text-ink tabular-nums">
               {metrics.searchRequests}
             </span>
-            <span className="text-[11px] font-medium text-emerald-600 font-mono">
+            <span className="text-[11px] font-medium text-success font-mono">
               {metrics.searchRequests > 0 ? '~ +100%' : '0%'}
             </span>
           </div>
@@ -864,7 +864,7 @@ export default function OverviewProduct() {
               <div
                 key={idx}
                 className={`h-${(idx % 3) + 1} w-1 rounded-full ${
-                  metrics.searchRequests > idx ? 'bg-sky-500' : 'bg-slate-200'
+                  metrics.searchRequests > idx ? 'bg-accent' : 'bg-line'
                 }`}
               />
             ))}
@@ -872,33 +872,33 @@ export default function OverviewProduct() {
         </div>
 
         {/* NAMESPACES */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-2xs flex flex-col justify-between">
-          <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase font-mono">
+        <div className="rounded-lg border border-line bg-white p-4  flex flex-col justify-between">
+          <p className="text-[11px] font-semibold tracking-wider text-ink-faint uppercase font-mono">
             Namespaces
           </p>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
+            <span className="text-[26px] font-medium leading-tight tracking-[-0.025em] text-ink tabular-nums">
               {metrics.namespaces}
             </span>
-            <span className="text-[11px] font-medium text-emerald-600 font-mono">
+            <span className="text-[11px] font-medium text-success font-mono">
               {metrics.namespaces > 0 ? '~ +100%' : '0%'}
             </span>
           </div>
           <div className="mt-4 flex items-center gap-1 h-4">
             {Array.from({ length: Math.min(metrics.namespaces, 4) }).map((_, idx) => (
-              <div key={idx} className="h-4 w-1 rounded-full bg-sky-500" />
+              <div key={idx} className="h-4 w-1 rounded-full bg-accent" />
             ))}
-            {metrics.namespaces === 0 && <div className="h-4 w-1 rounded-full bg-slate-200" />}
+            {metrics.namespaces === 0 && <div className="h-4 w-1 rounded-full bg-line" />}
           </div>
         </div>
 
         {/* CONNECTORS */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-2xs flex flex-col justify-between">
-          <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase font-mono">
+        <div className="rounded-lg border border-line bg-white p-4  flex flex-col justify-between">
+          <p className="text-[11px] font-semibold tracking-wider text-ink-faint uppercase font-mono">
             Connectors
           </p>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
+            <span className="text-[26px] font-medium leading-tight tracking-[-0.025em] text-ink tabular-nums">
               {metrics.connectors}
             </span>
           </div>
@@ -907,7 +907,7 @@ export default function OverviewProduct() {
               <div
                 key={idx}
                 className={`h-1 w-1 rounded-full ${
-                  metrics.connectors > idx ? 'bg-sky-500' : 'bg-slate-200'
+                  metrics.connectors > idx ? 'bg-accent' : 'bg-line'
                 }`}
               />
             ))}
@@ -918,28 +918,28 @@ export default function OverviewProduct() {
       {/* MIDDLE ROW: Requests this month (2/3) + Namespaces (1/3) */}
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Left (2/3): Requests this month Chart */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-2xs lg:col-span-2 flex flex-col justify-between min-h-[290px]">
+        <div className="flex min-h-[290px] min-w-0 flex-col justify-between overflow-hidden rounded-lg border border-line bg-white p-6 lg:col-span-2">
           <div>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="font-bold text-sm text-slate-900">Requests this month</h2>
-                <p className="text-[11px] text-slate-400 mt-0.5">
+                <h2 className="font-medium text-[13px] text-ink">Requests this month</h2>
+                <p className="text-[11px] text-ink-faint mt-0.5">
                   Real-time telemetry and memory actions received over the last 30 days
                 </p>
               </div>
 
               {/* Legend matching Supermemory Console */}
-              <div className="flex items-center gap-3 text-[11px] font-medium text-slate-500">
+              <div className="flex items-center gap-3 text-[11px] font-medium text-ink-soft">
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-xs bg-sky-300" />
+                  <span className="h-2 w-2 rounded-xs bg-accent-line" />
                   MEMORIES
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-xs bg-sky-500" />
+                  <span className="h-2 w-2 rounded-xs bg-accent" />
                   SEARCHES
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-xs bg-blue-600" />
+                  <span className="h-2 w-2 rounded-xs bg-accent" />
                   LIVE
                 </span>
               </div>
@@ -961,21 +961,21 @@ export default function OverviewProduct() {
                         height: `${item.height}px`,
                         backgroundColor:
                           item.total === 0
-                            ? '#e2e8f0'
+                            ? '#e9e9ec'
                             : isPeak
                             ? '#93c5fd'
                             : item.memories > 0
-                            ? '#38bdf8'
+                            ? '#0562ef'
                             : '#3b82f6',
                       }}
                     />
                     {/* Tooltip on hover */}
                     <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center z-20">
-                      <div className="rounded-lg bg-slate-900 text-white text-[10px] py-1 px-2 whitespace-nowrap shadow-lg">
+                      <div className="rounded-lg bg-ink text-white text-[10px] py-1 px-2 whitespace-nowrap ">
                         <p className="font-bold">{item.label || `Day ${item.day}`}</p>
-                        <p className="text-slate-300">{item.total} requests</p>
+                        <p className="text-ink-faint">{item.total} requests</p>
                         {item.memories > 0 && (
-                          <p className="text-sky-300">{item.memories} memories</p>
+                          <p className="text-accent">{item.memories} memories</p>
                         )}
                       </div>
                     </div>
@@ -985,7 +985,7 @@ export default function OverviewProduct() {
             </div>
 
             {/* Bottom X-axis Labels */}
-            <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-slate-400 border-t border-slate-100 pt-1.5">
+            <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-ink-faint border-t border-line pt-1.5">
               <span>{timeRange === '7d' ? '7D AGO' : timeRange === '1d' ? 'TODAY' : '30D AGO'}</span>
               <span>NOW</span>
             </div>
@@ -993,37 +993,37 @@ export default function OverviewProduct() {
         </div>
 
         {/* Right (1/3): Namespaces Card */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-2xs flex flex-col justify-between">
+        <div className="flex min-w-0 flex-col justify-between overflow-hidden rounded-lg border border-line bg-white p-6">
           <div>
             <div className="flex items-center justify-between">
-              <h2 className="font-bold text-sm text-slate-900">Namespaces</h2>
-              <span className="text-[10px] font-mono text-slate-400">
+              <h2 className="font-medium text-[13px] text-ink">Namespaces</h2>
+              <span className="text-[10px] font-mono text-ink-faint">
                 {namespaces.length} active
               </span>
             </div>
 
             <div className="mt-6 space-y-4">
               {namespaces.length === 0 ? (
-                <div className="text-xs text-slate-400 py-4 text-center">
+                <div className="text-xs text-ink-faint py-4 text-center">
                   No namespaces created yet.
                 </div>
               ) : (
                 namespaces.map((ns) => (
                   <div key={ns.id} className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="h-1.5 w-1.5 rounded-full bg-sky-500 shrink-0" />
-                      <code className="font-mono text-slate-700 font-medium truncate">
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent shrink-0" />
+                      <code className="font-mono text-ink-soft font-medium truncate">
                         {ns.slug || ns.name.toLowerCase().replace(/\s+/g, '_')}
                       </code>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <div
-                        className="h-1.5 rounded-full bg-sky-500"
+                        className="h-1.5 rounded-full bg-accent"
                         style={{
                           width: `${Math.max(16, Math.min(64, (ns.eventsCount || 1) * 8))}px`,
                         }}
                       />
-                      <span className="font-mono text-[11px] text-slate-700 tabular-nums">
+                      <span className="font-mono text-[11px] text-ink-soft tabular-nums">
                         {ns.eventsCount}
                       </span>
                     </div>
@@ -1033,17 +1033,17 @@ export default function OverviewProduct() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+          <div className="pt-4 border-t border-line flex items-center justify-between">
             <Link
               href="/settings"
-              className="text-xs font-medium text-sky-600 hover:text-sky-700 inline-flex items-center gap-1"
+              className="text-xs font-medium text-accent hover:text-accent inline-flex items-center gap-1"
             >
               <span>Manage namespaces</span>
               <ChevronRight size={13} />
             </Link>
             <Link
               href="/settings"
-              className="text-[11px] font-mono text-slate-400 hover:text-slate-600"
+              className="text-[11px] font-mono text-ink-faint hover:text-ink-soft"
             >
               API Keys ↗
             </Link>
@@ -1054,17 +1054,17 @@ export default function OverviewProduct() {
       {/* BOTTOM ROW: Recent memories (1/2) + Latest searches (1/2) */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Left: Recent memories */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-2xs">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="min-w-0 overflow-hidden rounded-lg border border-line bg-white p-5">
+          <div className="flex items-center justify-between pb-3 border-b border-line">
             <div>
-              <h2 className="font-bold text-sm text-slate-900">Recent memories</h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <h2 className="font-medium text-[13px] text-ink">Recent memories</h2>
+              <p className="text-[11px] text-ink-faint mt-0.5">
                 Synthesized customer memory capsules from real user telemetry
               </p>
             </div>
             <Link
               href="/journeys"
-              className="text-xs font-medium text-sky-600 hover:text-sky-700 inline-flex items-center gap-0.5"
+              className="text-xs font-medium text-accent hover:text-accent inline-flex items-center gap-0.5"
             >
               <span>View all</span>
               <ChevronRight size={13} />
@@ -1073,7 +1073,7 @@ export default function OverviewProduct() {
 
           <div className="mt-3 space-y-3">
             {recentMemories.length === 0 ? (
-              <p className="text-xs text-slate-400 py-6 text-center">
+              <p className="text-xs text-ink-faint py-6 text-center">
                 No customer memories synthesized yet.
               </p>
             ) : (
@@ -1081,25 +1081,28 @@ export default function OverviewProduct() {
                 <Link
                   key={item.id}
                   href={`/journeys/${encodeURIComponent(item.userId)}`}
-                  className="group flex items-start gap-2.5 rounded-lg p-2 transition hover:bg-slate-50"
+                  className="group flex items-start gap-2.5 rounded-lg p-2 transition hover:bg-paper"
                 >
                   <FileText
                     size={15}
-                    className="mt-0.5 shrink-0 text-slate-400 group-hover:text-sky-600 transition"
+                    className="mt-0.5 shrink-0 text-ink-faint group-hover:text-accent transition"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-slate-800 group-hover:text-sky-900 transition truncate">
+                    <p className="text-xs font-medium text-ink group-hover:text-accent transition truncate">
                       {item.title}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-slate-500 line-clamp-1">
+                    <p className="mt-0.5 text-[11px] text-ink-soft line-clamp-1">
                       {item.story || item.summary}
                     </p>
                   </div>
                   <div className="shrink-0 flex items-center gap-2">
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-slate-500">
+                    <span
+                      className="max-w-[88px] truncate rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-ink-soft"
+                      title={item.namespace}
+                    >
                       {item.namespace}
                     </span>
-                    <span className="text-[10px] font-mono text-slate-400 whitespace-nowrap">
+                    <span className="text-[10px] font-mono text-ink-faint whitespace-nowrap">
                       {item.timeAgo}
                     </span>
                   </div>
@@ -1110,23 +1113,23 @@ export default function OverviewProduct() {
         </div>
 
         {/* Right: User-Performed Events / Real Telemetry Stream */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-2xs">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="min-w-0 overflow-hidden rounded-lg border border-line bg-white p-5">
+          <div className="flex items-center justify-between pb-3 border-b border-line">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-bold text-sm text-slate-900">User-performed events</h2>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-mono font-medium text-emerald-700 border border-emerald-200/80">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <h2 className="font-medium text-[13px] text-ink">User-performed events</h2>
+                <span className="inline-flex items-center gap-1 rounded-full bg-success-tint px-2 py-0.5 text-[10px] font-mono font-medium text-success border border-success/40">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                   Live Ingest
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-ink-faint mt-0.5">
                 Real-time product actions, milestones &amp; telemetry received from your site
               </p>
             </div>
             <Link
               href="/events"
-              className="text-xs font-medium text-sky-600 hover:text-sky-700 inline-flex items-center gap-0.5"
+              className="text-xs font-medium text-accent hover:text-accent inline-flex items-center gap-0.5"
             >
               <span>View all</span>
               <ChevronRight size={13} />
@@ -1136,11 +1139,11 @@ export default function OverviewProduct() {
           <div className="mt-3 space-y-2">
             {userEvents.length === 0 && latestSearches.length === 0 ? (
               <div className="py-8 text-center space-y-2">
-                <Activity size={24} className="mx-auto text-slate-300" />
-                <p className="text-xs text-slate-500 font-medium">
+                <Activity size={24} className="mx-auto text-ink-faint" />
+                <p className="text-xs text-ink-soft font-medium">
                   No user events recorded yet.
                 </p>
-                <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
+                <p className="text-[11px] text-ink-faint max-w-xs mx-auto">
                   Stream product events via the cURL snippet above or click &quot;Simulate Live Events&quot; to test.
                 </p>
               </div>
@@ -1151,26 +1154,26 @@ export default function OverviewProduct() {
                   <Link
                     key={evt.id}
                     href={`/journeys/${encodeURIComponent(evt.userId)}`}
-                    className="group flex items-start justify-between gap-3 rounded-lg p-2 transition hover:bg-slate-50 border border-transparent hover:border-slate-100"
+                    className="group flex items-start justify-between gap-3 rounded-lg p-2 transition hover:bg-paper border border-transparent hover:border-line"
                   >
                     <div className="flex items-start gap-2.5 min-w-0">
                       {evt.isMilestone ? (
-                        <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-500" />
+                        <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-success" />
                       ) : evt.isFailure ? (
-                        <AlertTriangle size={15} className="mt-0.5 shrink-0 text-rose-500" />
+                        <AlertTriangle size={15} className="mt-0.5 shrink-0 text-danger" />
                       ) : (
-                        <Activity size={15} className="mt-0.5 shrink-0 text-sky-500" />
+                        <Activity size={15} className="mt-0.5 shrink-0 text-accent" />
                       )}
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-semibold text-xs text-slate-900 group-hover:text-sky-700 transition">
+                          <span className="font-semibold text-xs text-ink group-hover:text-accent transition">
                             {evt.readableName}
                           </span>
-                          <span className="rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-mono text-slate-500 font-medium">
+                          <span className="rounded bg-muted px-1.5 py-0.2 text-[10px] font-mono text-ink-soft font-medium">
                             {evt.name}
                           </span>
                         </div>
-                        <p className="mt-0.5 text-[11px] font-mono text-slate-500 truncate">
+                        <p className="mt-0.5 text-[11px] font-mono text-ink-soft truncate">
                           {evt.userId}
                         </p>
                         {propEntries.length > 0 && (
@@ -1178,7 +1181,7 @@ export default function OverviewProduct() {
                             {propEntries.map(([k, v]) => (
                               <span
                                 key={k}
-                                className="rounded bg-sky-50/70 border border-sky-100 px-1 py-0.2 text-[9px] font-mono text-sky-700"
+                                className="max-w-full break-words rounded border border-line bg-accent-tint px-1 py-0.5 text-[9px] font-mono text-accent"
                               >
                                 {k}: {String(v)}
                               </span>
@@ -1187,7 +1190,7 @@ export default function OverviewProduct() {
                         )}
                       </div>
                     </div>
-                    <span className="font-mono text-[10px] text-slate-400 shrink-0 whitespace-nowrap mt-0.5">
+                    <span className="font-mono text-[10px] text-ink-faint shrink-0 whitespace-nowrap mt-0.5">
                       {evt.timeAgo}
                     </span>
                   </Link>
@@ -1200,12 +1203,12 @@ export default function OverviewProduct() {
                   className="flex items-start justify-between gap-3 text-xs py-1"
                 >
                   <div className="flex items-start gap-2.5 min-w-0">
-                    <Search size={14} className="mt-0.5 shrink-0 text-slate-400" />
-                    <span className="font-mono text-slate-700 truncate text-[11px]">
+                    <Search size={14} className="mt-0.5 shrink-0 text-ink-faint" />
+                    <span className="font-mono text-ink-soft truncate text-[11px]">
                       {search.query}
                     </span>
                   </div>
-                  <span className="font-mono text-[10px] font-semibold text-slate-400 shrink-0">
+                  <span className="font-mono text-[10px] font-semibold text-ink-faint shrink-0">
                     {search.latencyMs} MS
                   </span>
                 </div>
@@ -1216,10 +1219,10 @@ export default function OverviewProduct() {
       </div>
 
       {/* FLOATING AI CHAT BUBBLE (Exact Supermemory Console Chat Widget) */}
-      <div className="fixed bottom-6 right-6 z-40">
+      <div className="fixed bottom-5 right-4 z-40 sm:bottom-6 sm:right-6">
         <button
           onClick={() => setAiDrawerOpen(!aiDrawerOpen)}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl hover:bg-slate-800 transition hover:scale-105"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-white  hover:bg-ink transition hover:scale-105"
           title="Ask DealMemory AI"
         >
           {aiDrawerOpen ? <X size={20} /> : <MessageSquare size={20} />}
@@ -1228,37 +1231,37 @@ export default function OverviewProduct() {
 
       {/* GEMINI AI ASSISTANT DRAWER */}
       {aiDrawerOpen && (
-        <div className="fixed bottom-20 right-6 z-50 w-96 rounded-2xl border border-slate-200 bg-white shadow-2xl flex flex-col h-[520px] overflow-hidden animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-[4.75rem] left-3 right-3 z-50 flex h-[min(520px,calc(100dvh-7rem))] flex-col overflow-hidden rounded-card border border-line bg-white animate-in fade-in slide-in-from-bottom-5 sm:bottom-20 sm:left-auto sm:right-6 sm:w-96">
           {/* Drawer Header */}
-          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-900 p-4 text-white">
+          <div className="flex items-center justify-between border-b border-line bg-ink p-4 text-white">
             <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-500 text-white">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-white">
                 <Sparkles size={14} />
               </div>
               <div>
-                <h3 className="font-bold text-xs">DealMemory AI</h3>
-                <p className="text-[10px] text-sky-300 font-mono">
+                <h3 className="font-medium text-[12px]">DealMemory AI</h3>
+                <p className="text-[10px] text-accent font-mono">
                   Gemini 2.5 Flash · Ground-truth memory
                 </p>
               </div>
             </div>
             <button
               onClick={() => setAiDrawerOpen(false)}
-              className="text-slate-400 hover:text-white p-1"
+              className="text-ink-faint hover:text-white p-1"
             >
               <X size={14} />
             </button>
           </div>
 
           {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#f8fafc]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#ffffff]">
             {chatMessages.length === 0 ? (
               <div className="text-center py-8 px-4 space-y-2">
-                <Bot className="mx-auto h-8 w-8 text-sky-500" />
-                <p className="text-xs font-semibold text-slate-800">
+                <Bot className="mx-auto h-8 w-8 text-accent" />
+                <p className="text-xs font-semibold text-ink">
                   Ask anything about your users &amp; telemetry
                 </p>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
+                <p className="text-[11px] text-ink-soft leading-relaxed">
                   I analyze real-time PostgreSQL events, dwell times, and user roadblocks received from your site.
                 </p>
               </div>
@@ -1271,23 +1274,23 @@ export default function OverviewProduct() {
                   }`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed ${
+                    className={`max-w-[85%] rounded-lg px-3 py-2 text-xs leading-relaxed ${
                       msg.sender === 'user'
-                        ? 'bg-sky-600 text-white font-medium rounded-br-xs'
-                        : 'bg-white border border-slate-200 text-slate-800 shadow-2xs rounded-bl-xs'
+                        ? 'bg-accent text-white font-medium rounded-br-xs'
+                        : 'bg-white border border-line text-ink  rounded-bl-xs'
                     }`}
                   >
                     {msg.sender === 'user' ? msg.text : <FormattedAiResponse content={msg.text} />}
                   </div>
-                  <span className="mt-1 text-[9px] font-mono text-slate-400 px-1">
+                  <span className="mt-1 text-[9px] font-mono text-ink-faint px-1">
                     {msg.time}
                   </span>
                 </div>
               ))
             )}
             {aiLoading && (
-              <div className="flex items-center gap-2 text-xs text-slate-500 bg-white border border-slate-200 p-2.5 rounded-xl w-fit shadow-2xs">
-                <div className="h-3 w-3 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+              <div className="flex items-center gap-2 text-xs text-ink-soft bg-white border border-line p-2.5 rounded-lg w-fit ">
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-accent border-t-transparent" />
                 <span className="font-mono text-[11px]">Gemini is analyzing user telemetry…</span>
               </div>
             )}
@@ -1295,19 +1298,19 @@ export default function OverviewProduct() {
           </div>
 
           {/* Chat Input */}
-          <div className="border-t border-slate-200 p-3 bg-white flex items-center gap-2">
+          <div className="border-t border-line p-3 bg-white flex items-center gap-2">
             <input
               type="text"
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAskGemini()}
               placeholder="Ask about users, drop-offs, dwell times…"
-              className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-sky-500"
+              className="flex-1 rounded-lg border border-line px-3 py-2 text-xs text-ink placeholder:text-ink-faint focus:outline-none focus:border-accent"
             />
             <button
               onClick={() => handleAskGemini()}
               disabled={aiLoading || !chatInput.trim()}
-              className="rounded-lg bg-sky-600 text-white p-2 hover:bg-sky-700 disabled:opacity-40 transition"
+              className="rounded-lg bg-accent text-white p-2 hover:bg-accent-deep disabled:opacity-40 transition"
             >
               <Send size={14} />
             </button>

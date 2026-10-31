@@ -46,9 +46,9 @@ export default function CopyButton({ getText, label = 'Copy', className, disable
       disabled={disabled}
       aria-label={ariaLabel ?? label}
       className={[
-        'relative inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-xs transition-all',
-        'hover:bg-sky-50 hover:text-sky-700 hover:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-500/20',
-        copied ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100/60' : '',
+        'relative inline-flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink-soft  transition-all',
+        'hover:bg-accent-tint hover:text-accent hover:border-accent-line focus:outline-none focus:ring-2 focus:ring-accent',
+        copied ? 'border-success/40 bg-success-tint text-success hover:bg-success-tint' : '',
         anim ? 'scale-95' : 'scale-100',
         disabled ? 'opacity-50 cursor-not-allowed' : '',
         className ?? '',
@@ -58,7 +58,7 @@ export default function CopyButton({ getText, label = 'Copy', className, disable
         aria-hidden="true"
         className={[
           'inline-block h-3.5 w-3.5 rounded-full transition-all',
-          copied ? 'bg-emerald-500 shadow-xs' : 'bg-slate-300',
+          copied ? 'bg-success ' : 'bg-line',
         ].join(' ')}
       />
       <span className="transition-opacity">

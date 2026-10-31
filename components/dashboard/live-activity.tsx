@@ -25,8 +25,8 @@ function eventBadge(name: string) {
   if (n.includes("failed") || n.includes("error")) {
     return {
       icon: AlertTriangle,
-      color: "text-rose-600",
-      bg: "bg-rose-50 border-rose-200",
+      color: "text-danger",
+      bg: "bg-danger-tint border-danger/40",
     };
   }
 
@@ -39,37 +39,37 @@ function eventBadge(name: string) {
   ) {
     return {
       icon: CheckCircle2,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50 border-emerald-200",
+      color: "text-success",
+      bg: "bg-success-tint border-success/40",
     };
   }
 
   if (n.includes("trial") || n.includes("connected")) {
     return {
       icon: Rocket,
-      color: "text-sky-600",
-      bg: "bg-sky-50 border-sky-200",
+      color: "text-accent",
+      bg: "bg-accent-tint border-line",
     };
   }
 
   return {
     icon: Zap,
-    color: "text-slate-500",
-    bg: "bg-slate-100 border-slate-200",
+    color: "text-ink-soft",
+    bg: "bg-muted border-line",
   };
 }
 
 export default function LiveActivity({ events }: Props) {
   return (
-    <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+    <div className="rounded-card border border-line bg-white p-6 ">
+      <div className="flex items-center justify-between border-b border-line pb-4">
         <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <h3 className="font-semibold text-slate-900 text-base">Live Activity Feed</h3>
+          <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
+          <h3 className="font-semibold text-ink text-base">Live Activity Feed</h3>
         </div>
         <Link
           href="/events"
-          className="text-xs font-medium text-sky-600 hover:text-sky-700 transition-colors"
+          className="text-xs font-medium text-accent hover:text-accent transition-colors"
         >
           View all events →
         </Link>
@@ -78,9 +78,9 @@ export default function LiveActivity({ events }: Props) {
       <div className="mt-4 space-y-2.5">
         {events.length === 0 ? (
           <div className="py-10 text-center">
-            <Activity className="mx-auto h-8 w-8 text-slate-300 mb-2" />
-            <p className="text-xs text-slate-500 font-medium">No live events captured yet</p>
-            <p className="text-[11px] text-slate-400 mt-1">Send an event with your public key to see real-time ingest.</p>
+            <Activity className="mx-auto h-8 w-8 text-ink-faint mb-2" />
+            <p className="text-xs text-ink-soft font-medium">No live events captured yet</p>
+            <p className="text-[11px] text-ink-faint mt-1">Send an event with your public key to see real-time ingest.</p>
           </div>
         ) : (
           events.slice(0, 8).map((event) => {
@@ -90,23 +90,23 @@ export default function LiveActivity({ events }: Props) {
             return (
               <div
                 key={event.id}
-                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/60 px-3.5 py-2.5 hover:bg-sky-50/40 hover:border-sky-200 transition-colors"
+                className="flex items-center justify-between rounded-lg border border-line bg-paper px-3.5 py-2.5 hover:bg-accent-tint hover:border-line transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${badge.bg}`}>
                     <Icon size={14} className={badge.color} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-800 truncate capitalize">
+                    <p className="text-xs font-semibold text-ink truncate capitalize">
                       {event.name.replace(/_/g, ' ')}
                     </p>
-                    <p className="text-[11px] font-mono text-slate-500 truncate">
+                    <p className="text-[11px] font-mono text-ink-soft truncate">
                       {event.user}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 shrink-0 font-mono">
+                <div className="flex items-center gap-1.5 text-[11px] text-ink-soft shrink-0 font-mono">
                   <Clock3 size={11} />
                   <span>{event.time}</span>
                 </div>

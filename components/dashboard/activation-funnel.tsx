@@ -37,13 +37,13 @@ const steps = [
     title: "Checkout Started",
     key: "checkout" as const,
     icon: CreditCard,
-    color: "from-amber-500 to-orange-600",
+    color: "from-warn-tint to-orange-600",
   },
   {
     title: "Payment Converted",
     key: "paid" as const,
     icon: CheckCircle2,
-    color: "from-emerald-500 to-teal-600",
+    color: "from-success-tint to-teal-600",
   },
 ];
 
@@ -65,24 +65,24 @@ export default function ActivationFunnel({
   const base = Math.max(trial, 1);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+    <div className="relative overflow-hidden rounded-card border border-line bg-white p-6 ">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-sky-700 font-mono">
+            <span className="text-xs font-semibold uppercase tracking-wider text-accent font-mono">
               Pipeline Conversion
             </span>
           </div>
-          <h3 className="mt-1 text-xl font-bold tracking-tight text-slate-900">
+          <h3 className="mt-1 text-[22px] font-medium tracking-[-0.02em] text-ink">
             Activation Funnel
           </h3>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-ink-soft">
             Track user journey velocity from signup to value and payment.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+        <div className="flex items-center gap-2 text-xs font-medium text-ink-soft">
+          <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
           <span>Calculated from canonical events</span>
         </div>
       </div>
@@ -98,36 +98,36 @@ export default function ActivationFunnel({
           return (
             <div
               key={s.key}
-              className="relative rounded-xl border border-sky-100/80 bg-slate-50/60 p-4 transition hover:border-sky-200 hover:bg-sky-50/30"
+              className="relative rounded-lg border border-line bg-paper p-4 transition hover:border-line hover:bg-accent-tint"
             >
               <div className="flex items-center justify-between">
-                <div className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr ${s.color} text-white shadow-xs`}>
+                <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${s.color} text-white `}>
                   <Icon size={16} />
                 </div>
-                <span className="text-xs font-mono font-bold text-slate-500">
+                <span className="text-xs font-mono font-bold text-ink-soft">
                   {pct}%
                 </span>
               </div>
 
               <div className="mt-4">
-                <p className="text-xs font-medium text-slate-600 truncate" title={s.title}>
+                <p className="text-xs font-medium text-ink-soft truncate" title={s.title}>
                   {s.title}
                 </p>
-                <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
+                <p className="mt-1 text-[26px] font-medium leading-tight tracking-[-0.025em] text-ink tabular-nums">
                   {val}
                 </p>
               </div>
 
               {/* Progress bar */}
-              <div className="mt-3 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+              <div className="mt-3 h-1.5 w-full rounded-full bg-line overflow-hidden">
                 <div
-                  className={`h-full rounded-full bg-gradient-to-r ${s.color}`}
+                  className={`h-full rounded-full ${s.color}`}
                   style={{ width: `${Math.max(pct, 4)}%` }}
                 />
               </div>
 
               {index > 0 && dropoffPct > 0 && (
-                <p className="mt-2 text-[10px] text-slate-500 font-mono">
+                <p className="mt-2 text-[10px] text-ink-soft font-mono">
                   ↓ {dropoffPct}% drop-off
                 </p>
               )}

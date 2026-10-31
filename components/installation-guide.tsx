@@ -36,7 +36,7 @@ export default function InstallationGuide({
   };
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
+    <section className="relative overflow-hidden rounded-card border border-line bg-white ">
       <div className="p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -44,12 +44,12 @@ export default function InstallationGuide({
               <span className="eyebrow">
                 <Terminal size={13} /> Quick Integration
               </span>
-              <span className="text-[11px] font-mono text-slate-400">Zero Dependencies</span>
+              <span className="text-[11px] font-mono text-ink-faint">Zero Dependencies</span>
             </div>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+            <h2 className="mt-2 text-[26px] font-medium leading-tight tracking-[-0.025em] text-ink">
               Connect in 3 lines of code
             </h2>
-            <p className="mt-1 text-xs text-slate-600">
+            <p className="mt-1 text-xs text-ink-soft">
               Send privacy-safe product actions directly over HTTP. No heavy tracking bundles required.
             </p>
           </div>
@@ -72,10 +72,10 @@ export default function InstallationGuide({
             <button
               key={t}
               aria-pressed={runtime === t}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                 runtime === t
-                  ? 'bg-sky-600 text-white font-semibold shadow-xs'
-                  : 'bg-slate-50 text-slate-600 hover:text-sky-700 hover:bg-sky-50 border border-slate-200'
+                  ? 'bg-accent text-white font-semibold '
+                  : 'bg-paper text-ink-soft hover:text-accent hover:bg-accent-tint border border-line'
               }`}
               onClick={() => setRuntime(t)}
             >
@@ -86,26 +86,26 @@ export default function InstallationGuide({
       </div>
 
       {/* Terminal Code Window */}
-      <div className="relative border-t border-slate-800 bg-slate-950">
+      <div className="relative border-t border-ink bg-ink">
         {/* Terminal Header Bar */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-slate-900">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-ink bg-ink">
           <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-rose-500/80" />
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
-            <span className="ml-2 font-mono text-[11px] text-slate-400">
+            <span className="h-2.5 w-2.5 rounded-full bg-danger/80" />
+            <span className="h-2.5 w-2.5 rounded-full bg-warn/80" />
+            <span className="h-2.5 w-2.5 rounded-full bg-success/80" />
+            <span className="ml-2 font-mono text-[11px] text-ink-faint">
               {runtime === 'curl' ? 'terminal-curl.sh' : runtime === 'fetch' ? 'dealmemory.ts' : 'dealmemory.py'}
             </span>
           </div>
 
           <button
-            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-xs text-slate-300 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-ink bg-ink px-2.5 py-1 text-xs text-ink-faint hover:text-white transition-colors"
             onClick={copyCode}
           >
             {copied ? (
               <>
-                <Check size={12} className="text-emerald-400" />
-                <span className="text-emerald-400 font-medium">Copied!</span>
+                <Check size={12} className="text-success" />
+                <span className="text-success font-medium">Copied!</span>
               </>
             ) : (
               <>
@@ -116,12 +116,12 @@ export default function InstallationGuide({
           </button>
         </div>
 
-        <pre className="overflow-x-auto p-5 font-mono text-xs leading-relaxed text-sky-200">
+        <pre className="overflow-x-auto p-5 font-mono text-[11.5px] leading-relaxed text-[#cfd6df]">
           {code}
         </pre>
       </div>
 
-      <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50 text-[11px] text-slate-500 flex items-center justify-between">
+      <div className="px-6 py-3.5 border-t border-line bg-paper text-[11px] text-ink-soft flex items-center justify-between">
         <span>
           {copyError
             ? 'Copy unavailable. Select and copy snippet manually.'
@@ -129,7 +129,7 @@ export default function InstallationGuide({
             ? 'Generate a public key above to pre-fill your credential.'
             : 'Your active public key is embedded in the snippet above.'}
         </span>
-        <span className="font-mono text-slate-400">HTTPS only · 4 KB cap</span>
+        <span className="font-mono text-ink-faint">HTTPS only · 4 KB cap</span>
       </div>
     </section>
   );

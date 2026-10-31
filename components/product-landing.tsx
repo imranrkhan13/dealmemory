@@ -467,7 +467,7 @@ return (
                         initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, ease: EASE_OUT }}
-                        className="inline-flex items-center gap-2 rounded-full border border-[#E3DDCF] bg-white/70 backdrop-blur-sm px-4 py-2"
+                        className="inline-flex items-center gap-2 rounded-full border border-[#E3DDCF] bg-white/70 px-4 py-2"
                     >
                         <span className="font-mono text-xs font-medium text-[#3F6367]">activation-memory/sdk</span>
                         <span className="h-1 w-1 rounded-full bg-[#B8B2A2]" />
@@ -523,7 +523,7 @@ return (
                     initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 60 }}
                     animate={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 0.5, ease: EASE_OUT }}
-                    className="mt-20 rounded-2xl border border-[#E3DDCF] bg-white shadow-sm overflow-hidden"
+                    className="mt-20 rounded-card border border-[#E3DDCF] bg-white  overflow-hidden"
                 >
                     <div className="flex items-center justify-between border-b border-[#E3DDCF] px-8 py-5">
                         <div className="flex items-center gap-2.5">
@@ -609,7 +609,7 @@ return (
                         <motion.div
                             key={item.title}
                             variants={fadeInUp}
-                            className="rounded-2xl border border-[#E3DDCF] bg-white p-8"
+                            className="rounded-card border border-[#E3DDCF] bg-white p-8"
                         >
                             <div className="flex h-11 w-11 items-center justify-center rounded-lg" style={{ backgroundColor: item.bg }}>
                                 <Icon className="h-5 w-5" style={{ color: item.accent }} />
@@ -641,7 +641,7 @@ return (
                         whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
                         viewport={{ once: true, margin: "-100px" }}
                         transition={{ duration: 0.8, ease: EASE_OUT }}
-                        className="rounded-2xl border border-[#E3DDCF] bg-[#F5F3EE] p-8"
+                        className="rounded-card border border-[#E3DDCF] bg-[#F5F3EE] p-8"
                     >
                         <div className="flex items-center gap-3 mb-8">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#3F6367]">
@@ -665,7 +665,7 @@ return (
                                         viewport={{ once: true }}
                                         transition={{ delay: index * 0.06, duration: 0.4 }}
                                         onClick={() => setActiveDevStep(index)}
-                                        className={`flex gap-4 cursor-pointer rounded-xl p-3.5 transition-colors ${isActive ? "bg-white border border-[#E3DDCF]" : "hover:bg-white/60"}`}
+                                        className={`flex gap-4 cursor-pointer rounded-lg p-3.5 transition-colors ${isActive ? "bg-white border border-[#E3DDCF]" : "hover:bg-white/60"}`}
                                     >
                                         <div className="flex flex-col items-center shrink-0">
                                             <div className={`flex h-7 w-7 items-center justify-center rounded-full font-mono text-[10px] font-semibold transition-colors ${isActive ? "bg-[#3F6367] text-white" : "bg-white text-[#3F6367] border border-[#E3DDCF]"}`}>
@@ -708,7 +708,7 @@ return (
                         whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
                         viewport={{ once: true, margin: "-100px" }}
                         transition={{ duration: 0.8, ease: EASE_OUT }}
-                        className="rounded-2xl border border-[#E3DDCF] bg-[#F5F3EE] p-8"
+                        className="rounded-card border border-[#E3DDCF] bg-[#F5F3EE] p-8"
                     >
                         <div className="flex items-center gap-3 mb-8">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#6B4FBB]">
@@ -753,7 +753,7 @@ return (
                             whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.4 }}
-                            className="mt-2 rounded-xl border border-[#E3DDCF] bg-white p-5"
+                            className="mt-2 rounded-lg border border-[#E3DDCF] bg-white p-5"
                         >
                             <div className="flex items-center justify-between mb-3">
                                 <span className="font-mono text-[10px] uppercase tracking-wider text-[#3A3F47]/50">Recommended action</span>
@@ -789,7 +789,7 @@ return (
                     whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-100px" }}
                     transition={{ duration: 0.7, ease: EASE_OUT }}
-                    className="rounded-2xl border border-[#E3DDCF] bg-white p-8"
+                    className="rounded-card border border-[#E3DDCF] bg-white p-8"
                 >
                     <div className="flex items-center justify-between mb-8">
                         <div>
@@ -855,7 +855,7 @@ return (
                     whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-100px" }}
                     transition={{ duration: 0.7, delay: 0.1, ease: EASE_OUT }}
-                    className="rounded-2xl bg-[#15181D] p-8 text-white"
+                    className="rounded-card bg-[#15181D] p-8 text-white"
                 >
                     <div className="flex items-center gap-2 mb-6">
                         <Brain size={16} className="text-[#B39FE8]" />
@@ -874,7 +874,7 @@ return (
                             </div>
                         ))}
                     </div>
-                    <div className="mt-7 rounded-xl bg-white/5 p-4 flex items-start gap-3">
+                    <div className="mt-7 rounded-lg bg-white/5 p-4 flex items-start gap-3">
                         <MapIcon size={16} className="text-[#B39FE8] mt-0.5 shrink-0" />
                         <p className="text-sm text-white/80 leading-relaxed">
                             Without Supermemory, RepoMap would have restarted this user at step one.
@@ -904,7 +904,7 @@ return (
                         whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6 }}
-                        className="rounded-2xl border border-[#E3DDCF] bg-[#F5F3EE] p-7"
+                        className="rounded-card border border-[#E3DDCF] bg-[#F5F3EE] p-7"
                     >
                         <div className="flex items-center gap-2 mb-5">
                             <Eye size={15} className="text-[#3F6367]" />
@@ -934,7 +934,7 @@ return (
                         whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.08 }}
-                        className="rounded-2xl bg-[#6B4FBB] p-7 text-white"
+                        className="rounded-card bg-[#6B4FBB] p-7 text-white"
                     >
                         <div className="flex items-center gap-2 mb-5">
                             <Brain size={15} className="text-[#EFEAFB]" />
@@ -989,7 +989,7 @@ return (
                     whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-100px" }}
                     transition={{ duration: 0.8, ease: EASE_OUT }}
-                    className="overflow-hidden rounded-2xl bg-[#15181D]"
+                    className="overflow-hidden rounded-card bg-[#15181D]"
                 >
                     <div className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
                         <span className="font-mono text-xs text-white/50">repomap-onboarding.ts</span>
@@ -1024,7 +1024,7 @@ return (
                     whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
-                    className="mt-14 overflow-hidden rounded-2xl border border-[#E3DDCF]"
+                    className="mt-14 overflow-hidden rounded-card border border-[#E3DDCF]"
                 >
                     <div className="grid grid-cols-3 border-b border-[#E3DDCF] bg-[#F5F3EE] px-6 py-3.5">
                         <span className="font-mono text-xs uppercase tracking-wider text-[#3A3F47]/50">Feature</span>
@@ -1070,7 +1070,7 @@ return (
                             whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.08 }}
-                            className="relative rounded-xl border border-[#E3DDCF] bg-white p-5 text-center"
+                            className="relative rounded-lg border border-[#E3DDCF] bg-white p-5 text-center"
                         >
                             {index < 4 && (
                                 <div className="hidden md:block absolute top-1/2 -right-3 -translate-y-1/2 z-10">
@@ -1104,7 +1104,7 @@ return (
                     {metrics.map((stat) => {
                         const Icon = stat.icon;
                         return (
-                            <motion.div key={stat.label} variants={fadeInUp} className="rounded-xl border border-[#E3DDCF] bg-[#F5F3EE] p-6">
+                            <motion.div key={stat.label} variants={fadeInUp} className="rounded-lg border border-[#E3DDCF] bg-[#F5F3EE] p-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <Icon size={17} className="text-[#6B4FBB]" />
                                     <span className="font-mono text-[11px] font-medium text-[#1F8A5F] bg-[#E1F2E9] px-2 py-0.5 rounded-full">{stat.change}</span>

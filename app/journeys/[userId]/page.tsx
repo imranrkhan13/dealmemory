@@ -11,10 +11,6 @@ import {
   Copy,
   Check,
   AlertTriangle,
-  Clock,
-  Clock3,
-  Calendar,
-  Heart,
   CheckCircle2,
   Terminal,
   Layers,
@@ -228,20 +224,20 @@ Would love to hear how your experience was so far and if you have any feedback o
         <main className="space-y-6 max-w-6xl mx-auto pb-16">
           <Link
             href="/journeys"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-sky-700 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-soft hover:text-accent transition-colors"
           >
             <ArrowLeft size={13} /> Back to all customer journeys
           </Link>
 
           {loading && (
-            <div className="py-24 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+            <div className="py-24 text-center text-xs text-ink-soft flex items-center justify-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent" />
               Reconstructing timeline and synthesizing team memory…
             </div>
           )}
 
           {error && (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
+            <div className="rounded-card border border-danger/40 bg-danger-tint p-6 text-sm text-danger">
               <p>{error}</p>
               <Link className="btn btn-primary mt-4 text-xs" href="/journeys">
                 Return to journeys
@@ -252,26 +248,26 @@ Would love to hear how your experience was so far and if you have any feedback o
           {!loading && journey && (
             <div className="space-y-6">
               {/* User Profile Header */}
-              <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs space-y-4">
+              <div className="rounded-card border border-line bg-white p-6  space-y-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white font-bold text-lg shadow-sm">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-card bg-ink text-white font-bold text-lg ">
                       {userId.replace(/^(user_|usr_)/, '')[0].toUpperCase()}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                        <h1 className="min-w-0 break-words text-[22px] font-medium leading-tight tracking-[-0.025em] text-ink sm:text-[26px]">
                           {userId}
                         </h1>
                         <button
                           onClick={copyUserId}
-                          className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-400 hover:text-slate-800 transition shadow-2xs"
+                          className="flex h-6 w-6 items-center justify-center rounded-md border border-line bg-white text-ink-faint hover:text-ink transition "
                           title="Copy User ID"
                         >
-                          {copied ? <Check size={11} className="text-emerald-600" /> : <Copy size={11} />}
+                          {copied ? <Check size={11} className="text-success" /> : <Copy size={11} />}
                         </button>
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5 font-mono">
+                      <p className="text-xs text-ink-soft mt-0.5 font-mono">
                         {timeline.length} sequential action{timeline.length === 1 ? '' : 's'} observed · Last active {last?.relativeTime ?? `${journey.inactiveHours}h ago`}
                       </p>
                     </div>
@@ -279,24 +275,24 @@ Would love to hear how your experience was so far and if you have any feedback o
 
                   <div className="flex items-center gap-2 self-start sm:self-auto">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
+                      className={`inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.05em] ${
                         journey.state === 'paid'
-                          ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                          ? 'text-success'
                           : journey.state === 'activated'
-                          ? 'bg-sky-50 border-sky-200 text-sky-700'
+                          ? 'text-accent'
                           : isBroke
-                          ? 'bg-rose-50 border-rose-200 text-rose-700'
-                          : 'bg-slate-100 border-slate-200 text-slate-700'
+                          ? 'text-danger'
+                          : 'text-ink-soft'
                       }`}
                     >
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${
                           journey.state === 'paid'
-                            ? 'bg-emerald-500'
+                            ? 'bg-success'
                             : journey.state === 'activated'
-                            ? 'bg-sky-500'
+                            ? 'bg-accent'
                             : isBroke
-                            ? 'bg-rose-500'
+                            ? 'bg-danger'
                             : 'bg-slate-400'
                         }`}
                       />
@@ -306,26 +302,26 @@ Would love to hear how your experience was so far and if you have any feedback o
                 </div>
 
                 {/* Progress bar */}
-                <div className="border-t border-slate-100 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="border-t border-line pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-3">
-                    <span className="font-semibold text-slate-700">Onboarding Progression:</span>
-                    <div className="w-36 h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.05em] text-ink-faint">
+                      Progress
+                    </span>
+                    <div className="h-1 w-24 overflow-hidden rounded-full bg-line sm:w-36">
                       <div
-                        className={`h-full rounded-full transition-all ${
-                          isBroke ? 'bg-rose-500' : 'bg-sky-500'
-                        }`}
+                        className="h-full rounded-full bg-accent transition-all"
                         style={{ width: `${diagnosis?.progressPercent ?? 30}%` }}
                       />
                     </div>
-                    <span className="font-mono text-slate-500 text-[11px]">
+                    <span className="font-mono text-[11px] text-ink-soft">
                       {diagnosis?.progressPercent ?? 30}%
                     </span>
                   </div>
 
                   {last && (
-                    <div className="text-slate-500 font-mono text-[11px] flex items-center gap-1.5">
-                      <span className="text-slate-400">Last action:</span>
-                      <span className="font-semibold text-slate-800">{last.readableName}</span>
+                    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-mono text-[11px] text-ink-soft">
+                      <span className="text-ink-faint">Last action:</span>
+                      <span className="font-semibold text-ink">{last.readableName}</span>
                       <span>({last.relativeTime})</span>
                     </div>
                   )}
@@ -334,27 +330,27 @@ Would love to hear how your experience was so far and if you have any feedback o
 
               {/* WHERE ONBOARDING BROKE BANNER */}
               {isBroke && (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-5 shadow-2xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-rose-800 font-bold text-sm">
-                      <AlertTriangle size={16} className="text-rose-600" />
-                      <span>Where Onboarding Broke</span>
+                <div className="rounded-card border border-line border-l-2 border-l-danger bg-white p-5 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-[13px] font-medium text-ink">
+                      <AlertTriangle size={15} className="text-danger" />
+                      <span>Where onboarding broke</span>
                     </div>
-                    <span className="rounded bg-rose-100/90 text-rose-800 font-mono text-[10px] px-2 py-0.5 font-bold uppercase">
-                      Action Required
+                    <span className="font-mono text-[10px] uppercase tracking-[0.05em] text-danger">
+                      Action required
                     </span>
                   </div>
 
-                  <p className="text-xs text-rose-900 leading-relaxed">
+                  <p className="text-[12px] leading-relaxed text-ink-soft">
                     {diagnosis?.summary ??
                       `User reached "${last?.readableName}" and stopped without completing the next milestone.`}
                   </p>
 
-                  <div className="rounded-xl border border-rose-200 bg-white/90 p-3 text-xs flex items-start gap-2.5">
-                    <span className="font-bold text-rose-700 shrink-0 font-mono text-[11px]">
-                      FOUNDER INTERVENTION:
+                  <div className="flex flex-col gap-1.5 rounded-lg border border-line bg-paper p-3 text-xs sm:flex-row sm:items-start sm:gap-2.5">
+                    <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.05em] text-ink-faint">
+                      Recommendation
                     </span>
-                    <span className="text-slate-700">
+                    <span className="text-ink-soft">
                       {diagnosis?.recommendation ??
                         'Reach out with direct integration setup guide or check organization OAuth permissions.'}
                     </span>
@@ -365,27 +361,27 @@ Would love to hear how your experience was so far and if you have any feedback o
               {/* Main Content Grid: Left (Timeline Sequence) & Right (Customer Memory) */}
               <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
                 {/* LEFT: TIMELINE SEQUENCE */}
-                <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs space-y-6">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                    <div>
-                      <h2 className="font-bold text-base text-slate-900">
+                <section className="rounded-card border border-line bg-white p-6  space-y-6">
+                  <div className="flex flex-wrap items-start justify-between gap-2 border-b border-line pb-4">
+                    <div className="min-w-0">
+                      <h2 className="font-medium text-[14px] text-ink">
                         Action Sequence Timeline
                       </h2>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs text-ink-soft mt-0.5">
                         Chronological progression showing every step this user took before stopping
                       </p>
                     </div>
-                    <span className="text-xs font-mono text-slate-400">
+                    <span className="shrink-0 text-xs font-mono text-ink-faint">
                       {timeline.length} step{timeline.length === 1 ? '' : 's'}
                     </span>
                   </div>
 
                   {timeline.length === 0 ? (
-                    <div className="py-12 text-center text-xs text-slate-400">
+                    <div className="py-12 text-center text-xs text-ink-faint">
                       No chronological steps recorded.
                     </div>
                   ) : (
-                    <ol className="relative ml-3 border-l-2 border-slate-200 space-y-7 pl-6 pt-2">
+                    <ol className="relative ml-3 border-l-2 border-line space-y-7 pl-6 pt-2">
                       {timeline.map((step, idx) => {
                         const isLastAction = step.isLast;
                         const isFailure = step.isFailure;
@@ -396,11 +392,11 @@ Would love to hear how your experience was so far and if you have any feedback o
                             <span
                               className={`absolute -left-[31px] top-1 flex h-4 w-4 items-center justify-center rounded-full ring-4 ring-white ${
                                 isFailure
-                                  ? 'bg-rose-500'
+                                  ? 'bg-danger'
                                   : isLastAction
-                                  ? 'bg-sky-600 animate-pulse'
+                                  ? 'bg-accent animate-pulse'
                                   : step.isMilestone
-                                  ? 'bg-emerald-500'
+                                  ? 'bg-success'
                                   : 'bg-slate-400'
                               }`}
                             >
@@ -409,52 +405,48 @@ Would love to hear how your experience was so far and if you have any feedback o
 
                             {/* Step Card */}
                             <div
-                              className={`rounded-xl border p-4 transition-all ${
+                              className={`rounded-lg border bg-white p-4 transition-colors ${
                                 isLastAction
-                                  ? 'border-sky-300 bg-sky-50/30 shadow-xs'
+                                  ? 'border-accent-line'
                                   : isFailure
-                                  ? 'border-rose-200 bg-rose-50/30'
-                                  : 'border-slate-100 bg-slate-50/60'
+                                  ? 'border-line border-l-2 border-l-danger'
+                                  : 'border-line'
                               }`}
                             >
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-mono text-[10px] font-bold text-slate-400">
+                                  <span className="font-mono text-[10px] font-bold text-ink-faint">
                                     0{idx + 1}
                                   </span>
-                                  <h3 className="font-bold text-xs text-slate-900">
+                                  <h3 className="font-medium text-[12px] text-ink">
                                     {step.readableName}
                                   </h3>
                                   {isLastAction && (
-                                    <span className="rounded bg-sky-100 text-sky-800 font-mono text-[9px] font-bold px-1.5 py-0.2">
-                                      LAST RECORDED ACTION
-                                    </span>
+                                    <span className="tag-mono text-accent">Last action</span>
                                   )}
                                   {isFailure && (
-                                    <span className="rounded bg-rose-100 text-rose-800 font-mono text-[9px] font-bold px-1.5 py-0.2">
-                                      HALTED HERE
-                                    </span>
+                                    <span className="tag-mono text-danger">Halted here</span>
                                   )}
                                 </div>
-                                <time className="text-[11px] font-mono text-slate-400">
+                                <time className="text-[11px] font-mono text-ink-faint">
                                   {step.formattedTime} ({step.relativeTime})
                                 </time>
                               </div>
 
-                              <p className="mt-2 text-xs text-slate-700 leading-relaxed">
+                              <p className="mt-2 text-xs text-ink-soft leading-relaxed">
                                 {step.narrative}
                               </p>
 
                               {/* Properties Badges */}
                               {Object.keys(step.properties).length > 0 && (
-                                <div className="mt-3 flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
+                                <div className="mt-3 flex flex-wrap gap-1.5 pt-2 border-t border-line">
                                   {Object.entries(step.properties).map(([k, v]) => (
                                     <span
                                       key={k}
-                                      className="rounded bg-white border border-slate-200 px-2 py-0.5 text-[10px] font-mono text-slate-600 shadow-2xs"
+                                      className="rounded bg-white border border-line px-2 py-0.5 text-[10px] font-mono text-ink-soft "
                                     >
-                                      <span className="text-slate-400">{k}: </span>
-                                      <span className="font-semibold text-sky-700">
+                                      <span className="text-ink-faint">{k}: </span>
+                                      <span className="font-semibold text-accent">
                                         {String(v)}
                                       </span>
                                     </span>
@@ -472,47 +464,32 @@ Would love to hear how your experience was so far and if you have any feedback o
                 {/* RIGHT: CUSTOMER MEMORY & TEAM CONTEXT */}
                 <aside className="space-y-5">
                   {/* Customer Memory Capsule Card */}
-                  <div className="rounded-2xl border border-sky-100 bg-white p-5 shadow-2xs space-y-4">
-                    <div className="flex items-center gap-2 text-sky-700">
-                      <Brain size={16} />
-                      <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900 font-mono">
-                        Customer Memory Capsule
-                      </h3>
+                  <div className="rounded-card border border-line bg-white p-5  space-y-4">
+                    <div className="flex items-center gap-2 border-b border-line pb-3 text-ink-soft">
+                      <Brain size={14} />
+                      <h3 className="mono-label">Customer memory</h3>
                     </div>
 
-                    <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                    <p className="text-[12.5px] leading-relaxed text-ink-soft">
                       {memory?.summary ?? 'Autonomous customer memory synthesized from user milestones.'}
                     </p>
 
                     {/* Behavioral Dwell & Loved Highlights */}
                     {memory?.activitySummary && (
-                      <div className="rounded-xl border border-sky-100 bg-sky-50/50 p-3 space-y-2">
-                        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-800">
-                          Behavioral Dwell &amp; Affinity
-                        </p>
+                      <div className="space-y-2 rounded-lg border border-line bg-paper p-3">
+                        <p className="mono-label">Behavioral dwell &amp; affinity</p>
                         <div className="flex flex-wrap gap-1.5">
-                          <span className="inline-flex items-center gap-1 rounded-md bg-white border border-sky-200/80 px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
-                            <Clock size={11} className="text-sky-600" />
-                            <span>{memory.activitySummary.totalTimeSpent} active</span>
-                          </span>
-                          <span className="inline-flex items-center gap-1 rounded-md bg-white border border-sky-200/80 px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
-                            <Calendar size={11} className="text-slate-500" />
-                            <span>{memory.activitySummary.activeTimeWindow}</span>
-                          </span>
-                          <span className="inline-flex items-center gap-1 rounded-md bg-sky-100/80 border border-sky-300/80 px-2 py-0.5 text-xs font-mono font-bold text-sky-900">
-                            <Heart size={11} className="text-rose-500 fill-rose-500/20" />
-                            <span>{memory.activitySummary.lovedFeature}</span>
-                          </span>
+                          <span className="tag-mono">{memory.activitySummary.totalTimeSpent} active</span>
+                          <span className="tag-mono">{memory.activitySummary.activeTimeWindow}</span>
+                          <span className="tag-mono text-accent">{memory.activitySummary.lovedFeature}</span>
                         </div>
                       </div>
                     )}
 
                     {/* Stated Goal */}
-                    <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3 space-y-1">
-                      <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-                        Stated Goal / Intent
-                      </p>
-                      <p className="text-xs text-slate-800 font-semibold">
+                    <div className="rounded-lg border border-line bg-paper p-3 space-y-1">
+                      <p className="mono-label">Stated goal</p>
+                      <p className="text-[12.5px] text-ink">
                         {memory?.intent || 'Evaluate product activation'}
                       </p>
                     </div>
@@ -520,15 +497,10 @@ Would love to hear how your experience was so far and if you have any feedback o
                     {/* Discovered Tech Stack */}
                     {memory && memory.techStack.length > 0 && (
                       <div className="space-y-1.5">
-                        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-                          Discovered Stack &amp; Tools
-                        </p>
+                        <p className="mono-label">Discovered stack</p>
                         <div className="flex flex-wrap gap-1.5">
                           {memory.techStack.map((tech) => (
-                            <span
-                              key={tech}
-                              className="rounded-lg bg-sky-50 border border-sky-200 px-2 py-1 text-xs font-mono font-medium text-sky-800"
-                            >
+                            <span key={tech} className="tag-mono">
                               {tech}
                             </span>
                           ))}
@@ -539,15 +511,10 @@ Would love to hear how your experience was so far and if you have any feedback o
                     {/* Browsed Interests & Topics */}
                     {memory && memory.interests && memory.interests.length > 0 && (
                       <div className="space-y-1.5">
-                        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-                          Browsed Content &amp; Topics
-                        </p>
+                        <p className="mono-label">Browsed topics</p>
                         <div className="flex flex-wrap gap-1.5">
                           {memory.interests.map((interest) => (
-                            <span
-                              key={interest}
-                              className="rounded-lg bg-slate-100 border border-slate-200 px-2 py-1 text-xs font-mono font-medium text-slate-700"
-                            >
+                            <span key={interest} className="tag-mono">
                               {interest}
                             </span>
                           ))}
@@ -557,21 +524,21 @@ Would love to hear how your experience was so far and if you have any feedback o
                   </div>
 
                   {/* Founder Notes (Saved to PostgreSQL) */}
-                  <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+                  <div className="rounded-card border border-line bg-white p-5  space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-slate-800 font-bold text-xs font-mono uppercase tracking-wider">
-                        <MessageSquare size={14} className="text-sky-600" />
+                      <div className="flex items-center gap-2 text-ink font-medium text-[12px] font-mono uppercase tracking-wider">
+                        <MessageSquare size={14} className="text-accent" />
                         <span>Team Context Notes</span>
                       </div>
                       {noteSaved && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-600 font-bold">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono text-success font-bold">
                           <Check size={11} className="stroke-[2.5]" />
                           <span>Saved to Postgres</span>
                         </span>
                       )}
                     </div>
 
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-ink-soft">
                       Persistent notes your team should remember about this specific customer.
                     </p>
 
@@ -580,7 +547,7 @@ Would love to hear how your experience was so far and if you have any feedback o
                       value={founderNote}
                       onChange={(e) => setFounderNote(e.target.value)}
                       placeholder="e.g. Discussed with Sarah on Slack; waiting for their VP Eng to approve GitHub OAuth permissions..."
-                      className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50/60 text-slate-900 placeholder-slate-400 focus:border-sky-500 focus:bg-white transition"
+                      className="w-full text-xs p-3 rounded-lg border border-line bg-paper text-ink placeholder-slate-400 focus:border-accent focus:bg-white transition"
                     />
 
                     <button
@@ -595,20 +562,20 @@ Would love to hear how your experience was so far and if you have any feedback o
 
                   {/* Ready-to-Send Founder Outreach Draft */}
                   {isBroke && (
-                    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+                    <div className="rounded-card border border-line bg-white p-5  space-y-3">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-slate-800 font-bold text-xs font-mono uppercase tracking-wider">
-                          <Send size={13} className="text-sky-600" />
+                        <div className="flex items-center gap-2 text-ink font-medium text-[12px] font-mono uppercase tracking-wider">
+                          <Send size={13} className="text-accent" />
                           <span>Founder Outreach Draft</span>
                         </div>
                         <button
                           onClick={() => copyEmailDraft(outreachTemplate)}
-                          className="inline-flex items-center gap-1 text-[10px] font-mono text-sky-600 hover:text-sky-700 font-semibold"
+                          className="inline-flex items-center gap-1 text-[10px] font-mono text-accent hover:text-accent font-semibold"
                         >
                           {copiedDraft ? (
                             <>
-                              <Check size={11} className="text-emerald-600 stroke-[2.5]" />
-                              <span className="text-emerald-600">Copied</span>
+                              <Check size={11} className="text-success stroke-[2.5]" />
+                              <span className="text-success">Copied</span>
                             </>
                           ) : (
                             <>
@@ -619,7 +586,7 @@ Would love to hear how your experience was so far and if you have any feedback o
                         </button>
                       </div>
 
-                      <pre className="rounded-xl bg-slate-950 p-3 font-mono text-[10px] leading-relaxed text-slate-200 overflow-x-auto whitespace-pre-wrap">
+                      <pre className="rounded-lg bg-ink p-3 font-mono text-[10px] leading-relaxed text-ink-faint overflow-x-auto whitespace-pre-wrap">
                         {outreachTemplate}
                       </pre>
                     </div>

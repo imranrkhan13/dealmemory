@@ -50,7 +50,7 @@ export default function UpgradeButton({ label = 'Upgrade to Pro', className }: P
   return (
     <div className={className}>
       <button
-        className="btn btn-primary w-full flex items-center justify-center gap-2 py-3 shadow-md transition-all duration-200"
+        className="btn btn-primary w-full flex items-center justify-center gap-2 py-3  transition-all duration-200"
         onClick={onClick}
         disabled={loading}
         aria-busy={loading}
@@ -68,8 +68,8 @@ export default function UpgradeButton({ label = 'Upgrade to Pro', className }: P
         )}
       </button>
       {err ? (
-        <div className="mt-3 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
-          <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-danger/40 bg-danger-tint p-3 text-xs text-danger">
+          <AlertCircle className="h-4 w-4 shrink-0 text-danger" />
           <span>{err}</span>
         </div>
       ) : null}

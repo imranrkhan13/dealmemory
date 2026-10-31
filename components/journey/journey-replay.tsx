@@ -24,7 +24,7 @@ export default function JourneyReplay({
 
             {/* Header */}
 
-            <div className="rounded-2xl border bg-white shadow-sm">
+            <div className="rounded-card border bg-white ">
 
                 <div className="p-6">
 
@@ -42,9 +42,9 @@ export default function JourneyReplay({
 
                         </div>
 
-                        <div className="rounded-xl bg-indigo-50 px-4 py-2">
+                        <div className="rounded-lg bg-accent-tint px-4 py-2">
 
-                            <p className="text-xs uppercase text-indigo-600">
+                            <p className="text-xs uppercase text-accent">
                                 Journey State
                             </p>
 
@@ -64,13 +64,13 @@ export default function JourneyReplay({
 
             <div className="grid gap-4 md:grid-cols-4">
 
-                <div className="rounded-xl border bg-white p-5">
+                <div className="rounded-lg border bg-white p-5">
 
                     <div className="flex items-center gap-3">
 
                         <User
                             size={18}
-                            className="text-indigo-600"
+                            className="text-accent"
                         />
 
                         <div>
@@ -89,7 +89,7 @@ export default function JourneyReplay({
 
                 </div>
 
-                <div className="rounded-xl border bg-white p-5">
+                <div className="rounded-lg border bg-white p-5">
 
                     <div className="flex items-center gap-3">
 
@@ -114,7 +114,7 @@ export default function JourneyReplay({
 
                 </div>
 
-                <div className="rounded-xl border bg-white p-5">
+                <div className="rounded-lg border bg-white p-5">
 
                     <div className="flex items-center gap-3">
 
@@ -139,13 +139,13 @@ export default function JourneyReplay({
 
                 </div>
 
-                <div className="rounded-xl border bg-white p-5">
+                <div className="rounded-lg border bg-white p-5">
 
                     <div className="flex items-center gap-3">
 
                         <AlertTriangle
                             size={18}
-                            className="text-red-600"
+                            className="text-danger"
                         />
 
                         <div>
