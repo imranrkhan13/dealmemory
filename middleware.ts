@@ -11,6 +11,7 @@ const PUBLIC_PAGE_PATHS = new Set<string>([
   '/signup',
   '/demo',
   '/docs',
+  '/how-it-works',
   '/sdk',
 ]);
 
