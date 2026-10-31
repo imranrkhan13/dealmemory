@@ -1,4 +1,4 @@
-export const sdkInstall = { npmPackage: 'dealmemory', pypiPackage: 'dealmemory', published: false, directHttp: true } as const;
+export const sdkInstall = { npmPackage: 'dealmemory', pypiPackage: 'dealmemory', npmPublished: true, pypiPublished: false, directHttp: true } as const;
 export type SnippetRuntime = 'npm' | 'curl' | 'fetch' | 'python';
 
 /**
