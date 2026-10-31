@@ -16,6 +16,9 @@ import {
 export { events, ingest } from './event-store';
 export * from './customer-memory';
 
+// Predictive analytics
+export { predictConversionProbability, discoverFunnels, identifyAtRiskUsers, predictNextAction, behavioralClustering } from "./predictive-analytics";
+
 export type Journey = {
   userId: string;
   email: string;
