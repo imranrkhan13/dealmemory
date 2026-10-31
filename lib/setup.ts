@@ -22,10 +22,10 @@ export type SetupSummary = {
  * The one key DealMemory accepts. Read from the environment by the SDK so the
  * user never has to hard-code it in source.
  */
-export const DEALMEMORY_KEY_ENV = 'DEALMEMORY_KEY';
+export const DEALMEMORY_KEY_ENV = 'DEALMEMORY_API_KEY';
 
-/** Backwards-compatible alias used by earlier snippets/docs. */
-export const LEGACY_KEY_ENV = 'DEALMEMORY_PROJECT_KEY';
+/** Earlier names still honoured by the SDK, so existing setups keep working. */
+export const LEGACY_KEY_ENVS = ['NEXT_PUBLIC_DEALMEMORY_API_KEY', 'DEALMEMORY_KEY', 'DEALMEMORY_PROJECT_KEY'];
 
 /** Where events are posted when the caller does not pass an apiUrl. */
 export const DEFAULT_API_URL = 'https://dealmemory.vercel.app/api';
@@ -46,11 +46,11 @@ export function resolveHostUrl(env: HostingEnv = process.env as HostingEnv): str
 
 /**
  * Resolves the project key from the environment so callers can do:
- *   const dm = new DealMemory({ projectKey: process.env.DEALMEMORY_KEY })
+ *   const dm = new DealMemory({ projectKey: process.env.DEALMEMORY_API_KEY })
  * or, with the SDK's built-in defaulting, pass nothing at all.
  */
 export function resolveProjectKey(env: HostingEnv = process.env as HostingEnv): string | undefined {
-  return env[DEALMEMORY_KEY_ENV] ?? env[LEGACY_KEY_ENV] ?? undefined;
+  return env[DEALMEMORY_KEY_ENV] ?? LEGACY_KEY_ENVS.map((name) => env[name]).find(Boolean);
 }
 
 export function buildSetupSummary(env: HostingEnv = process.env as any): SetupSummary {
@@ -68,21 +68,19 @@ export function buildSetupSummary(env: HostingEnv = process.env as any): SetupSu
 }
 
 /**
- * The copy-paste quickstart: install, drop the key in .env, use the client.
- * This is the ONLY code block a new user should ever see.
+ * The copy-paste quickstart: install, put ONE key in .env, run init.
+ * The CLI writes the tracking code into the user's app — they write none.
  */
 export function quickstartSnippet(env: HostingEnv = process.env as any): string {
   const { envKey } = buildSetupSummary(env);
   return `npm install dealmemory
+npx dealmemory init
 
-# .env
+# .env — the only line you add
 ${envKey}=pk_live_your_project_key
 
-# app code
-import { DealMemory } from 'dealmemory'
-const dm = new DealMemory()
-dm.identify('user_123')
-dm.track('trial_started')`;
+# init wrote this for you, so tracking just works:
+import 'dealmemory/auto'`;
 }
 
 export function suggestKeyName(name = 'DealMemory', kind = 'public'): string {

@@ -4,7 +4,7 @@ import { AppShell } from '@/components/app-shell';
 import { Check } from 'lucide-react';
 
 const freeFeatures = [
-  'Single project workspace',
+  '1 project workspace (one product)',
   'Up to 10,000 monthly telemetry events',
   'Automated activation funnel mapping',
   'Basic friction & blocker detection',
@@ -13,7 +13,8 @@ const freeFeatures = [
 ];
 
 const proFeatures = [
-  'Unlimited project workspaces',
+  'Unlimited projects — add a second, third, or tenth workspace any time',
+  'Every project gets its own keys, events, journeys & AI memory',
   'Unlimited monthly telemetry events',
   'AI copilot synthesis & recommendations',
   'Supermemory vector semantic retrieval',
@@ -110,6 +111,27 @@ export default function PricingPage() {
             </div>
           </section>
         </div>
+
+        {/* Multi-project callout */}
+        <section className="max-w-4xl rounded-card border border-accent-line bg-accent-tint px-6 py-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="mono-label">More than one product?</p>
+              <h2 className="mt-2 text-[17px] font-medium leading-snug tracking-[-0.015em] text-ink">
+                Paid mode unlocks multiple projects — Starter is capped at one.
+              </h2>
+              <p className="mt-1.5 max-w-2xl text-[13px] leading-relaxed text-ink-soft">
+                On Starter you get a single project workspace. Upgrade to Growth Pro and a{' '}
+                <strong className="font-semibold text-ink">New project</strong> button appears in Settings: spin up
+                another workspace for each app, client, or environment, each with its own API keys, event history,
+                user journeys, and AI memory — with no cap on how many you run.
+              </p>
+            </div>
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.04em] text-white">
+              1 → unlimited projects
+            </span>
+          </div>
+        </section>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
           <p className="text-[12px] text-ink-faint">

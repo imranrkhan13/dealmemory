@@ -318,7 +318,7 @@ npx prisma db push`}
               <button
                 onClick={() => copyToClipboard(`import { DealMemory } from 'dealmemory';
 
-// key + endpoint come from DEALMEMORY_KEY in .env
+// key + endpoint come from DEALMEMORY_API_KEY in .env
 const dm = new DealMemory();
 
 // Identify user
@@ -339,7 +339,7 @@ dm.firstValueReached();`, 'ts-sdk')}
             <pre className="rounded-lg bg-ink p-4 font-mono text-[11.5px] leading-relaxed text-[#cfd6df] overflow-x-auto">
 {`import { DealMemory } from 'dealmemory';
 
-// key + endpoint come from DEALMEMORY_KEY in .env
+// key + endpoint come from DEALMEMORY_API_KEY in .env
 const dm = new DealMemory();
 
 // Identify authenticated user

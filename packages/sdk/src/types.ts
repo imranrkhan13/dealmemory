@@ -10,7 +10,7 @@ export type PrivacyOptions = {
 export type ActivationOptions = {
   /**
    * Your `pk_live_...` project key. Optional: when omitted the SDK reads
-   * `DEALMEMORY_KEY` from the environment automatically, so a normal `.env`
+   * `DEALMEMORY_API_KEY` from the environment automatically, so a normal `.env`
    * is the only setup required.
    */
   projectKey?: string;

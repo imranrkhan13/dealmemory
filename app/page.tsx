@@ -63,7 +63,7 @@ const faqs = [
 
 const codeSnippet = `import { DealMemory } from 'dealmemory';
 
-// the key is read from DEALMEMORY_KEY in .env — nothing else to configure
+// the key is read from DEALMEMORY_API_KEY in .env — nothing else to configure
 const dm = new DealMemory();
 
 dm.identify('usr_maya_chen', { plan: 'trial' });
@@ -223,13 +223,13 @@ export default function Page() {
                 </div>
                 <pre className="bg-paper px-4 py-3.5 font-mono text-[11.5px] leading-relaxed text-ink">
                   {`npm install dealmemory
+npx dealmemory init
 
-// .env
-DEALMEMORY_KEY=pk_live_...
+# .env
+DEALMEMORY_API_KEY=pk_live_...
 
-// app code
-const dm = new DealMemory();
-dm.trialStarted({ goal: '...' });`}
+# init writes the tracking code for you
+import 'dealmemory/auto'`}
                 </pre>
                 <div className="flex items-center justify-between border-t border-line px-4 py-2.5">
                   <span className="mono-label">Works with</span>
@@ -356,7 +356,7 @@ dm.trialStarted({ goal: '...' });`}
                   Install, identify the trial user, and emit the events that matter. No tag manager, no cookies.
                 </p>
                 <div className="mt-6 space-y-2 border-t border-line pt-5">
-                  {['npm install dealmemory', 'DEALMEMORY_KEY in .env', 'emit milestones'].map((line, i) => (
+                  {['npm install dealmemory', 'DEALMEMORY_API_KEY in .env', 'npx dealmemory init'].map((line, i) => (
                     <div key={line} className="flex items-center gap-2.5">
                       <span className="mono-label">0{i + 1}</span>
                       <span className="font-mono text-[12px] text-ink-soft">{line}</span>

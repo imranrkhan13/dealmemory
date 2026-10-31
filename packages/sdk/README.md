@@ -10,13 +10,19 @@ One key in your environment — no project id, no apiUrl, no config file:
 
 ```bash
 # .env
-DEALMEMORY_KEY=pk_live_your_project_key
+DEALMEMORY_API_KEY=pk_live_your_project_key
+
+# writes the tracking code into your app for you
+npx dealmemory init
 ```
 
 ```ts
-import { DealMemory } from 'dealmemory';
+// zero-code path: the CLI already wrote this import into your entry file
+import 'dealmemory/auto';
 
-const dm = new DealMemory(); // reads DEALMEMORY_KEY from the environment
+// or grab the shared client — it configures itself from the environment
+import { DealMemory } from 'dealmemory';
+const dm = new DealMemory(); // reads DEALMEMORY_API_KEY from the environment
 
 dm.identify('user_123', { plan: 'trial' });
 dm.track('trial_started');
