@@ -5,22 +5,17 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Brain,
   Home,
-  Tag,
   KeyRound,
-  FileText,
   Users,
-  Search,
-  ExternalLink,
+  Zap,
+  BookOpen,
   ChevronDown,
   LogOut,
-  Sparkles,
   Menu,
   X,
   ArrowRight,
-  Zap,
-  BookOpen,
+  ExternalLink,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -30,22 +25,53 @@ interface Project {
   name: string;
 }
 
+function Mark({ className = '' }: { className?: string }) {
+  return (
+    <span
+      className={`grid h-6 w-6 shrink-0 place-items-center rounded-[7px] bg-ink ${className}`}
+      aria-hidden="true"
+    >
+      <span className="flex items-end gap-[2.5px]">
+        <span className="h-2.5 w-[3px] rounded-[1px] bg-white/85" />
+        <span className="h-3.5 w-[3px] rounded-[1px] bg-[#6c96ff]" />
+      </span>
+    </span>
+  );
+}
+
+function Wordmark() {
+  return (
+    <span className="flex items-center gap-2">
+      <Mark />
+      <span className="text-[15px] font-semibold tracking-[-0.015em] text-ink">
+        dealmemory
+        <span className="ml-0.5 align-super text-[9px] font-medium tracking-normal text-ink-faint">
+          ™
+        </span>
+      </span>
+    </span>
+  );
+}
+
+const publicLinks = [
+  { href: '/docs', label: 'Docs' },
+  { href: '/pricing', label: 'Pricing' },
+];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [project, setProject] = useState<Project | null>(null);
   const [projectMenuOpen, setProjectMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Restore sidebar collapse state from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem('dealmemory_sidebar_collapsed');
-      if (saved !== null) {
-        setSidebarCollapsed(saved === 'true');
-      }
+      if (saved !== null) setSidebarCollapsed(saved === 'true');
     } catch {}
   }, []);
 
@@ -59,7 +85,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // Keyboard shortcut: Cmd+B / Ctrl+B to toggle sidebar
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
@@ -71,7 +96,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Determine if current page is part of the internal console
   const isConsoleRoute =
     pathname?.startsWith('/overview') ||
     pathname?.startsWith('/events') ||
@@ -79,15 +103,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname?.startsWith('/settings') ||
     pathname?.startsWith('/dashboard');
 
-  // Load active project
   useEffect(() => {
     if (session) {
       fetch('/api/projects', { cache: 'no-store' })
         .then((r) => r.json())
         .then((d) => {
-          if (Array.isArray(d?.projects) && d.projects[0]) {
-            setProject(d.projects[0]);
-          }
+          if (Array.isArray(d?.projects) && d.projects[0]) setProject(d.projects[0]);
         })
         .catch(() => {});
     }
@@ -102,261 +123,291 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     .slice(0, 2)
     .toUpperCase();
 
-  // If on a public page and NOT a console route, show the public landing layout
+  /* ── Public layout ───────────────────────────────────────────────── */
   if (!isConsoleRoute) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] text-slate-900 selection:bg-sky-500/20 selection:text-sky-900">
-        {/* Public Top Navbar - ONLY working public links */}
-        <header className="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:px-6">
-          <div className="mx-auto flex h-14 max-w-7xl items-center justify-between rounded-2xl border border-sky-100 bg-white/90 px-5 shadow-[0_4px_20px_-4px_rgba(2,132,199,0.08)] backdrop-blur-xl">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 font-medium tracking-tight text-slate-900">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-white shadow-xs">
-                <Brain size={15} />
-              </div>
-              <span className="font-bold text-sm tracking-tight text-slate-900">dealmemory™</span>
+      <div className="min-h-screen bg-white text-ink">
+        <header className="sticky top-0 z-50 border-b border-line bg-white/90 backdrop-blur-sm">
+          <div className="mx-auto flex h-14 max-w-[1240px] items-center justify-between px-4 sm:px-6">
+            <Link href="/" className="flex items-center" aria-label="dealmemory home">
+              <Wordmark />
             </Link>
 
-            {/* Public Center Links */}
-            <nav className="hidden items-center gap-1 md:flex">
-              <Link
-                href="/docs"
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                  pathname === '/docs' ? 'text-sky-700 bg-sky-50 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                Docs &amp; Setup
-              </Link>
-              <Link
-                href="/pricing"
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                  pathname === '/pricing' ? 'text-sky-700 bg-sky-50 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                Pricing
-              </Link>
-            </nav>
+            <div className="flex shrink-0 items-center gap-1 whitespace-nowrap sm:gap-2">
+              <nav className="hidden items-center gap-0.5 md:flex" aria-label="Main">
+                {publicLinks.map((link) => {
+                  const active = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`rounded-md px-2.5 py-1.5 text-[13px] transition-colors ${
+                        active
+                          ? 'font-medium text-ink'
+                          : 'text-ink-soft hover:bg-paper hover:text-ink'
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </nav>
 
-            {/* Auth Buttons */}
-            <div className="flex items-center gap-2">
+              <span className="mx-1 hidden h-4 w-px bg-line md:block" />
+
               {session ? (
-                <div className="flex items-center gap-3">
-                  <Link
-                    href="/overview"
-                    className="btn btn-primary text-xs py-1.5 px-3.5 inline-flex items-center gap-1.5"
-                  >
-                    <span>Console</span>
+                <div className="flex items-center gap-2">
+                  <Link href="/overview" className="btn btn-primary shrink-0 whitespace-nowrap">
+                    Console
                     <ArrowRight size={13} />
                   </Link>
                   <button
                     onClick={() => signOut()}
                     title="Sign out"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-slate-900 transition shadow-xs"
+                    className="hidden h-8 w-8 items-center justify-center rounded-md border border-line text-ink-faint transition-colors hover:border-line-strong hover:text-ink sm:flex"
                   >
-                    <LogOut size={13} />
+                    <LogOut size={14} />
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex shrink-0 items-center gap-1.5">
                   <Link
                     href="/auth/signin"
-                    className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 transition"
+                    className="hidden rounded-md px-2 py-1.5 text-[13px] text-ink-soft transition-colors hover:bg-paper hover:text-ink min-[360px]:block sm:px-2.5"
                   >
                     Sign in
                   </Link>
-                  <Link
-                    href="/signup"
-                    className="btn btn-primary text-xs py-1.5 px-3.5"
-                  >
+                  <Link href="/signup" className="btn btn-primary shrink-0 whitespace-nowrap">
                     Get started
                   </Link>
                 </div>
               )}
+
+              <button
+                onClick={() => setMobileNavOpen((v) => !v)}
+                className="ml-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-ink-soft transition-colors hover:bg-paper hover:text-ink md:hidden"
+                aria-label="Toggle menu"
+              >
+                {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+              </button>
             </div>
           </div>
+
+          {mobileNavOpen && (
+            <div className="border-t border-line bg-white px-4 py-2 md:hidden">
+              {publicLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileNavOpen(false)}
+                  className="block rounded-md px-2 py-2 text-sm text-ink-soft hover:bg-paper hover:text-ink"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {!session && (
+                <Link
+                  href="/auth/signin"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="block rounded-md px-2 py-2 text-sm text-ink-soft hover:bg-paper hover:text-ink"
+                >
+                  Sign in
+                </Link>
+              )}
+            </div>
+          )}
         </header>
 
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 pt-24 pb-20">
+        <main className="mx-auto max-w-[1240px] px-4 pb-20 pt-10 sm:px-6 md:pt-14">
           {children}
         </main>
+
+        <footer className="border-t border-line">
+          <div className="mx-auto flex max-w-[1240px] flex-col gap-3 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div className="flex items-center gap-2.5">
+              <Mark className="h-5 w-5 rounded-[6px]" />
+              <span className="text-[13px] text-ink-soft">
+                dealmemory — product memory for SaaS trials
+              </span>
+            </div>
+            <div className="flex items-center gap-4 text-[12px] text-ink-faint">
+              <Link href="/docs" className="hover:text-ink">
+                Docs
+              </Link>
+              <Link href="/pricing" className="hover:text-ink">
+                Pricing
+              </Link>
+              <Link href="/auth/signin" className="hover:text-ink">
+                Sign in
+              </Link>
+            </div>
+          </div>
+        </footer>
       </div>
     );
   }
 
-  // --- CONSOLE LAYOUT (Simplified: ONLY Working Backend Features) ---
+  /* ── Console layout ──────────────────────────────────────────────── */
   const navItems = [
-    {
-      label: 'Overview',
-      href: '/overview',
-      icon: Home,
-      active: pathname === '/overview' || pathname === '/dashboard' || pathname === '/dashboard/overview',
-    },
-    {
-      label: 'Customer Journeys',
-      href: '/journeys',
-      icon: Users,
-      active: pathname?.startsWith('/journeys'),
-    },
-    {
-      label: 'Live Events',
-      href: '/events',
-      icon: Zap,
-      active: pathname === '/events',
-    },
-    {
-      label: 'API Keys & Setup',
-      href: '/settings',
-      icon: KeyRound,
-      active: pathname === '/settings',
-    },
-    {
-      label: 'Docs & SDK',
-      href: '/docs',
-      icon: BookOpen,
-      active: pathname === '/docs' || pathname === '/sdk',
-    },
+    { label: 'Overview', href: '/overview', icon: Home, active: pathname === '/overview' || pathname === '/dashboard' },
+    { label: 'Customer Journeys', href: '/journeys', icon: Users, active: pathname?.startsWith('/journeys') },
+    { label: 'Live Events', href: '/events', icon: Zap, active: pathname === '/events' },
+    { label: 'API Keys & Setup', href: '/settings', icon: KeyRound, active: pathname === '/settings' },
+    { label: 'Docs & SDK', href: '/docs', icon: BookOpen, active: pathname === '/docs' || pathname === '/sdk' },
   ];
 
-  return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900">
-      {/* Mobile Header Bar */}
-      <div className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 md:hidden sticky top-0 z-40">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-white shadow-xs">
-            <Brain size={15} />
-          </div>
-          <span className="font-bold text-sm tracking-tight text-slate-900">dealmemory™</span>
-        </div>
-        <button
-          onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-          className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-          title="Toggle navigation"
-        >
-          {mobileSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </div>
+  const current = navItems.find((item) => item.active);
 
-      {/* Mobile Drawer Backdrop Overlay */}
+  return (
+    <div className="min-h-screen bg-canvas text-ink">
       {mobileSidebarOpen && (
         <div
           onClick={() => setMobileSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-300 md:hidden animate-in fade-in"
+          className="fixed inset-0 z-40 bg-ink/30 md:hidden"
         />
       )}
 
-      {/* Console Left Sidebar - Collapsible with Smooth Animations & Interactive Hover */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col justify-between border-r border-slate-200/90 bg-white transition-all duration-300 ease-in-out ${
-          sidebarCollapsed ? 'md:w-[72px]' : 'md:w-64'
-        } ${
-          mobileSidebarOpen ? 'w-64 translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-line bg-white transition-[width,transform] duration-200 ease-out ${
+          sidebarCollapsed ? 'md:w-[64px]' : 'md:w-[232px]'
+        } ${mobileSidebarOpen ? 'w-[232px] translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
-        <div className={`flex flex-col overflow-y-auto ${sidebarCollapsed ? 'p-3' : 'p-4'}`}>
-          {/* Logo & Desktop Collapse Toggle Header */}
-          <div
-            className={`flex items-center pb-4 border-b border-slate-100 ${
-              sidebarCollapsed ? 'md:justify-center justify-between' : 'justify-between'
-            }`}
+        {/* Brand + collapse */}
+        <div
+          className={`flex h-14 items-center border-b border-line ${
+            sidebarCollapsed ? 'md:justify-center justify-between px-3' : 'justify-between px-3.5'
+          }`}
+        >
+          <Link href="/overview" aria-label="dealmemory console">
+            <span className={`flex items-center gap-2 ${sidebarCollapsed ? 'md:hidden' : ''}`}>
+              <Mark />
+              <span className="text-[14px] font-semibold tracking-[-0.015em] text-ink">
+                dealmemory
+                <span className="ml-0.5 align-super text-[8px] font-medium tracking-normal text-ink-faint">
+                  ™
+                </span>
+              </span>
+            </span>
+            <span className={sidebarCollapsed ? 'hidden md:block' : 'hidden'}>
+              <Mark />
+            </span>
+          </Link>
+
+          <button
+            onClick={toggleSidebar}
+            title={sidebarCollapsed ? 'Expand sidebar (⌘B)' : 'Collapse sidebar (⌘B)'}
+            className="hidden h-7 w-7 items-center justify-center rounded-md text-ink-faint transition-colors hover:bg-paper hover:text-ink md:flex"
           >
-            <Link
-              href="/overview"
-              className="group flex items-center gap-2.5 transition-transform duration-200 hover:scale-[1.02]"
-              title="DealMemory Console"
+            {sidebarCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+          </button>
+
+          <button
+            onClick={() => setMobileSidebarOpen(false)}
+            className="flex h-7 w-7 items-center justify-center rounded-md text-ink-faint hover:bg-paper hover:text-ink md:hidden"
+            aria-label="Close navigation"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Workspace switcher */}
+        <div className={`${sidebarCollapsed ? 'px-2 py-2.5' : 'px-3 py-2.5'} border-b border-line`}>
+          <div className="relative">
+            <button
+              onClick={() => setProjectMenuOpen(!projectMenuOpen)}
+              className={`flex w-full items-center rounded-md border border-line transition-colors hover:border-line-strong hover:bg-paper ${
+                sidebarCollapsed ? 'md:justify-center md:px-0 justify-between px-2' : 'justify-between px-2'
+              } py-1.5`}
+              title={project?.name || 'Workspace'}
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
-                <Brain size={17} />
-              </div>
-              <span
-                className={`font-bold text-sm tracking-tight text-slate-900 transition-all duration-200 ${
-                  sidebarCollapsed ? 'md:hidden' : 'block'
+              <span className={`flex min-w-0 items-center gap-2 ${sidebarCollapsed ? 'md:hidden' : ''}`}>
+                <span className="grid h-5 w-5 shrink-0 place-items-center rounded-[5px] bg-accent-tint font-mono text-[10px] font-semibold text-accent">
+                  {project?.name ? project.name[0].toUpperCase() : 'W'}
+                </span>
+                <span className="truncate text-[13px] font-medium text-ink">
+                  {project?.name || 'Workspace'}
+                </span>
+              </span>
+              <span className={sidebarCollapsed ? 'hidden md:grid' : 'hidden'}>
+                <span className="grid h-6 w-6 place-items-center rounded-[5px] bg-accent-tint font-mono text-[10px] font-semibold text-accent">
+                  {project?.name ? project.name[0].toUpperCase() : 'W'}
+                </span>
+              </span>
+              <ChevronDown
+                size={13}
+                className={`shrink-0 text-ink-faint ${sidebarCollapsed ? 'md:hidden' : ''}`}
+              />
+            </button>
+
+            {projectMenuOpen && (
+              <div
+                className={`absolute mt-1 z-50 w-56 rounded-card border border-line bg-white p-1 shadow-md ${
+                  sidebarCollapsed ? 'left-full ml-2 top-0' : 'left-0'
                 }`}
               >
-                dealmemory™
-              </span>
-            </Link>
-
-            {/* Desktop Close/Collapse Button */}
-            <button
-              onClick={toggleSidebar}
-              title={sidebarCollapsed ? 'Expand sidebar (Cmd+B)' : 'Collapse sidebar (Cmd+B)'}
-              className={`hidden md:flex items-center justify-center rounded-lg p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 hover:scale-110 active:scale-95 ${
-                sidebarCollapsed ? 'mt-2' : ''
-              }`}
-            >
-              {sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-            </button>
-
-            {/* Mobile Close Button */}
-            <button
-              onClick={() => setMobileSidebarOpen(false)}
-              className="md:hidden rounded-lg p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            >
-              <X size={18} />
-            </button>
+                <p className="px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">
+                  Workspace
+                </p>
+                <div className="flex items-center gap-2 rounded-md bg-paper px-2 py-1.5">
+                  <span className="grid h-5 w-5 place-items-center rounded-[5px] bg-accent-tint font-mono text-[10px] font-semibold text-accent">
+                    {project?.name ? project.name[0].toUpperCase() : 'W'}
+                  </span>
+                  <span className="truncate text-[13px] font-medium text-ink">
+                    {project?.name || 'Default Workspace'}
+                  </span>
+                </div>
+                <div className="my-1 h-px bg-line" />
+                <Link
+                  href="/settings"
+                  onClick={() => setProjectMenuOpen(false)}
+                  className="block rounded-md px-2 py-1.5 text-[13px] text-ink-soft transition-colors hover:bg-paper hover:text-ink"
+                >
+                  Manage keys &amp; settings
+                </Link>
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Clean Console Navigation Section Header */}
-          <div className="pt-4 pb-2">
-            <p
-              className={`px-2 text-[10px] font-mono font-bold tracking-wider text-slate-400 uppercase transition-all duration-200 ${
-                sidebarCollapsed ? 'md:hidden' : 'block'
-              }`}
-            >
-              Application Console
-            </p>
-          </div>
-
-          {/* Navigation Links with Smooth Hover & Active Animations */}
-          <nav className="space-y-1.5 text-xs">
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto px-2 py-3">
+          <p
+            className={`px-2 pb-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-ink-faint ${
+              sidebarCollapsed ? 'md:hidden' : ''
+            }`}
+          >
+            Console
+          </p>
+          <nav className="space-y-0.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
-                <div key={item.href} className="relative group">
+                <div key={item.href} className="group relative">
                   <Link
                     href={item.href}
                     onClick={() => setMobileSidebarOpen(false)}
-                    className={`relative flex items-center rounded-xl py-2.5 font-medium transition-all duration-200 ease-out active:scale-[0.98] ${
-                      sidebarCollapsed ? 'md:justify-center md:px-0 px-3' : 'px-3 gap-3'
-                    } ${
+                    aria-current={item.active ? 'page' : undefined}
+                    className={`flex items-center rounded-md text-[13px] transition-colors ${
+                      sidebarCollapsed ? 'md:justify-center md:px-0 gap-2.5 px-2' : 'gap-2.5 px-2'
+                    } py-1.5 ${
                       item.active
-                        ? 'bg-sky-50/90 text-sky-700 font-semibold shadow-2xs border border-sky-200/60 hover:bg-sky-100/70 hover:translate-x-0.5'
-                        : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 hover:translate-x-1 hover:shadow-2xs'
+                        ? 'bg-muted font-medium text-ink'
+                        : 'text-ink-soft hover:bg-paper hover:text-ink'
                     }`}
                   >
-                    {/* Active left indicator pill */}
-                    {item.active && (
-                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-sky-600" />
-                    )}
-
                     <Icon
-                      size={17}
-                      className={`shrink-0 transition-transform duration-200 ease-out group-hover:scale-110 ${
-                        item.active
-                          ? 'text-sky-600'
-                          : 'text-slate-400 group-hover:text-sky-600'
-                      }`}
+                      size={15}
+                      className={`shrink-0 ${item.active ? 'text-ink' : 'text-ink-faint group-hover:text-ink-soft'}`}
                     />
-
-                    <span
-                      className={`whitespace-nowrap transition-all duration-200 ${
-                        sidebarCollapsed
-                          ? 'md:hidden inline-block'
-                          : 'inline-block'
-                      }`}
-                    >
+                    <span className={`truncate ${sidebarCollapsed ? 'md:hidden' : ''}`}>
                       {item.label}
                     </span>
                   </Link>
 
-                  {/* Linear/Raycast-style Floating Tooltip when Collapsed */}
                   {sidebarCollapsed && (
-                    <div className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden md:group-hover:flex items-center z-50 animate-in fade-in slide-in-from-left-2 duration-150">
-                      <div className="rounded-lg bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-white shadow-xl whitespace-nowrap flex items-center gap-1.5">
-                        <span>{item.label}</span>
-                        {item.active && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-                        )}
+                    <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 hidden -translate-y-1/2 md:group-hover:block">
+                      <div className="whitespace-nowrap rounded-md bg-ink px-2 py-1 text-[11px] font-medium text-white shadow-md">
+                        {item.label}
                       </div>
                     </div>
                   )}
@@ -364,104 +415,115 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
+
+          {!sidebarCollapsed && (
+            <>
+              <p className="mt-5 px-2 pb-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-ink-faint">
+                Resources
+              </p>
+              <a
+                href="https://supermemory.ai"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] text-ink-soft transition-colors hover:bg-paper hover:text-ink"
+              >
+                <ExternalLink size={15} className="shrink-0 text-ink-faint" />
+                <span className="truncate">Supermemory</span>
+              </a>
+            </>
+          )}
         </div>
 
-        {/* Sidebar Bottom: Real Status & User Profile */}
-        <div className={`border-t border-slate-100 space-y-3 ${sidebarCollapsed ? 'p-2' : 'p-3'}`}>
-          {/* Real Backend Status Widget */}
+        {/* Footer */}
+        <div className={`border-t border-line ${sidebarCollapsed ? 'p-2' : 'p-2.5'} space-y-2`}>
           {!sidebarCollapsed ? (
-            <div className="rounded-xl border border-sky-100 bg-sky-50/50 p-2.5 text-xs space-y-1.5 transition-all duration-200 hover:bg-sky-50/90 hover:border-sky-200 hover:shadow-2xs">
-              <div className="flex items-center justify-between text-[10px] font-mono font-bold text-sky-900 uppercase">
-                <span>System Status</span>
-                <span className="flex items-center gap-1 text-emerald-600 font-bold">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="rounded-md border border-line bg-paper px-2.5 py-2">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-soft">
+                  System
+                </span>
+                <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-success">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success" />
                   Live
                 </span>
               </div>
-              <p className="text-[11px] text-slate-600 leading-tight">
-                PostgreSQL &amp; Gemini 2.5 Flash active
+              <p className="mt-1 text-[11px] leading-snug text-ink-faint">
+                PostgreSQL &amp; Gemini 2.5 Flash
               </p>
             </div>
           ) : (
-            <div className="relative group flex justify-center py-1">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 border border-sky-100 text-emerald-600 transition-all duration-200 hover:scale-110 hover:shadow-2xs cursor-default">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              </div>
-              <div className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden md:group-hover:flex items-center z-50 animate-in fade-in slide-in-from-left-2 duration-150">
-                <div className="rounded-lg bg-slate-900 p-2 text-[11px] text-white shadow-xl whitespace-nowrap space-y-0.5">
-                  <div className="flex items-center gap-1.5 font-bold text-emerald-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>System Live</span>
-                  </div>
-                  <p className="text-slate-300 text-[10px]">PostgreSQL &amp; Gemini active</p>
+            <div className="group relative flex justify-center">
+              <span className="grid h-8 w-8 place-items-center rounded-md border border-line bg-paper">
+                <span className="h-1.5 w-1.5 rounded-full bg-success" />
+              </span>
+              <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 hidden -translate-y-1/2 md:group-hover:block">
+                <div className="whitespace-nowrap rounded-md bg-ink px-2 py-1 text-[11px] text-white shadow-md">
+                  System live
                 </div>
               </div>
             </div>
           )}
 
-          {/* User Session Row */}
-          <div className="relative pt-1">
+          <div className="relative">
             {!sidebarCollapsed ? (
-              <div className="flex items-center justify-between rounded-xl p-1.5 hover:bg-slate-100/80 transition-all duration-200 group">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-800 font-semibold text-xs shadow-2xs font-mono transition-transform duration-200 group-hover:scale-105 group-hover:ring-2 group-hover:ring-sky-200">
+              <div className="flex items-center justify-between gap-1 rounded-md px-1 py-1 transition-colors hover:bg-paper">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ink font-mono text-[10px] font-semibold text-white">
                     {userInitials}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-900 truncate">{userName}</p>
-                    <p className="text-[10px] text-slate-400 font-mono truncate">{userEmail}</p>
+                    <p className="truncate text-[12px] font-medium text-ink">{userName}</p>
+                    <p className="truncate font-mono text-[10px] text-ink-faint">{userEmail}</p>
                   </div>
                 </div>
-
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="rounded-md p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
-                  title="Account actions"
+                  className="flex h-6 w-6 items-center justify-center rounded text-ink-faint transition-colors hover:bg-muted hover:text-ink"
+                  title="Account"
+                  aria-label="Account menu"
                 >
-                  ···
+                  ⋯
                 </button>
               </div>
             ) : (
-              <div className="relative group flex justify-center">
+              <div className="group relative flex justify-center">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-100 text-sky-800 font-semibold text-xs shadow-2xs font-mono transition-transform duration-200 hover:scale-110 hover:ring-2 hover:ring-sky-400/40"
+                  className="grid h-8 w-8 place-items-center rounded-full bg-ink font-mono text-[10px] font-semibold text-white"
                   title={`${userName} (${userEmail})`}
                 >
                   {userInitials}
                 </button>
-
-                <div className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden md:group-hover:flex items-center z-50 animate-in fade-in slide-in-from-left-2 duration-150">
-                  <div className="rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] text-white shadow-xl whitespace-nowrap">
-                    <p className="font-semibold">{userName}</p>
-                    <p className="text-[10px] text-slate-400 font-mono">{userEmail}</p>
+                <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 hidden -translate-y-1/2 md:group-hover:block">
+                  <div className="whitespace-nowrap rounded-md bg-ink px-2 py-1.5 text-[11px] text-white shadow-md">
+                    <p className="font-medium">{userName}</p>
+                    <p className="font-mono text-[10px] text-white/60">{userEmail}</p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Dropdown Menu for Logout & Settings */}
             {userMenuOpen && (
               <div
-                className={`absolute bottom-12 rounded-xl border border-slate-200 bg-white p-1 shadow-lg text-xs z-50 animate-in fade-in slide-in-from-bottom-2 duration-150 ${
-                  sidebarCollapsed ? 'left-14 w-48' : 'right-0 w-48'
+                className={`absolute bottom-10 z-50 w-48 rounded-card border border-line bg-white p-1 shadow-md ${
+                  sidebarCollapsed ? 'left-12' : 'right-0'
                 }`}
               >
                 <Link
                   href="/settings"
                   onClick={() => setUserMenuOpen(false)}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
+                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] text-ink-soft hover:bg-paper hover:text-ink"
                 >
                   <KeyRound size={13} />
-                  <span>Workspace &amp; Keys</span>
+                  Workspace &amp; keys
                 </Link>
-                <div className="my-1 border-t border-slate-100" />
+                <div className="my-1 h-px bg-line" />
                 <button
                   onClick={() => signOut()}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[13px] text-danger hover:bg-danger-tint"
                 >
                   <LogOut size={13} />
-                  <span>Sign out</span>
+                  Sign out
                 </button>
               </div>
             )}
@@ -469,82 +531,63 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content Area - Transitions padding when sidebar collapses */}
+      {/* Main column */}
       <div
-        className={`flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
-          sidebarCollapsed ? 'md:pl-[72px]' : 'md:pl-64'
+        className={`flex min-h-screen flex-col transition-[padding] duration-200 ease-out ${
+          sidebarCollapsed ? 'md:pl-[64px]' : 'md:pl-[232px]'
         }`}
       >
-        {/* Console Top Header Bar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 md:px-6 backdrop-blur-md">
-          {/* Left: Sidebar Toggle + Project Switcher Dropdown */}
-          <div className="flex items-center gap-2.5">
-            {/* Desktop Quick Toggle Button */}
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-white/95 px-4 backdrop-blur-sm md:px-6">
+          <div className="flex min-w-0 items-center gap-2">
             <button
               onClick={toggleSidebar}
-              title={sidebarCollapsed ? 'Expand sidebar (Cmd+B)' : 'Collapse sidebar (Cmd+B)'}
-              className="hidden md:flex items-center justify-center h-8 w-8 rounded-lg border border-slate-200/80 bg-white text-slate-500 hover:text-slate-900 hover:bg-slate-50 shadow-2xs transition-all duration-200 hover:scale-105 active:scale-95"
+              title={sidebarCollapsed ? 'Expand sidebar (⌘B)' : 'Collapse sidebar (⌘B)'}
+              className="hidden h-7 w-7 items-center justify-center rounded-md text-ink-faint transition-colors hover:bg-paper hover:text-ink md:flex"
             >
               {sidebarCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
             </button>
-
-            {/* Mobile Sidebar Hamburger Toggle */}
             <button
               onClick={() => setMobileSidebarOpen(true)}
-              className="md:hidden flex items-center justify-center h-8 w-8 rounded-lg border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-100 transition shadow-2xs"
-              title="Open menu"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-ink-soft hover:bg-paper md:hidden"
+              aria-label="Open navigation"
             >
               <Menu size={16} />
             </button>
 
-            <div className="relative">
-              <button
-                onClick={() => setProjectMenuOpen(!projectMenuOpen)}
-                className="flex items-center gap-2 rounded-lg border border-slate-200/80 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 active:scale-[0.98]"
-              >
-                <div className="flex h-5 w-5 items-center justify-center rounded-md bg-sky-600 text-white font-bold text-[11px] shadow-xs">
-                  {project?.name ? project.name[0].toUpperCase() : 'W'}
-                </div>
-                <span className="font-semibold text-slate-900">
-                  {project?.name || 'Workspace'}
-                </span>
-                <ChevronDown size={13} className="text-slate-400 ml-0.5" />
-              </button>
+            <span className="flex shrink-0 items-center md:hidden" aria-hidden="true">
+              <Mark className="h-5 w-5 rounded-[6px]" />
+            </span>
 
-              {projectMenuOpen && (
-                <div className="absolute left-0 mt-1 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-xl z-50 text-xs animate-in fade-in slide-in-from-top-1 duration-150">
-                  <p className="px-2 py-1 text-[10px] font-mono text-slate-400 uppercase">Current Workspace</p>
-                  <div className="rounded-lg bg-sky-50 p-2 text-sky-900 font-medium">
-                    {project?.name || 'Default Workspace'}
-                  </div>
-                  <div className="my-1 border-t border-slate-100" />
-                  <Link
-                    href="/settings"
-                    onClick={() => setProjectMenuOpen(false)}
-                    className="block rounded-lg px-2 py-1.5 text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    Manage API keys &amp; settings
-                  </Link>
-                </div>
-              )}
-            </div>
+            <span className="flex min-w-0 items-center gap-1.5 text-[13px]">
+              <span className="hidden font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint sm:inline">
+                Console
+              </span>
+              <span className="hidden text-ink-faint sm:inline">/</span>
+              <span className="truncate font-medium text-ink">{current?.label ?? 'Overview'}</span>
+            </span>
           </div>
 
-          {/* Right Header Links: Docs & Help */}
-          <div className="flex items-center gap-4 text-xs font-medium text-slate-600">
+          <div className="flex items-center gap-2">
+            <span className="hidden items-center gap-1.5 rounded-md border border-line px-2 py-1 font-mono text-[10px] uppercase tracking-[0.05em] text-ink-soft sm:inline-flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" />
+              Ingest live
+            </span>
             <Link
               href="/docs"
-              className="group flex items-center gap-1.5 text-slate-600 hover:text-slate-900 transition-colors"
+              className="group inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] text-ink-soft transition-colors hover:bg-paper hover:text-ink"
             >
-              <span>Documentation &amp; SDK</span>
-              <ExternalLink size={12} className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <span className="hidden sm:inline">Documentation</span>
+              <span className="sm:hidden">Docs</span>
+              <ExternalLink
+                size={12}
+                className="text-ink-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+              />
             </Link>
           </div>
         </header>
 
-        {/* Console Page Body */}
-        <main className="flex-1 p-6 md:p-8 max-w-7xl w-full">
-          {children}
+        <main className="flex-1 px-4 py-7 md:px-8 md:py-8">
+          <div className="mx-auto w-full max-w-[1180px]">{children}</div>
         </main>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import UpgradeButton from '@/components/upgrade-button';
 import { AppShell } from '@/components/app-shell';
-import { Check, Sparkles } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const freeFeatures = [
   'Single project workspace',
@@ -15,7 +15,7 @@ const freeFeatures = [
 const proFeatures = [
   'Unlimited project workspaces',
   'Unlimited monthly telemetry events',
-  'AI Copilot synthesis & recommendations',
+  'AI copilot synthesis & recommendations',
   'Supermemory vector semantic retrieval',
   'Multi-team access & role permissions',
   'Priority ingestion pipeline & dedicated SLAs',
@@ -26,100 +26,109 @@ export default function PricingPage() {
   return (
     <AppShell>
       <main className="space-y-12">
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto">
-          <span className="eyebrow mx-auto justify-center">
-            <Sparkles size={13} /> Transparent Pricing
-          </span>
-          <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-            Start Free. Upgrade for Scale.
-          </h1>
-          <p className="mt-3 text-sm leading-relaxed text-slate-600">
-            Never lose another customer to avoidable setup blockers. Unlock full AI Copilot synthesis when you are ready.
+        <div className="grid gap-6 border-b border-line pb-10 lg:grid-cols-[1.1fr_1fr] lg:items-end">
+          <div>
+            <p className="eyebrow">Pricing</p>
+            <h1 className="mt-3 text-[36px] font-normal leading-[1.08] tracking-[-0.03em] text-ink sm:text-[48px]">
+              Start free. Upgrade for scale.
+            </h1>
+          </div>
+          <p className="max-w-md text-[14px] leading-relaxed text-ink-soft lg:justify-self-end">
+            Never lose another trial to an avoidable setup blocker. Keep the full journey history on every plan;
+            unlock AI synthesis when your funnel is ready.
           </p>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
-          {/* Free Tier */}
-          <div className="rounded-3xl border border-sky-100 bg-white p-8 shadow-sm flex flex-col justify-between">
-            <div>
+        <div className="grid max-w-4xl gap-4 md:grid-cols-2">
+          {/* Starter */}
+          <section className="flex flex-col rounded-card border border-line bg-white">
+            <div className="border-b border-line px-6 py-5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 font-mono">Starter</span>
-                <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-mono text-slate-600">
-                  Forever Free
+                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft">
+                  Starter
                 </span>
+                <span className="tag-mono">Forever free</span>
               </div>
-
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold text-slate-900 tracking-tight">$0</span>
-                <span className="text-xs text-slate-500">/ month</span>
+              <div className="mt-5 flex items-baseline gap-1.5">
+                <span className="text-[40px] font-normal leading-none tracking-[-0.03em] text-ink">$0</span>
+                <span className="text-[12px] text-ink-faint">/ month</span>
               </div>
-              <p className="mt-2 text-xs text-slate-600">
-                Ideal for indie hackers and early-stage SaaS launching their first product loop.
+              <p className="mt-3 text-[13px] leading-relaxed text-ink-soft">
+                For indie hackers and early-stage SaaS validating their first activation loop.
               </p>
-
-              <div className="mt-8 border-t border-slate-100 pt-6 space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-700 font-mono">What is included:</p>
-                <ul className="space-y-2.5 text-xs text-slate-600">
-                  {freeFeatures.map((f) => (
-                    <li key={f} className="flex items-center gap-2.5">
-                      <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-700">
-                        <Check size={10} />
-                      </div>
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-100">
-              <Link href="/signup" className="btn w-full justify-center text-xs py-2.5">
+            <div className="flex-1 px-6 py-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">
+                Included
+              </p>
+              <ul className="mt-3 space-y-2.5">
+                {freeFeatures.map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-[13px] text-ink-soft">
+                    <Check size={13} className="mt-0.5 shrink-0 text-ink-faint" />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="px-6 pb-6">
+              <Link href="/signup" className="btn h-10 w-full justify-center">
                 Get started free
               </Link>
             </div>
-          </div>
+          </section>
 
-          {/* Pro Tier (Light blue gradient) */}
-          <div className="relative rounded-3xl border border-sky-300 bg-gradient-to-b from-sky-50/90 via-white to-blue-50/40 p-8 shadow-md flex flex-col justify-between overflow-hidden">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-300 to-transparent" />
-
-            <div className="relative">
+          {/* Growth Pro */}
+          <section className="flex flex-col rounded-card border border-accent bg-white">
+            <div className="border-b border-accent-line px-6 py-5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-sky-700 font-mono">Growth Pro</span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 border border-sky-200 px-2.5 py-0.5 text-[10px] font-bold text-sky-800">
-                  <Sparkles size={10} /> Recommended
+                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-accent">
+                  Growth Pro
+                </span>
+                <span className="inline-flex items-center rounded-[4px] bg-accent px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.04em] text-white">
+                  Recommended
                 </span>
               </div>
-
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold text-slate-900 tracking-tight">$49</span>
-                <span className="text-xs text-slate-500">/ month</span>
+              <div className="mt-5 flex items-baseline gap-1.5">
+                <span className="text-[40px] font-normal leading-none tracking-[-0.03em] text-ink">$49</span>
+                <span className="text-[12px] text-ink-faint">/ month</span>
               </div>
-              <p className="mt-2 text-xs text-slate-600">
-                For growth-stage AI startups that need continuous user memory and autonomous drop-off recovery.
+              <p className="mt-3 text-[13px] leading-relaxed text-ink-soft">
+                For growth-stage AI products that need continuous customer memory and autonomous recovery.
               </p>
-
-              <div className="mt-8 border-t border-sky-100 pt-6 space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-sky-800 font-mono">Everything in Free, plus:</p>
-                <ul className="space-y-2.5 text-xs text-slate-700">
-                  {proFeatures.map((f) => (
-                    <li key={f} className="flex items-center gap-2.5">
-                      <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 border border-sky-200">
-                        <Check size={10} />
-                      </div>
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
             </div>
 
-            <div className="relative mt-8 pt-6 border-t border-sky-100">
+            <div className="flex-1 px-6 py-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">
+                Everything in Starter, plus
+              </p>
+              <ul className="mt-3 space-y-2.5">
+                {proFeatures.map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-[13px] text-ink">
+                    <Check size={13} className="mt-0.5 shrink-0 text-accent" />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="px-6 pb-6">
               <UpgradeButton />
             </div>
-          </div>
+          </section>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
+          <p className="text-[12px] text-ink-faint">
+            Prices in USD. Cancel anytime from the customer portal.
+          </p>
+          <Link
+            href="/docs"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-accent hover:text-accent-deep"
+          >
+            Read the setup guide
+          </Link>
         </div>
       </main>
     </AppShell>

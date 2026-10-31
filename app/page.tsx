@@ -3,39 +3,175 @@
 import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
 import {
-  Sparkles,
   ArrowRight,
+  ArrowUpRight,
+  Check,
+  Copy,
   Play,
   CheckCircle2,
   AlertTriangle,
-  Brain,
-  Shield,
-  Zap,
-  Layers,
   Activity,
-  Check,
-  Copy,
+  Sparkles,
+  Shield,
+  Layers,
+  Zap,
+  Building,
 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function Page() {
-  const [copied, setCopied] = useState(false);
+const stack = ['TypeScript', 'Python', 'HTTP', 'React', 'Next.js', 'Postgres'];
 
-  const codeSnippet = `import { DealMemory } from '@dealmemory/sdk';
+const layers = [
+  {
+    label: 'Observed',
+    title: 'The SDK records what happened',
+    desc: 'trial_started, oauth_callback_failed, first_map_generated — explicit events, sent on purpose. Nothing inferred, nothing scraped.',
+    icon: Activity,
+  },
+  {
+    label: 'Remembered',
+    title: 'Memory explains why it mattered',
+    desc: 'The goal the user signed up for, the step that blocked them, and how support resolved it — persisted across sessions, even days apart.',
+    icon: Sparkles,
+  },
+  {
+    label: 'Recommended',
+    title: 'The console shows what to do next',
+    desc: 'One funnel, the largest blocker, and a specific next action. Not a chart to interpret at the end of the quarter.',
+    icon: Layers,
+  },
+];
+
+const steps = [
+  {
+    step: '01',
+    title: 'Capture intent',
+    desc: 'Persist the exact goal a trial user arrived to solve, so context never resets between tabs, sessions, or devices.',
+  },
+  {
+    step: '02',
+    title: 'Detect friction',
+    desc: 'Failed setup attempts, empty states and permission errors surface in real time — with no session replay scripts.',
+  },
+  {
+    step: '03',
+    title: 'Reconstruct the journey',
+    desc: 'Every event in order with timestamps, grouped into a single readable story per customer, not a metric aggregate.',
+  },
+  {
+    step: '04',
+    title: 'Monetize at first value',
+    desc: 'Checkout and upgrade prompts unlock only after the activation milestone is reached, so conversion follows real value.',
+  },
+];
+
+const journey = [
+  { time: '14:02:10', name: 'trial_started', detail: 'Plan: pro_trial · source: pricing', tone: 'ok' },
+  { time: '14:02:44', name: 'goal_submitted', detail: 'Map repository architecture', tone: 'neutral' },
+  { time: '14:03:12', name: 'oauth_callback_failed', detail: 'HTTP 401 · github authorization', tone: 'bad' },
+  { time: '14:04:18', name: 'first_map_generated', detail: 'RepoMap Pro · activation reached', tone: 'ok' },
+];
+
+const faqs = [
+  {
+    q: 'How is this different from product analytics?',
+    a: 'Analytics tells you that 80% of users drop off at step three. DealMemory keeps the individual story: the goal they arrived with, the exact failure, and the action that recovers them.',
+  },
+  {
+    q: 'Does it record sensitive data?',
+    a: 'No keystrokes, screen recordings, or arbitrary form values. Edge-level sanitization strips authorization headers, tokens, and credential-shaped properties before an event is persisted.',
+  },
+  {
+    q: 'How long does integration take?',
+    a: 'Under five minutes. Install the SDK or call the HTTP endpoint, provide a public project key, and emit semantic events such as trialStarted() and milestoneReached().',
+  },
+  {
+    q: 'Can we try it without a card?',
+    a: 'Yes. The Starter tier is free up to 10,000 monthly events with full journey analysis. Upgrade only when you need higher volume and AI synthesis.',
+  },
+];
+
+const codeSnippet = `import { DealMemory } from '@dealmemory/sdk';
 
 const dm = new DealMemory({ projectKey: 'pk_live_production' });
 
-// Record trial start with user intent
-dm.trialStarted({
-  userId: 'usr_maya_chen',
-  goal: 'Map repository architecture',
-});
+dm.identify('usr_maya_chen', { plan: 'trial' });
+dm.trialStarted({ goal: 'Map repository architecture' });
 
-// Record key milestone
-dm.firstMapGenerated({
-  userId: 'usr_maya_chen',
-  repo: 'org/repo-main',
-});`;
+// a blocker is recorded, then resolved
+dm.track('oauth_callback_failed', { code: 401 });
+dm.firstMapGenerated({ repo: 'org/repo-main' });`;
+
+function JourneyPanel() {
+  return (
+    <div className="overflow-hidden rounded-card border border-line bg-white">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3 sm:px-5">
+        <div className="flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-success" />
+          <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft">
+            demo tenant · repomap
+          </span>
+        </div>
+        <span className="font-mono text-[11px] text-ink-faint">one user, reconstructed end to end</span>
+      </div>
+
+      <div className="grid lg:grid-cols-[1.15fr_1fr]">
+        <div className="border-b border-line lg:border-b-0 lg:border-r">
+          <div className="flex items-center justify-between border-b border-line px-4 py-2.5 sm:px-5">
+            <span className="eyebrow">Observed telemetry</span>
+            <span className="font-mono text-[10px] text-ink-faint">POST /v1/events/batch</span>
+          </div>
+          <ul className="divide-y divide-line">
+            {journey.map((event) => (
+              <li key={event.name} className="flex items-start justify-between gap-3 px-4 py-3 sm:px-5">
+                <div className="flex min-w-0 items-start gap-2.5">
+                  {event.tone === 'bad' ? (
+                    <AlertTriangle size={14} className="mt-0.5 shrink-0 text-danger" />
+                  ) : event.tone === 'ok' ? (
+                    <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-success" />
+                  ) : (
+                    <Activity size={14} className="mt-0.5 shrink-0 text-ink-faint" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-mono text-[12px] text-ink">{event.name}</p>
+                    <p className="mt-0.5 truncate text-[12px] text-ink-soft">{event.detail}</p>
+                  </div>
+                </div>
+                <span className="shrink-0 font-mono text-[10px] text-ink-faint">{event.time}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex flex-col">
+          <div className="flex items-center justify-between border-b border-line px-4 py-2.5 sm:px-5">
+            <span className="eyebrow">Customer memory</span>
+            <span className="font-mono text-[10px] text-accent">synced</span>
+          </div>
+          <dl className="divide-y divide-line">
+            {[
+              ['Primary intent', 'Connect a private GitHub repository to generate an architecture map.'],
+              ['Blocker', 'OAuth token callback failed at the permission step.'],
+              ['Intervention', 'In-app reconnect banner with a direct token refresh.'],
+            ].map(([term, detail]) => (
+              <div key={term} className="px-4 py-3 sm:px-5">
+                <dt className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">{term}</dt>
+                <dd className="mt-1 text-[13px] leading-relaxed text-ink">{detail}</dd>
+              </div>
+            ))}
+          </dl>
+          <div className="mt-auto flex items-center justify-between border-t border-line bg-paper px-4 py-3 sm:px-5">
+            <span className="text-[12px] text-ink-soft">Trial recovered in 42s</span>
+            <span className="font-mono text-[11px] font-medium text-accent">$49/mo unlocked</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Page() {
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(codeSnippet);
@@ -45,377 +181,300 @@ dm.firstMapGenerated({
 
   return (
     <AppShell>
-      <main className="relative overflow-hidden pb-24">
-        {/* Ambient background glow */}
-        <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-[600px] w-full max-w-7xl bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-200/50 via-blue-100/30 to-transparent blur-3xl -z-10" />
-
-        {/* Hero Section */}
-        <section className="mx-auto max-w-6xl px-5 pt-20 pb-16 text-center md:pt-28">
-          <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3.5 py-1 text-xs font-medium text-sky-700 shadow-xs">
-            <Sparkles size={13} className="text-sky-600" />
-            <span>DealMemory · AI Activation Engine</span>
-          </div>
-
-          <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-bold tracking-tight text-slate-900 md:text-6xl md:leading-[1.15]">
-            Product memory that turns trial friction into{' '}
-            <span className="bg-gradient-to-r from-sky-600 to-blue-700 bg-clip-text text-transparent">
-              checkout conversions.
+      <main className="text-ink">
+        {/* Announcement */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+          <div className="flex items-start gap-2.5">
+            <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+            <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft">
+              Introducing DealMemory memory for SaaS trials
             </span>
-          </h1>
-
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg">
-            DealMemory captures real user intent, detects silent setup blockers, and delivers
-            personalized recovery interventions — so trial users reach true value before you ask
-            them to pay.
-          </p>
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              className="btn btn-primary px-6 py-3 text-sm font-semibold flex items-center gap-2"
-              href="/signup"
-            >
-              <span>Create free workspace</span>
-              <ArrowRight size={15} />
-            </Link>
-            <Link
-              className="btn px-5 py-3 text-sm font-medium border border-slate-200 bg-white hover:bg-sky-50/60 hover:border-sky-300 text-slate-700 hover:text-sky-700 flex items-center gap-2 shadow-xs transition-all"
-              href="/docs"
-            >
-              <span>Setup in 30 seconds</span>
-              <ArrowRight size={14} className="text-sky-600" />
-            </Link>
-            <Link
-              className="btn px-5 py-3 text-sm font-medium border border-slate-200 bg-white hover:bg-sky-50/60 hover:border-sky-300 text-slate-700 hover:text-sky-700 shadow-xs transition-all"
-              href="/pricing"
-            >
-              Pricing
-            </Link>
           </div>
-        </section>
+          <Link
+            href="/docs"
+            className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.06em] text-accent hover:text-accent-deep"
+          >
+            Read the docs <ArrowUpRight size={12} />
+          </Link>
+        </div>
 
-        {/* Live Interactive Product Memory Simulation */}
-        <section className="mx-auto max-w-5xl px-5 pb-20">
-          <div className="rounded-2xl border border-sky-200 bg-white/95 p-1 shadow-lg">
-            <div className="rounded-xl border border-sky-100 bg-slate-50/60 p-6 md:p-8">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 border border-sky-200 text-sky-600 shadow-xs">
-                    <Brain size={18} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-slate-900">Maya Chen</span>
-                      <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-mono font-medium text-emerald-700">
-                        ACTIVATED · PAID
-                      </span>
-                    </div>
-                    <span className="text-xs font-mono text-slate-500">Session ID: sess_94103a_prod</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-mono text-slate-600 font-medium">Live Memory Sync</span>
-                </div>
-              </div>
-
-              <div className="mt-6 grid gap-6 md:grid-cols-2">
-                {/* Left: Observed Stream */}
-                <div className="space-y-3">
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-                    Observed Telemetry Stream
-                  </p>
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between rounded-xl bg-white border border-slate-200 p-3 text-xs shadow-xs">
-                      <div className="flex items-center gap-2.5">
-                        <CheckCircle2 size={15} className="text-emerald-600" />
-                        <span className="text-slate-800">trial_started</span>
-                      </div>
-                      <span className="font-mono text-slate-400">14:02:10</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-xl bg-white border border-slate-200 p-3 text-xs shadow-xs">
-                      <div className="flex items-center gap-2.5">
-                        <Activity size={15} className="text-sky-600" />
-                        <span className="text-slate-800">goal_submitted (Map GitHub repo)</span>
-                      </div>
-                      <span className="font-mono text-slate-400">14:02:44</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs shadow-xs">
-                      <div className="flex items-center gap-2.5">
-                        <AlertTriangle size={15} className="text-rose-600" />
-                        <span className="text-rose-800 font-medium">oauth_callback_failed (HTTP 401)</span>
-                      </div>
-                      <span className="font-mono text-rose-700">14:03:12</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs shadow-xs">
-                      <div className="flex items-center gap-2.5">
-                        <Sparkles size={15} className="text-emerald-600" />
-                        <span className="text-emerald-800 font-medium">first_map_generated (RepoMap Pro)</span>
-                      </div>
-                      <span className="font-mono text-emerald-700">14:04:18</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right: Cognitive Synthesis */}
-                <div className="space-y-3">
-                  <p className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-                    DealMemory Cognitive Synthesis
-                  </p>
-                  <div className="rounded-xl border border-sky-100 bg-white p-4 space-y-3 shadow-xs">
-                    <div>
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
-                        Primary Intent
-                      </span>
-                      <p className="mt-1 text-xs text-slate-800 font-medium">
-                        Connect private GitHub repository to generate system architecture map.
-                      </p>
-                    </div>
-
-                    <div className="border-t border-slate-100 pt-2.5">
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-rose-700 font-semibold">
-                        Blocker Detected
-                      </span>
-                      <p className="mt-1 text-xs text-slate-700">
-                        GitHub authorization token callback failed. User stopped at OAuth permission step.
-                      </p>
-                    </div>
-
-                    <div className="border-t border-slate-100 pt-2.5">
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-sky-700 font-semibold">
-                        Automated Intervention
-                      </span>
-                      <p className="mt-1 text-xs text-slate-700">
-                        Triggered in-app reconnect banner with direct token refresh.
-                      </p>
-                    </div>
-
-                    <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 flex items-center justify-between text-xs text-emerald-800">
-                      <span className="font-medium">Trial Recovered in 42s</span>
-                      <span className="font-mono font-bold">$49/mo Unlocked</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 4-Step Calm Activation Loop */}
-        <section className="mx-auto max-w-6xl px-5 py-20 border-t border-slate-200">
-          <div className="text-center max-w-2xl mx-auto">
-            <p className="text-xs font-mono uppercase tracking-wider text-sky-700 font-semibold">
-              The Activation Framework
+        {/* Hero */}
+        <section className="grid gap-10 border-b border-line py-14 md:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-end">
+          <div>
+            <p className="eyebrow">Product memory engine</p>
+            <h1 className="mt-4 max-w-2xl text-[36px] font-normal leading-[1.05] tracking-[-0.035em] text-ink sm:text-[52px] md:text-[62px]">
+              Product memory that turns trial friction into checkout.
+            </h1>
+            <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-ink-soft md:text-base">
+              DealMemory captures the intent a user arrives with, detects the silent blockers that stop them, and
+              returns the context your team needs to recover the trial — before you ask for payment.
             </p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
-              One calm path from intent to monetization.
-            </h2>
-            <p className="mt-3 text-sm text-slate-600">
-              Stop guessing why users drop off. DealMemory guides customers to value before requesting payment.
-            </p>
-          </div>
 
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                step: '01',
-                title: 'Capture User Intent',
-                desc: 'When users arrive, persist the exact goal they signed up to solve. Never lose context between browser tabs or visits.',
-              },
-              {
-                step: '02',
-                title: 'Detect Real Friction',
-                desc: 'Detect failed setup attempts, empty states, and configuration blockers in real time without heavy session replay scripts.',
-              },
-              {
-                step: '03',
-                title: 'Persistent Product Memory',
-                desc: 'When users return, resume from where they stopped. No blank canvases, no repetitive onboarding wizard forms.',
-              },
-              {
-                step: '04',
-                title: 'Monetize at First Value',
-                desc: 'Unlock checkout and upgrade prompts only after the first successful milestone is achieved, maximizing upgrade conversion.',
-              },
-            ].map((s) => (
-              <div
-                key={s.step}
-                className="relative rounded-2xl border border-sky-100 bg-white p-6 shadow-sm transition hover:border-sky-300 hover:shadow-md"
-              >
-                <span className="font-mono text-xs font-semibold text-sky-600">
-                  {s.step}
-                </span>
-                <h3 className="mt-3 text-base font-semibold text-slate-900">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Feature Grid */}
-        <section className="mx-auto max-w-6xl px-5 py-20 border-t border-slate-200">
-          <div className="max-w-2xl">
-            <p className="text-xs font-mono uppercase tracking-wider text-sky-700 font-semibold">
-              Engineered for Modern SaaS
-            </p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
-              Built for engineering speed and product clarity.
-            </h2>
-          </div>
-
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
-            <div className="rounded-2xl border border-sky-100 bg-white p-8 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 border border-sky-200 text-sky-600 shadow-xs">
-                <Zap size={20} />
-              </div>
-              <h3 className="mt-5 text-lg font-semibold text-slate-900">Ultra-Lightweight SDKs</h3>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                Single-line client libraries for TypeScript/JavaScript and Python. Zero runtime
-                dependencies, under 5KB bundle size, and automatic offline background queuing.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-sky-100 bg-white p-8 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 shadow-xs">
-                <Shield size={20} />
-              </div>
-              <h3 className="mt-5 text-lg font-semibold text-slate-900">Edge Privacy & Credential Scanner</h3>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                Zero keystroke logging, zero arbitrary screen scraping. Automatic edge scanners strip
-                Bearer tokens, passwords, and sensitive credentials before events reach storage.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-sky-100 bg-white p-8 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 border border-blue-200 text-blue-600 shadow-xs">
-                <Layers size={20} />
-              </div>
-              <h3 className="mt-5 text-lg font-semibold text-slate-900">Automatic Blocker Synthesis</h3>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                DealMemory groups telemetry events into coherent trial journeys. Instant visibility into
-                which step causes trial churn without complex SQL queries or data pipelines.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-sky-100 bg-white p-8 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-600 shadow-xs">
-                <Sparkles size={20} />
-              </div>
-              <h3 className="mt-5 text-lg font-semibold text-slate-900">Actionable Recovery Playbooks</h3>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                Transform dead-end trial drop-offs into proactive interventions. Feed synthesized
-                recommendations back into your product UI, email sequences, or founder alerts.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Developer Quickstart Terminal */}
-        <section className="mx-auto max-w-5xl px-5 py-20 border-t border-slate-200">
-          <div className="text-center max-w-xl mx-auto mb-10">
-            <p className="text-xs font-mono uppercase tracking-wider text-sky-700 font-semibold">
-              Developer Quickstart
-            </p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
-              Up and running in two lines of code.
-            </h2>
-          </div>
-
-          <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-red-500/80" />
-                <span className="h-3 w-3 rounded-full bg-amber-500/80" />
-                <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
-                <span className="ml-2 font-mono text-xs text-slate-400">dealmemory-quickstart.ts</span>
-              </div>
-              <button
-                onClick={handleCopy}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-xs text-slate-300 hover:text-white transition"
-              >
-                {copied ? (
-                  <>
-                    <Check size={13} className="text-emerald-400" />
-                    <span className="text-emerald-400">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy size={13} />
-                    <span>Copy</span>
-                  </>
-                )}
-              </button>
-            </div>
-            <pre className="overflow-x-auto p-5 font-mono text-xs leading-relaxed text-sky-200">
-              {codeSnippet}
-            </pre>
-          </div>
-        </section>
-
-        {/* FAQ Section */}
-        <section className="mx-auto max-w-5xl px-5 py-20 border-t border-slate-200">
-          <div className="text-center max-w-xl mx-auto mb-12">
-            <p className="text-xs font-mono uppercase tracking-wider text-sky-700 font-semibold">
-              Frequently Asked Questions
-            </p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
-              Everything you need to know.
-            </h2>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {[
-              {
-                q: 'How is DealMemory different from traditional analytics tools?',
-                a: 'Traditional tools tell you that 80% of users drop off at step 3. DealMemory captures the user’s original intent, explains the exact failure point, and helps your product recover them automatically before they abandon.',
-              },
-              {
-                q: 'Will DealMemory record sensitive passwords or customer data?',
-                a: 'Never. DealMemory does not capture keystrokes, screen recordings, or arbitrary form inputs. Edge-level sanitization filters strip all authorization headers, session cookies, and sensitive tokens automatically.',
-              },
-              {
-                q: 'How difficult is integration for our engineering team?',
-                a: 'Under 5 minutes. Import our lightweight SDK in TypeScript or Python, supply your project key, and call semantic methods like trialStarted() and firstMilestoneAchieved().',
-              },
-              {
-                q: 'Can we try DealMemory without entering a credit card?',
-                a: 'Yes. Our Starter plan is completely free up to 10,000 monthly events with full journey analysis and blocker alerts. Upgrade to Growth Pro only when you need higher volumes.',
-              },
-            ].map((faq, i) => (
-              <div
-                key={i}
-                className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm"
-              >
-                <p className="text-sm font-semibold text-slate-900">{faq.q}</p>
-                <p className="mt-2 text-xs leading-relaxed text-slate-600">{faq.a}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Bottom CTA Banner */}
-        <section className="mx-auto max-w-4xl px-5 pt-10 text-center">
-          <div className="relative overflow-hidden rounded-3xl border border-sky-200 bg-gradient-to-b from-sky-50 via-white to-blue-50/60 p-10 md:p-14 shadow-sm">
-            <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-48 w-80 rounded-full bg-sky-200/40 blur-3xl" />
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-4xl">
-              Stop losing trial users to silent setup friction.
-            </h2>
-            <p className="mx-auto mt-4 max-w-lg text-sm text-slate-600 leading-relaxed">
-              Start monitoring customer intent and unlock real checkout conversions with DealMemory today.
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center">
               <Link
-                className="btn btn-primary px-6 py-3 text-sm font-semibold flex items-center gap-2"
                 href="/signup"
+                className="btn btn-primary h-10 px-4 text-[13px]"
               >
-                <span>Create free workspace</span>
-                <ArrowRight size={15} />
+                Build with DealMemory
+                <ArrowRight size={14} />
               </Link>
+              <Link href="/overview" className="btn h-10 px-4 text-[13px]">
+                <Play size={13} className="text-accent" />
+                See the live console
+              </Link>
+            </div>
+
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-[11px] uppercase tracking-[0.05em] text-ink-faint">
+              <span className="flex items-center gap-1.5">
+                <Check size={12} className="text-success" /> Free tier, no card
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Check size={12} className="text-success" /> 5 minute install
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Check size={12} className="text-success" /> No session replay
+              </span>
+            </div>
+          </div>
+
+          {/* Setup prompt card, supermemory-style copy row */}
+          <div className="w-full">
+            <div className="rounded-card border border-line">
+              <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
+                <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-soft">
+                  Copy setup prompt
+                </span>
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint transition-colors hover:text-ink"
+                >
+                  {copied ? <Check size={12} className="text-success" /> : <Copy size={12} />}
+                  {copied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+              <pre className="overflow-x-auto bg-paper px-4 py-3.5 font-mono text-[11.5px] leading-relaxed text-ink">
+                {`npm install @dealmemory/sdk\n\nconst dm = new DealMemory({\n  projectKey: 'pk_live_...'\n});\n\ndm.trialStarted({ goal: '...' });`}
+              </pre>
+              <div className="flex items-center justify-between border-t border-line px-4 py-2.5">
+                <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-faint">
+                  Works with
+                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {stack.slice(0, 4).map((s) => (
+                    <span key={s} className="tag-mono">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <p className="mt-2.5 text-[11.5px] leading-relaxed text-ink-faint">
+              Public keys only. Ingestion is idempotent, batched, and sanitized at the edge.
+            </p>
+          </div>
+        </section>
+
+        {/* Product panel */}
+        <section className="border-b border-line py-14 md:py-16">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="eyebrow">The console</p>
+              <h2 className="mt-2 text-[26px] font-normal leading-tight tracking-[-0.025em] md:text-[32px]">
+                One customer, one readable story.
+              </h2>
+            </div>
+            <span className="font-mono text-[11px] text-ink-faint">overview · journeys · events</span>
+          </div>
+          <JourneyPanel />
+        </section>
+
+        {/* Three layers */}
+        <section className="border-b border-line py-14 md:py-16">
+          <div className="max-w-2xl">
+            <p className="eyebrow">The thesis</p>
+            <h2 className="mt-2 text-[26px] font-normal leading-tight tracking-[-0.025em] md:text-[32px]">
+              Three layers. One clear story.
+            </h2>
+          </div>
+
+          <div className="mt-10 grid gap-px overflow-hidden rounded-card border border-line bg-line md:grid-cols-3">
+            {layers.map((layer) => {
+              const Icon = layer.icon;
+              return (
+                <div key={layer.label} className="bg-white px-5 py-6">
+                  <div className="flex items-center justify-between">
+                    <span className="eyebrow">{layer.label}</span>
+                    <Icon size={15} className="text-ink-faint" />
+                  </div>
+                  <h3 className="mt-5 text-[16px] font-medium leading-snug tracking-[-0.01em]">
+                    {layer.title}
+                  </h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-ink-soft">{layer.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Loop steps */}
+        <section className="border-b border-line py-14 md:py-16">
+          <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr]">
+            <div>
+              <p className="eyebrow">The activation loop</p>
+              <h2 className="mt-2 text-[26px] font-normal leading-tight tracking-[-0.025em] md:text-[32px]">
+                One calm path from intent to monetization.
+              </h2>
+              <p className="mt-3 max-w-sm text-[14px] leading-relaxed text-ink-soft">
+                Not another dashboard to interpret. A sequence your product can act on at each step of the trial.
+              </p>
               <Link
-                className="btn px-5 py-3 text-sm font-medium border border-slate-200 bg-white hover:bg-sky-50/60 text-slate-700 hover:text-sky-700 shadow-xs"
-                href="/auth/signin"
+                href="/docs"
+                className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-medium text-accent hover:text-accent-deep"
               >
-                Sign in to existing account
+                Read the integration guide <ArrowRight size={13} />
+              </Link>
+            </div>
+
+            <ol className="divide-y divide-line border-y border-line">
+              {steps.map((item) => (
+                <li key={item.step} className="grid gap-2 py-5 sm:grid-cols-[56px_1fr_1.15fr] sm:gap-4">
+                  <span className="font-mono text-[11px] text-ink-faint">{item.step}</span>
+                  <h3 className="text-[14px] font-medium text-ink">{item.title}</h3>
+                  <p className="text-[13px] leading-relaxed text-ink-soft">{item.desc}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* Capabilities strip */}
+        <section className="border-b border-line py-14 md:py-16">
+          <div className="mb-8 max-w-2xl">
+            <p className="eyebrow">Engineered for modern SaaS</p>
+            <h2 className="mt-2 text-[26px] font-normal leading-tight tracking-[-0.025em] md:text-[32px]">
+              Small surface area. Honest data.
+            </h2>
+          </div>
+
+          <div className="grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                icon: Zap,
+                title: 'Lightweight SDKs',
+                desc: 'Zero-dependency TypeScript and Python clients with offline queueing under 5KB.',
+              },
+              {
+                icon: Shield,
+                title: 'Edge privacy',
+                desc: 'Credential-shaped properties and authorization headers are stripped before storage.',
+              },
+              {
+                icon: Layers,
+                title: 'Blocker synthesis',
+                desc: 'Events group into journeys, so the failing step is named instead of averaged away.',
+              },
+              {
+                icon: Building,
+                title: 'Multi-tenant',
+                desc: 'Projects scope keys, events, and memories. Two accounts never share a query.',
+              },
+            ].map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div key={feature.title} className="bg-white px-5 py-6">
+                  <Icon size={16} className="text-ink-faint" />
+                  <h3 className="mt-4 text-[14px] font-medium text-ink">{feature.title}</h3>
+                  <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-soft">{feature.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Developer quickstart */}
+        <section className="border-b border-line py-14 md:py-16">
+          <div className="grid gap-8 lg:grid-cols-[1fr_1.3fr] lg:gap-12">
+            <div>
+              <p className="eyebrow">Developer quickstart</p>
+              <h2 className="mt-2 text-[26px] font-normal leading-tight tracking-[-0.025em] md:text-[32px]">
+                Two lines to your first memory.
+              </h2>
+              <p className="mt-3 max-w-sm text-[14px] leading-relaxed text-ink-soft">
+                Install, identify the trial user, and emit the events that matter. No tag manager, no cookies.
+              </p>
+              <div className="mt-6 space-y-2 border-t border-line pt-5">
+                {['npm install @dealmemory/sdk', 'set projectKey', 'emit milestones'].map((line, i) => (
+                  <div key={line} className="flex items-center gap-2.5">
+                    <span className="font-mono text-[10px] text-ink-faint">0{i + 1}</span>
+                    <span className="font-mono text-[12px] text-ink-soft">{line}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-card border border-ink bg-ink">
+              <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
+                <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-white/50">
+                  quickstart.ts
+                </span>
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-white/60 transition-colors hover:text-white"
+                >
+                  {copied ? <Check size={12} /> : <Copy size={12} />}
+                  {copied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+              <pre className="overflow-x-auto px-4 py-4 font-mono text-[12px] leading-[1.7] text-[#cfd6df]">
+                {codeSnippet}
+              </pre>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="border-b border-line py-14 md:py-16">
+          <div className="grid gap-8 lg:grid-cols-[1fr_1.6fr]">
+            <div>
+              <p className="eyebrow">Questions</p>
+              <h2 className="mt-2 text-[26px] font-normal leading-tight tracking-[-0.025em] md:text-[32px]">
+                Everything you need to know.
+              </h2>
+            </div>
+            <div className="divide-y divide-line border-y border-line">
+              {faqs.map((faq) => (
+                <details key={faq.q} className="group py-4">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[14px] font-medium text-ink">
+                    {faq.q}
+                    <span className="font-mono text-[16px] font-light text-ink-faint transition-transform group-open:rotate-45">
+                      +
+                    </span>
+                  </summary>
+                  <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-ink-soft">{faq.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-14 md:py-20">
+          <div className="flex flex-col items-start justify-between gap-6 rounded-card border border-line bg-paper px-6 py-10 md:flex-row md:items-center md:px-10">
+            <div>
+              <p className="eyebrow">Start today</p>
+              <h2 className="mt-2 max-w-lg text-[26px] font-normal leading-tight tracking-[-0.025em] md:text-[34px]">
+                Stop losing trials to silent setup friction.
+              </h2>
+              <p className="mt-2 max-w-md text-[13.5px] leading-relaxed text-ink-soft">
+                Free up to 10,000 events per month. Upgrade when your funnel is ready to scale.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Link href="/signup" className="btn btn-primary h-10 px-4">
+                Create free workspace <ArrowRight size={14} />
+              </Link>
+              <Link href="/auth/signin" className="btn h-10 px-4">
+                Sign in
               </Link>
             </div>
           </div>
