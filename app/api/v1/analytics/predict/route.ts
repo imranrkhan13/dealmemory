@@ -19,19 +19,19 @@ export async function GET(
   const planState = await getProjectPlanState(projectId);
 
   // 1. Conversion probabilities for all users in this project
-  const allJourneys = await import('./../intelligence').then((m) => m.journeys(projectId));
-  const userIds = [...new Set(allJourneys.map((j: any) => j.userId))];
+  const intelligenceModule = await import('@/lib/intelligence'); const allJourneys = await intelligenceModule.journeys(projectId); const userIdsSet = new Set(); allJourneys.forEach((j: any) => { const uid = j.userId; if (uid) userIdsSet.add(uid); }); const userIds = Array.from(userIdsSet);
 
-  const conversionScores = userIds.map((userId: string) => {
+  const conversionScores: any[] = [];
+  for (const userId of userIds as string[]) {
     const { probability, factors } = predictConversionProbability(userId, projectId);
-    return {
+    conversionScores.push({
       userId,
       conversionProbability: probability,
       atRisk: probability < 0.3,
-      confidence: /* would need confidence from function */ 'medium',
+      confidence: 'medium',
       ...factors,
-    };
-  });
+    });
+  }
 
   // 2. Discover automatic funnels
   const funnelDiscovery = discoverFunnels(projectId, 5);
