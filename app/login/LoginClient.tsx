@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { AuthShell, AuthField, AuthButton } from '@/components/auth-shell';
-import { Loader2, AlertCircle, Mail } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 
 export default function LoginClient() {
   const [email, setEmail] = useState('');
@@ -56,8 +56,8 @@ export default function LoginClient() {
 
   return (
     <AuthShell
-      title="Sign in to DealMemory"
-      subtitle="Your customer memory, activation funnels, and telemetry in one console."
+      title="Welcome back"
+      subtitle="Sign in to see what your users did — and exactly where they stopped."
     >
       <form onSubmit={submit} className="space-y-4">
         <AuthField
@@ -66,6 +66,7 @@ export default function LoginClient() {
           onChange={(e) => setEmail(e.target.value)}
           type="email"
           autoComplete="email"
+          autoFocus
           required
           placeholder="founder@company.com"
         />
@@ -94,20 +95,20 @@ export default function LoginClient() {
             </>
           ) : (
             <>
-              <Mail size={15} />
-              Log in with email
+              Sign in
+              <ArrowRight size={15} />
             </>
           )}
         </AuthButton>
       </form>
 
-      <p className="mt-6 border-t border-white/10 pt-5 text-center text-[12px] text-white/45">
-        Don&apos;t have an account?{' '}
+      <p className="mt-6 border-t border-white/10 pt-5 text-center text-[12.5px] text-white/50">
+        New to DealMemory?{' '}
         <Link href="/signup" className="font-medium text-[#8ab4ff] hover:text-white">
-          Create a workspace
+          Create a free workspace
         </Link>
       </p>
-      <p className="mt-8 text-center text-[11px] leading-relaxed text-white/30">
+      <p className="mt-5 text-center text-[11px] leading-relaxed text-white/30">
         By continuing, you agree to our Terms and Privacy Policy.
       </p>
     </AuthShell>
