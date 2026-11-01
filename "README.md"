@@ -1,0 +1,127 @@
+# DealMemory™
+
+> **Product Memory & Real-Time Activation Engine for SaaS and AI Agents**
+
+DealMemory sits between **product analytics** and **customer memory**. Analytics tools tell you *how many* users did something; DealMemory reveals *what a specific user did* and *what context your team should remember*.
+
+When a user signs up, opens the dashboard, creates a project, tries to connect an integration, then stops, DealMemory reconstructs that exact sequence as an interactive timeline. The founder can immediately see the user's last recorded action and diagnose where onboarding broke, without digging through server logs or guessing from generic dashboard metrics.
+
+Built with Next.js 14, PostgreSQL, Prisma ORM, and a console design inspired by [Supermemory.ai](https://supermemory.ai).
+
+---
+
+## The simplest setup
+
+DealMemory is built around one idea: one package, one key, one init command — on both the customer app side and the console side.
+
+**Customer app side**
+
+```bash
+npm install dealmemory
+npx dealmemory init
+
+# .env
+DEALMEMORY_API_KEY=pk_live_your_project_key
+```
+
+After that, `import 'dealmemory/auto'` starts tracking page views, clicks, sessions, and common product milestones automatically. The CLI writes the bootstrap into the app for you, and the SDK reads everything it needs from the environment. There is no project id to pass in code, no manual apiUrl to configure, and no config file to hand-write.
+
+**Console / dashboard side**
+
+The Dashboard is part of this app at `app/`. Once DealMemory is deployed and a team signs in, the console is already ready: keys, projects, ingestion, and the dashboard are all wired. The same “one key, one install” idea applies on the console side — the team running DealMemory opens a dashboard that is already live after signup.
+
+If your goal is the simplest possible shipping story, that is the model: one product, one key, one install, one console that comes up immediately after signup.
+
+---
+
+## Quickstart (local)
+
+```bash
+git clone https://github.com/your-org/dealmemory.git
+cd dealmemory
+npm install
+cp .env.example .env
+npx prisma db push
+npm run dev
+```
+
+Then open [http://localhost:3000](http://localhost:3000):
+
+- `/signup` — create the first admin account and workspace
+- `/settings` — generate a public `pk_live_...` key if needed
+- `/overview` — the Console
+
+---
+
+## Console dashboard
+
+The DealMemory console is the product memory dashboard for the team running the SaaS or AI product. After sign-in it shows:
+
+- `/overview` — live metrics, recent activity, and DealMemory AI analysis where it applies
+- `/journeys` — customer journey list with drop-off and activation signals
+- `/journeys/[userId]` — per-user timeline and context
+- `/events` — raw event feed and inspector
+- `/settings` — project keys and billing-related settings
+
+---
+
+## Edge privacy
+
+DealMemory enforces zero-trust privacy rules at both client and server layers:
+
+- **Automatic credential sanitization**: Bearer tokens, JWTs, API keys (`pk_live_`, `sk_live_`), and private keys are detected and rejected.
+- **Sensitive key exclusion**: Properties named `password`, `token`, `secret`, `message`, or `value` are automatically blocked.
+- **Query parameter stripping**: URLs and referrers have query parameters (`?token=...`, `?code=...`) stripped before transmission.
+- **No keystroke or screen recording**: DealMemory never records user inputs, form values, or screen video.
+
+---
+
+## Billing
+
+DealMemory includes native billing integration with **Dodo Payments**:
+
+- `/pricing` — Free and Pro tiers
+- `/api/billing/checkout` — hosted checkout sessions
+- `/api/billing/customer-portal` — payment method and subscription management
+- `/api/webhooks/dodo` — verified webhook handler
+- Pro limits enforced via `requirePro(userId)` and `isProUser(userId)` in `lib/billing.ts`
+
+---
+
+## Docs
+
+- [**Full Architecture & Roadmap**](APP_OVERVIEW_AND_ROADMAP.md)
+- [**Installation & Self-Hosting Guide**](docs/INSTALLATION.md)
+- [**Client SDK & Integration Guide**](docs/SDK-GUIDE.md)
+- [**API Reference**](docs/API-REFERENCE.md)
+- [**Console User Guide**](docs/CONSOLE-GUIDE.md)
+
+---
+
+## Project structure
+
+```
+dealmemory/
+├── app/                      # Next.js App Router (public landing, console, API routes)
+│   ├── api/                  # REST endpoints (events, keys, billing, webhooks, AI, predict)
+│   ├── overview/             # Console overview dashboard
+│   ├── journeys/             # Customer journey list & per-user timeline
+│   ├── events/               # Raw event feed & inspector
+│   ├── settings/             # Project keys, workspace config, billing portal
+│   ├── docs/sdk              # SDK docs hub
+│   ├── pricing/              # Tier selector (Starter Free / Growth Pro $49/mo)
+│   ├── login / signup        # NextAuth credential authentication
+│   └── page.tsx             # Public landing / homepage
+├── components/               # UI component library
+├── lib/                      # Core business logic, db client, keys, billing, privacy
+├── packages/
+│   ├── sdk/                  # TypeScript / JavaScript client library + CLI
+│   └── python/               # Python client library
+└── prisma/                   # Database schema & migrations
+```
+
+---
+
+## License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.

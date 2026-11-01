@@ -57,6 +57,8 @@ function Wordmark() {
 const publicLinks = [
   { href: '/docs', label: 'Docs' },
   { href: '/pricing', label: 'Pricing' },
+  { href: '/install', label: 'Install' },
+  { href: '/quickstart', label: 'Quickstart' },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -210,6 +212,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
               <Link href="/pricing" className="nav-item">
                 Pricing
+              </Link>
+              <Link href="/install" className="nav-item">
+                Install
+              </Link>
+              <Link href="/quickstart" className="nav-item">
+                Quickstart
               </Link>
               <Link href="/auth/signin" className="nav-item">
                 Sign in
