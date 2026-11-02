@@ -1,0 +1,142 @@
+# DealMemory Installation & Self-Hosting Guide
+
+DealMemory is a product memory and activation engine for SaaS products and AI agents. It captures real user telemetry from another app, reconstructs each trial user’s journey, finds where they stalled, and gives the team a readable next step instead of a generic drop-off chart.
+
+This guide is for running DealMemory itself — the backend, the Console, and the API the SDK talks to. For integrating DealMemory into a customer’s app, use the SDK path from the README.
+
+---
+
+## The simplest mental model
+
+If you want the smallest possible setup story, it is this:
+
+1. Deploy the DealMemory app.
+2. A first user signs up.
+3. The console is ready immediately — keys, projects, ingestion, and the dashboard are already wired.
+
+On the customer side, the install is the same idea: `npm install dealmemory`, one key in `.env`, and `npx dealmemory init`. That is the product-facing path. This document is about running the server side of that product.
+
+---
+
+## Local development
+
+### Prerequisites
+
+- **Node.js**: `18.18.0` or newer (`node -v`)
+- **Package manager**: `npm` v9+ or `pnpm` v8+
+- **Database**: PostgreSQL `14` or newer
+- **Platform**: macOS, Linux, or Windows with WSL2
+
+### Setup
+
+```bash
+git clone https://github.com/your-org/dealmemory.git
+cd dealmemory
+npm install
+cp .env.example .env
+```
+
+For local development, the core runtime needs at least a database and NextAuth:
+
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/dealmemory?schema=public"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="change-me-before-prod"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
+
+Then create the schema:
+
+```bash
+npx prisma db push
+```
+
+Start the app:
+
+```bash
+npm run dev
+```
+
+Open:
+
+- `/signup` — first admin account + workspace
+- `/settings` — generate a public `pk_live_...` key if needed
+- `/overview` — the Console
+
+---
+
+## Environment variables
+
+The app uses a small set of variables today:
+
+| Variable | Needed | Notes |
+| :--- | :---: | :--- |
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `NEXTAUTH_SECRET` | Yes in production | Session secret |
+| `NEXTAUTH_URL` | Yes | App origin |
+| `NEXT_PUBLIC_APP_URL` | Yes | Public origin used for links/redirects |
+| `DEALMEMORY_API_KEY` | For SDK-host flow | Optional for self-hosted console use; used by SDK customers |
+| `SDK_CORS_ORIGINS` | Optional | Origins allowed to stream events from browsers |
+| `GEMINI_API_KEY` | Optional | AI copilot |
+| `DODO_*` | Optional | Billing |
+| `SUPERMEMORY_*` | Optional | External memory/vector integration |
+
+If you only want the simplest hosted console experience, the first four are the ones that matter most for the app to run.
+
+---
+
+## Database
+
+DealMemory uses Prisma with PostgreSQL. If you do not have Postgres locally, the quickest path is a throwaway container:
+
+```bash
+docker run --name dealmemory-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=dealmemory \
+  -p 5432:5432 \
+  -d postgres:16-alpine
+```
+
+Then:
+
+```bash
+npx prisma db push
+```
+
+---
+
+## Deployment
+
+DealMemory is a normal Next.js app with PostgreSQL and Prisma. The usual zero-config targets apply:
+
+- Connect a GitHub repo to Vercel.
+- Add `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, and `NEXT_PUBLIC_APP_URL` in Vercel.
+- Use `npm run build` as the build command.
+- Prefer a pooled Postgres connection for serverless (Neon, Supabase, PgBouncer, etc.).
+
+If you want Docker, the app is a standard Node + Postgres app and can be containerized in the usual way; the only special bit is Prisma generation before build.
+
+---
+
+## Verification
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+```
+
+If you have a local database:
+
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/dealmemory" npm run test:integration
+```
+
+---
+
+## Troubleshooting
+
+- **`NEXTAUTH_SECRET is required in production`** — set a real secret before deploying.
+- **`Can't reach database server`** — Postgres is stopped, unreachable, or the connection string is wrong.
+- **CORS errors on `/api/v1/events/batch`** — add the client origin to `SDK_CORS_ORIGINS`.
