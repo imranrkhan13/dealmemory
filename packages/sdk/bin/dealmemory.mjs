@@ -2,7 +2,7 @@
 /**
  * dealmemory — zero-config setup CLI.
  *
- *   npx dealmemory init
+ *   npx dealmemory install
  *
  * Does the two things a user should never have to do by hand:
  *   1. puts DEALMEMORY_API_KEY in .env (and the browser-visible copy Next needs)
@@ -19,7 +19,7 @@ const IMPORT_MARKER = 'dealmemory/auto';
 const CLIENT_FILE_MARKER = 'dealmemory.client';
 
 const args = process.argv.slice(2);
-const command = args[0] ?? 'help';
+const command = args[0] ?? 'install';
 
 function log(msg) {
   process.stdout.write(msg + '\n');
@@ -231,10 +231,10 @@ function setupOther(root, primary) {
 
 /* ── commands ────────────────────────────────────────────── */
 
-function init() {
+function install() {
   const root = findProjectRoot();
   projectRoot = root;
-  log('\nDealMemory setup — ' + root + '\n');
+  log('\n✨ DealMemory setup — ' + root + '\n');
 
   let isNext = false;
   try {
@@ -259,33 +259,60 @@ function init() {
   }
 
   log('');
-  log('  Next: restart your dev server. Page views and clicks are recorded from then on.');
-  log("  Custom events: `import { track } from 'dealmemory/auto'` then `track('name')`.");
+  log('  ✅ Setup complete! DealMemory will now track:');
+  log('     • Page views and navigation');
+  log('     • All clicks and button interactions');
+  log('     • Form submissions');
+  log('     • Scroll depth');
+  log('     • Input changes (without sensitive data)');
+  log('     • Errors and exceptions');
+  log('     • Time spent on pages');
+  log('');
+  log('  📝 Next steps:');
+  log('     1. Set DEALMEMORY_API_KEY=pk_live_... in .env');
+  log('     2. Restart your dev server');
+  log('     3. Visit your dashboard to see real-time tracking');
+  log('');
+  log('  💡 Custom events: `import { track } from "dealmemory/auto"` then `track("name")`');
   log('');
 }
+
+// Keep init as an alias for install
+const init = install;
 
 function help() {
   log('');
-  log('  DealMemory CLI');
+  log('  DealMemory CLI — Track everything, automatically');
   log('');
-  log('    npx dealmemory init    Write the key into .env and the tracking code into your app');
-  log('    npx dealmemory help    Show this message');
+  log('    npx dealmemory install    Install DealMemory (adds .env key + tracking code)');
+  log('    npx dealmemory init       Alias for install');
+  log('    npx dealmemory help       Show this message');
   log('');
   log('  Setup is two steps and nothing else:');
   log('    1. npm install dealmemory');
-  log('    2. ' + PRIMARY_KEY + '=pk_live_...   (in .env)');
+  log('    2. npx dealmemory install');
+  log('    3. ' + PRIMARY_KEY + '=pk_live_...   (in .env)');
+  log('');
+  log('  DealMemory automatically tracks:');
+  log('    • Page views and navigation');
+  log('    • All clicks and button interactions');
+  log('    • Form submissions');
+  log('    • Scroll depth');
+  log('    • Input changes (without sensitive data)');
+  log('    • Errors and exceptions');
+  log('    • Time spent on pages');
   log('');
 }
 
-if (command === 'init') {
+if (command === 'install' || command === 'init') {
   try {
-    init();
+    install();
   } catch (e) {
     warn(e?.message ?? String(e));
     process.exitCode = 1;
   }
 } else if (command === 'hint') {
-  log('\n  dealmemory: add ' + PRIMARY_KEY + '=pk_live_... to .env, then run `npx dealmemory init`.\n');
+  log('\n  dealmemory: add ' + PRIMARY_KEY + '=pk_live_... to .env, then run `npx dealmemory install`.\n');
 } else {
   help();
 }

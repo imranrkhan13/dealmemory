@@ -95,7 +95,7 @@ to configure anywhere else (no project id, no apiUrl, no init file):
 DEALMEMORY_API_KEY=pk_live_your_key_here
 
 # writes the bootstrap into your entry file
-npx dealmemory init
+npx dealmemory install
 ```
 
 ```typescript
