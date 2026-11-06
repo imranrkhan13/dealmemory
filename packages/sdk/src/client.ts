@@ -204,6 +204,15 @@ export class AgentLens {
     void this.flush();
   }
 
+  /** "Sign up free" → "sign_up_free" — used to name auto-captured events. */
+  private static slugify(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 48);
+  }
+
   private enableAutoCapture() {
     this.clickHandler = (event) => {
       const source = event.target;
@@ -211,14 +220,18 @@ export class AgentLens {
       const control = source.closest('button, a, [role="button"], input[type="submit"], [onclick]');
       if (!control) return;
 
-      this.track('action_clicked', {
+      const label =
+        control.getAttribute('aria-label') ??
+        control.getAttribute('data-agentlens-action') ??
+        control.getAttribute('name') ??
+        control.id ??
+        control.textContent ??
+        '';
+      const slug = AgentLens.slugify(label.replace(/\s+/g, ' ').trim());
+
+      this.track(slug ? `click_${slug}` : 'action_clicked', {
         element: control.tagName.toLowerCase(),
-        action:
-          control.getAttribute('data-agentlens-action') ??
-          control.getAttribute('name') ??
-          control.id ??
-          control.textContent?.slice(0, 50) ??
-          'unlabeled',
+        action: label.slice(0, 50) || 'unlabeled',
         text: control.textContent?.slice(0, 100),
       });
     };
@@ -227,12 +240,15 @@ export class AgentLens {
       const form = event.target;
       if (!(form instanceof HTMLFormElement)) return;
 
-      this.track('form_submitted', {
-        form:
-          form.getAttribute('data-agentlens-form') ??
-          form.getAttribute('name') ??
-          form.id ??
-          'unlabeled',
+      const label =
+        form.getAttribute('data-agentlens-form') ??
+        form.getAttribute('name') ??
+        form.id ??
+        '';
+      const slug = AgentLens.slugify(label);
+
+      this.track(slug ? `submit_${slug}` : 'form_submitted', {
+        form: label || 'unlabeled',
         fields: form.elements.length,
       });
     };
