@@ -88,7 +88,7 @@ export class AgentLens {
     this.options = {
       ...options,
       projectKey,
-      apiUrl: (options.apiUrl ?? readEnv('DEALMEMORY_API_URL') ?? DEFAULT_API_URL).replace(/\/+$/, ''),
+      apiUrl: (options.apiUrl ?? readEnv('DEALMEMORY_API_URL', 'NEXT_PUBLIC_DEALMEMORY_API_URL') ?? DEFAULT_API_URL).replace(/\/+$/, ''),
     };
 
     const storage = getStorage();

@@ -156,8 +156,10 @@ function ensureEnv(root, needPublicCopy) {
 
   if (needPublicCopy) {
     if (!hasEnvLine(text, PUBLIC_KEY)) {
+      const prefix = text.length && !text.endsWith('\n') ? '\n' : '';
       text +=
-        '# Browser copy of the key — inlined by Next.js at build time (written by `npx dealmemory init`)\n' +
+        prefix +
+        '\n# Browser copy of the key — inlined by Next.js at build time (written by `npx dealmemory init`)\n' +
         PUBLIC_KEY +
         '=' +
         primary +
@@ -261,8 +263,16 @@ function setupNextAppRouter(root, primary) {
       "'use client';\n\n" +
         '// Written by `npx dealmemory init` — DealMemory records page views and actions\n' +
         '// automatically from DEALMEMORY_API_KEY. Delete this file to opt out.\n' +
-        "import '" + IMPORT_MARKER + "';\n\n" +
-        'export {};\n',
+        "import { DealMemory } from 'dealmemory';\n\n" +
+        'const host = globalThis as { __DEALMEMORY_CLIENT__?: InstanceType<typeof DealMemory> };\n' +
+        'try {\n' +
+        '  host.__DEALMEMORY_CLIENT__ ??= new DealMemory({\n' +
+        '    // Point at a self-hosted DealMemory (e.g. http://localhost:3001/api) when set.\n' +
+        '    apiUrl: process.env.NEXT_PUBLIC_DEALMEMORY_API_URL,\n' +
+        '  });\n' +
+        '} catch {\n' +
+        '  // No API key configured — tracking stays off, the app keeps running.\n' +
+        '}\n',
       'utf8'
     );
     ok('created ' + displayPath(bootstrap));
