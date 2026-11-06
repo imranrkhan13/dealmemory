@@ -69,13 +69,20 @@ export class AgentLens {
   private retryAt = 0;
   private clickHandler?: (event: MouseEvent) => void;
   private submitHandler?: (event: SubmitEvent) => void;
+  private scrollHandler?: () => void;
+  private inputHandler?: (event: Event) => void;
+  private errorHandler?: (event: ErrorEvent) => void;
+  private visibilityHandler?: () => void;
+  private pageStartTime: number;
+  private maxScrollDepth: number = 0;
+  private inputDebounce?: Map<string, number>;
 
   constructor(options: ActivationOptions = {}) {
     // Zero-config: the key comes from the environment unless passed explicitly.
     const projectKey = (options.projectKey ?? readEnv(...KEY_ENV_VARS) ?? '').trim();
     if (!projectKey) {
       throw new Error(
-        `DealMemory: no API key found. Add DEALMEMORY_API_KEY=pk_live_... to your .env, then run \`npx dealmemory init\`.`
+        `DealMemory: no API key found. Add DEALMEMORY_API_KEY=pk_live_... to your .env, then run \`npx dealmemory install\`.`
       );
     }
     this.options = {
@@ -88,6 +95,8 @@ export class AgentLens {
     this.anonymousId = storage?.getItem(storageKey(projectKey, 'anonymous')) ?? createId();
     this.sessionId = createId();
     this.userId = storage?.getItem(storageKey(projectKey, 'user')) ?? undefined;
+    this.pageStartTime = Date.now();
+    this.inputDebounce = new Map();
     try {
       this.queue = JSON.parse(storage?.getItem(storageKey(projectKey, 'queue')) ?? '[]') as QueuedEvent[];
     } catch {
@@ -186,6 +195,12 @@ export class AgentLens {
     if (this.timer) window.clearInterval(this.timer);
     if (this.clickHandler) document.removeEventListener('click', this.clickHandler, true);
     if (this.submitHandler) document.removeEventListener('submit', this.submitHandler, true);
+    if (this.scrollHandler) window.removeEventListener('scroll', this.scrollHandler, true);
+    if (this.inputHandler) document.removeEventListener('input', this.inputHandler, true);
+    if (this.errorHandler) window.removeEventListener('error', this.errorHandler, true);
+    if (this.visibilityHandler) document.removeEventListener('visibilitychange', this.visibilityHandler, true);
+    // Track time on page before destroying
+    this.trackTimeOnPage();
     void this.flush();
   }
 
@@ -193,7 +208,7 @@ export class AgentLens {
     this.clickHandler = (event) => {
       const source = event.target;
       if (!(source instanceof Element)) return;
-      const control = source.closest('button, a, [role="button"], input[type="submit"]');
+      const control = source.closest('button, a, [role="button"], input[type="submit"], [onclick]');
       if (!control) return;
 
       this.track('action_clicked', {
@@ -202,7 +217,9 @@ export class AgentLens {
           control.getAttribute('data-agentlens-action') ??
           control.getAttribute('name') ??
           control.id ??
+          control.textContent?.slice(0, 50) ??
           'unlabeled',
+        text: control.textContent?.slice(0, 100),
       });
     };
 
@@ -216,12 +233,82 @@ export class AgentLens {
           form.getAttribute('name') ??
           form.id ??
           'unlabeled',
+        fields: form.elements.length,
       });
+    };
+
+    // Track scroll depth
+    this.scrollHandler = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = scrollHeight > 0 ? Math.round((scrollTop / scrollHeight) * 100) : 0;
+
+      if (scrollPercent > this.maxScrollDepth) {
+        this.maxScrollDepth = scrollPercent;
+        // Track at 25%, 50%, 75%, 90%, 100%
+        if ([25, 50, 75, 90, 100].includes(scrollPercent)) {
+          this.track('scroll_depth', { percent: scrollPercent });
+        }
+      }
+    };
+
+    // Track input changes (without sensitive data)
+    this.inputHandler = (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement)) return;
+
+      const inputName = target.name || target.id || 'unnamed_input';
+      const inputType = target.type || 'text';
+
+      // Skip password fields and sensitive inputs
+      if (['password', 'secret', 'token', 'credit-card'].includes(inputType)) return;
+
+      // Debounce input tracking to avoid spam
+      const now = Date.now();
+      const lastTracked = this.inputDebounce?.get(inputName) || 0;
+      if (now - lastTracked < 2000) return; // Track at most once every 2 seconds per input
+      this.inputDebounce?.set(inputName, now);
+
+      this.track('input_changed', {
+        input: inputName,
+        type: inputType,
+        hasValue: target.value.length > 0,
+      });
+    };
+
+    // Track errors
+    this.errorHandler = (event) => {
+      this.track('error_occurred', {
+        message: event.message?.slice(0, 200),
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+      });
+    };
+
+    // Track page visibility changes
+    this.visibilityHandler = () => {
+      if (document.hidden) {
+        this.trackTimeOnPage();
+      } else {
+        this.pageStartTime = Date.now();
+      }
     };
 
     // Capture phase observes an action without changing the host app's events.
     document.addEventListener('click', this.clickHandler, true);
     document.addEventListener('submit', this.submitHandler, true);
+    window.addEventListener('scroll', this.scrollHandler, true);
+    document.addEventListener('input', this.inputHandler, true);
+    window.addEventListener('error', this.errorHandler, true);
+    document.addEventListener('visibilitychange', this.visibilityHandler, true);
+  }
+
+  private trackTimeOnPage() {
+    const timeOnPage = Math.round((Date.now() - this.pageStartTime) / 1000);
+    if (timeOnPage > 0) {
+      this.track('time_on_page', { seconds: timeOnPage });
+    }
   }
 
   private persist() { this.queue=this.queue.slice(-1000); try { localStorage.setItem(storageKey(this.options.projectKey, 'queue'), JSON.stringify(this.queue)); } catch { /* Storage can be unavailable or full. In-memory delivery still works. */ } }

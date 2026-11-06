@@ -8,15 +8,15 @@ DealMemory is a product analytics & customer memory platform for SaaS trials. It
 # 1. Install the SDK
 npm install dealmemory
 
-# 2. Initialize — the CLI writes tracking code into your files
-npx dealmemory init
+# 2. Install — the CLI writes tracking code into your files
+npx dealmemory install
 
 # 3. Add your API key — the only env var you'll ever need
 # .env file:
 DEALMEMORY_API_KEY=pk_live_...
 ```
 
-That's it. No `projectKey` in code, no `apiUrl`, no config object. The CLI (`npx dealmemory init`) auto-detects your framework (Next.js pages router, app router, or vanilla React) and injects the correct import + key line.
+That's it. No `projectKey` in code, no `apiUrl`, no config object. The CLI (`npx dealmemory install`) auto-detects your framework (Next.js pages router, app router, or vanilla React) and injects the correct import + key line.
 
 ## 2. How Tracking Works
 
@@ -31,18 +31,27 @@ The SDK (`packages/sdk/src/client.ts`) reads the key in this order:
 
 Once the key is read, the SDK automatically tracks these events by default:
 
-- `user_signed_up` — when account is created
-- `app_opened` — every time the app loads
-- `feature_used` — when core features are used
-- `dashboard_opened` — when user views the dashboard
-- `project_created` — when a new project/workspace is created
-- `integration_connect_attempted` — when connecting GitHub or other integrations
-- `integration_connected` — when integration succeeds
-- `integration_connection_failed` — when OAuth/connection fails
-- `first_map_generated` — when the user's first map/visualization is created
-- `checkout_started` — when user starts a purchase
-- `payment_completed` — when payment succeeds (verified webhook)
+**Automatic Events (everything tracked automatically)**:
+- `page_view` — every page load
+- `action_clicked` — all button/link clicks with element info and text
+- `form_submitted` — all form submissions with field count
+- `scroll_depth` — scroll progress at 25%, 50%, 75%, 90%, 100%
+- `input_changed` — input field changes (debounced, no sensitive data)
+- `error_occurred` — JavaScript errors with stack info
+- `time_on_page` — time spent on each page (on visibility change/destroy)
+
+**Manual Milestone Events** (optional for product-specific tracking):
 - `trial_started` — when trial begins
+- `checkout_started` — when user starts a purchase
+- `checkout_completed` — when payment succeeds
+- `integration_connected` — when integration succeeds
+- `integration_failed` — when OAuth/connection fails
+- `feature_used` — when core features are used
+- `first_value_reached` — when user achieves activation
+- `subscription_created` — when subscription starts
+- `subscription_cancelled` — when subscription ends
+- `api_error` — when API errors occur
+- `team_invited` — when team members are invited
 
 **Every event is automatically deduplicated**, enriched with user traits (email, company, role), and sent to your PostgreSQL database via the HTTP API.
 

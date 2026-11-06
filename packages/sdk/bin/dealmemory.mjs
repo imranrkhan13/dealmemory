@@ -2,7 +2,7 @@
 /**
  * dealmemory — zero-config setup CLI.
  *
- *   npx dealmemory init
+ *   npx dealmemory install
  *
  * Does the two things a user should never have to do by hand:
  *   1. puts DEALMEMORY_API_KEY in .env (and the browser-visible copy Next needs)
@@ -19,7 +19,7 @@ const IMPORT_MARKER = 'dealmemory/auto';
 const CLIENT_FILE_MARKER = 'dealmemory.client';
 
 const args = process.argv.slice(2);
-const command = args[0] ?? 'help';
+const command = args[0] ?? 'install';
 
 function log(msg) {
   process.stdout.write(msg + '\n');
@@ -50,6 +50,51 @@ function findProjectRoot() {
     dir = parent;
   }
   return process.env.INIT_CWD || process.cwd();
+}
+
+const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'out', 'coverage', '.turbo', '.vercel']);
+const SEARCH_DEPTH = 3;
+
+function dirDeclaresNext(dir) {
+  try {
+    const pkg = JSON.parse(readIfExists(path.join(dir, 'package.json')) ?? '{}');
+    return Boolean(pkg?.dependencies?.next || pkg?.devDependencies?.next);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Monorepos: the nearest package.json is often the repo root, while the real
+ * app sits one or two levels down (e.g. `frontend/`, `apps/web/`). Walk
+ * breadth-first for the closest directory that looks like a Next.js app —
+ * either it declares `next` or it contains a layout/_app entry file.
+ */
+function findAppRoot(start) {
+  const queue = [{ dir: start, depth: 0 }];
+  while (queue.length) {
+    const { dir, depth } = queue.shift();
+    if (
+      pickFile(dir, LAYOUT_CANDIDATES) ||
+      pickFile(dir, PAGES_CANDIDATES) ||
+      dirDeclaresNext(dir)
+    ) {
+      return dir;
+    }
+    if (depth >= SEARCH_DEPTH) continue;
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      if (entry.isDirectory() && !entry.name.startsWith('.') && !SKIP_DIRS.has(entry.name)) {
+        queue.push({ dir: path.join(dir, entry.name), depth: depth + 1 });
+      }
+    }
+  }
+  return start;
 }
 
 function readIfExists(file) {
@@ -218,74 +263,111 @@ function setupNextPagesRouter(root, primary) {
 
 function setupOther(root, primary) {
   log('');
-  log('  Could not find a Next.js entry file automatically.');
-  log('  Add these two lines yourself (this is everything):');
+  log('  ⚠ Could not find a Next.js entry file automatically.');
+  log('');
+  log('  If this is a Next.js app, it may use a custom directory.');
+  log('  Otherwise, add these two lines yourself (this is everything):');
   log('');
   log('    # .env   ' + PRIMARY_KEY + '=pk_live_...');
   log("    // top of your app entry file");
   log("    import '" + IMPORT_MARKER + "'");
   log('');
-  if (!primary) warn(PRIMARY_KEY + ' is in .env but still empty — paste your pk_live_... key there.');
+  if (!primary) {
+    warn(PRIMARY_KEY + ' in .env is empty — paste your pk_live_... key there, then run `npx dealmemory init` again.');
+  }
   return false;
 }
 
 /* ── commands ────────────────────────────────────────────── */
 
-function init() {
-  const root = findProjectRoot();
+function install() {
+  const cwdRoot = findProjectRoot();
+  const root = findAppRoot(cwdRoot);
   projectRoot = root;
-  log('\nDealMemory setup — ' + root + '\n');
-
-  let isNext = false;
-  try {
-    const pkg = JSON.parse(readIfExists(path.join(root, 'package.json')) ?? '{}');
-    isNext = Boolean(pkg?.dependencies?.next || pkg?.devDependencies?.next);
-  } catch {
-    /* ignore malformed package.json */
+  log('\n✨ DealMemory setup — ' + root + '\n');
+  if (root !== cwdRoot) {
+    const rel = path.relative(cwdRoot, root);
+    skip('found your app in `' + rel + '` (ran from the repo root)');
   }
+
+  const pkg = JSON.parse(readIfExists(path.join(root, 'package.json')) ?? '{}');
+  const isNext = Boolean(pkg?.dependencies?.next || pkg?.devDependencies?.next);
 
   const layout = pickFile(root, LAYOUT_CANDIDATES);
   const pagesApp = pickFile(root, PAGES_CANDIDATES);
   const primary = ensureEnv(root, isNext);
 
+  let wired = false;
   if (layout) {
-    setupNextAppRouter(root, primary);
+    wired = setupNextAppRouter(root, primary);
   } else if (pagesApp) {
-    setupNextPagesRouter(root, primary);
-  } else if (isNext) {
-    setupOther(root, primary);
+    wired = setupNextPagesRouter(root, primary);
   } else {
-    setupOther(root, primary);
+    wired = setupOther(root, primary);
   }
 
   log('');
-  log('  Next: restart your dev server. Page views and clicks are recorded from then on.');
-  log("  Custom events: `import { track } from 'dealmemory/auto'` then `track('name')`.");
+  if (!wired) {
+    log('  Nothing was changed in your source files yet — see the steps above.');
+    log('  Re-run `npx dealmemory init` from inside your app directory if it lives in a subfolder.');
+    log('');
+    return;
+  }
+
+  log('  ✅ Setup complete! DealMemory will now track:');
+  log('     • Page views and navigation');
+  log('     • All clicks and button interactions');
+  log('     • Form submissions');
+  log('     • Scroll depth');
+  log('     • Input changes (without sensitive data)');
+  log('     • Errors and exceptions');
+  log('     • Time spent on pages');
+  log('');
+  log('  📝 Next steps:');
+  log('     1. Set ' + PRIMARY_KEY + '=pk_live_... in .env');
+  log('     2. Restart your dev server');
+  log('     3. Visit your dashboard to see real-time tracking');
+  log('');
+  log('  💡 Custom events: `import { track } from "dealmemory/auto"` then `track("name")`');
   log('');
 }
+
+// Keep init as an alias for install
+const init = install;
 
 function help() {
   log('');
-  log('  DealMemory CLI');
+  log('  DealMemory CLI — Track everything, automatically');
   log('');
-  log('    npx dealmemory init    Write the key into .env and the tracking code into your app');
-  log('    npx dealmemory help    Show this message');
+  log('    npx dealmemory install    Install DealMemory (adds .env key + tracking code)');
+  log('    npx dealmemory init       Alias for install');
+  log('    npx dealmemory help       Show this message');
   log('');
   log('  Setup is two steps and nothing else:');
   log('    1. npm install dealmemory');
-  log('    2. ' + PRIMARY_KEY + '=pk_live_...   (in .env)');
+  log('    2. npx dealmemory install');
+  log('    3. ' + PRIMARY_KEY + '=pk_live_...   (in .env)');
+  log('');
+  log('  DealMemory automatically tracks:');
+  log('    • Page views and navigation');
+  log('    • All clicks and button interactions');
+  log('    • Form submissions');
+  log('    • Scroll depth');
+  log('    • Input changes (without sensitive data)');
+  log('    • Errors and exceptions');
+  log('    • Time spent on pages');
   log('');
 }
 
-if (command === 'init') {
+if (command === 'install' || command === 'init') {
   try {
-    init();
+    install();
   } catch (e) {
     warn(e?.message ?? String(e));
     process.exitCode = 1;
   }
 } else if (command === 'hint') {
-  log('\n  dealmemory: add ' + PRIMARY_KEY + '=pk_live_... to .env, then run `npx dealmemory init`.\n');
+  log('\n  dealmemory: add ' + PRIMARY_KEY + '=pk_live_... to .env, then run `npx dealmemory install`.\n');
 } else {
   help();
 }

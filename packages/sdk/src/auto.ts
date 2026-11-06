@@ -5,7 +5,7 @@
  *
  *   1. npm install dealmemory
  *   2. DEALMEMORY_API_KEY=pk_live_...   (in .env)
- *   3. import 'dealmemory/auto'          (written into your app by `npx dealmemory init`)
+ *   3. import 'dealmemory/auto'          (written into your app by `npx dealmemory install`)
  *
  * No client object, no project id, no apiUrl, no config file. The key is read
  * from the environment and the shared client starts itself.
@@ -13,13 +13,13 @@
 import { AgentLens, KEY_ENV_VARS, readEnv } from './client.js';
 
 type Host = typeof globalThis & {
-  /** Set by `npx dealmemory init` for static/HTML apps that cannot read .env. */
+  /** Set by `npx dealmemory install` for static/HTML apps that cannot read .env. */
   DEALMEMORY_API_KEY?: string;
   __DEALMEMORY_CLIENT__?: AgentLens;
 };
 
 const MISSING_KEY_MESSAGE =
-  'DealMemory: no API key found. Add DEALMEMORY_API_KEY=pk_live_... to your .env, then run `npx dealmemory init` to write the tracking code into your app.';
+  'DealMemory: no API key found. Add DEALMEMORY_API_KEY=pk_live_... to your .env, then run `npx dealmemory install` to write the tracking code into your app.';
 
 /** Resolution order: injected global → injected meta tag → environment. */
 function readKey(): string | undefined {
