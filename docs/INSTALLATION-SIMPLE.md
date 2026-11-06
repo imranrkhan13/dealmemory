@@ -1,5 +1,20 @@
 # DealMemory Installation - Super Simple
 
+## Where does it go? (read this first)
+
+**Install DealMemory in your FRONTEND — the app users open in a browser — never in your backend API.**
+
+| Your setup | Run `npx dealmemory init` in | Env var |
+|---|---|---|
+| Next.js app | the Next.js project (e.g. `frontend/`, not the repo root) | `DEALMEMORY_API_KEY` + `NEXT_PUBLIC_DEALMEMORY_API_KEY` |
+| Vite / React / Vue / Svelte | the frontend app | `DEALMEMORY_API_KEY` |
+| Plain HTML / Flask / Django templates | the folder with `index.html` or `templates/` | key is inlined automatically |
+| Backend-only API (Render, Railway, Express…) | ❌ skip — not needed | — |
+
+**Hosted deploys:** set the env var in your host's dashboard (Netlify/Vercel → Environment variables), then **redeploy** — browser keys are inlined at build time. Commit `package.json`, the lockfile, and the file the CLI edited; never commit `.env`.
+
+---
+
 ## 3-Step Setup
 
 That's it. Just 3 steps and DealMemory tracks everything automatically.
