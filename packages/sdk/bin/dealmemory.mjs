@@ -24,6 +24,9 @@ const command = args[0] ?? 'install';
 function log(msg) {
   process.stdout.write(msg + '\n');
 }
+// Don't crash when stdout closes early (e.g. `npx dealmemory init | head`).
+process.stdout.on('error', () => {});
+process.stderr.on('error', () => {});
 function ok(msg) {
   log('  \x1b[32m✓\x1b[0m ' + msg);
 }
@@ -200,6 +203,30 @@ const PAGES_CANDIDATES = [
   'src/pages/_app.js',
 ];
 
+// Vite / React / Vue / Svelte / CRA and friends: a single JS/TS entry file
+// bundled by something that resolves bare `dealmemory/auto` imports.
+const BUNDLER_ENTRY_CANDIDATES = [
+  'src/main.tsx',
+  'src/main.jsx',
+  'src/main.ts',
+  'src/main.js',
+  'src/index.tsx',
+  'src/index.jsx',
+  'src/index.ts',
+  'src/index.js',
+  'main.tsx',
+  'main.jsx',
+  'main.ts',
+  'main.js',
+];
+
+const HTML_CANDIDATES = ['index.html', 'public/index.html'];
+const FRAMEWORK_DEPS = ['react', 'react-dom', 'vue', 'svelte', 'preact', 'solid-js', 'lit', '@angular/core', 'vite', 'react-scripts', 'next', 'nuxt', 'sveltekit', '@sveltejs/kit'];
+
+// The browser build of the auto tracker, served by esm.sh (resolves the
+// package's "./auto" export and bundles its imports for plain <script> use).
+const BROWSER_TRACKER_URL = 'https://esm.sh/dealmemory/auto';
+
 function insertImport(file, statement) {
   const source = readIfExists(file);
   if (source === null) return skip(path.basename(file) + ' not found');
@@ -261,16 +288,160 @@ function setupNextPagesRouter(root, primary) {
   return true;
 }
 
+function pkgDeclaresAny(root, names) {
+  try {
+    const pkg = JSON.parse(readIfExists(path.join(root, 'package.json')) ?? '{}');
+    const deps = { ...(pkg?.dependencies ?? {}), ...(pkg?.devDependencies ?? {}) };
+    return names.some((name) => name in deps);
+  } catch {
+    return false;
+  }
+}
+
+/** Vite / React / Vue / Svelte / CRA: entry file + something that bundles it. */
+function setupBundlerApp(root, primary) {
+  const entry = pickFile(root, BUNDLER_ENTRY_CANDIDATES);
+  const hasHtml = pickFile(root, HTML_CANDIDATES) !== null;
+  if (!entry || (!hasHtml && !pkgDeclaresAny(root, FRAMEWORK_DEPS))) return false;
+  insertImport(entry, "import '" + IMPORT_MARKER + "';\n");
+  if (!primary) {
+    warn(PRIMARY_KEY + ' in .env is empty — paste your pk_live_... key there, then run `npx dealmemory init` again.');
+  }
+  return true;
+}
+
+/**
+ * Static HTML and server-rendered templates can't read .env, so the key is
+ * inlined in a meta tag and the tracker loads from the esm.sh CDN build.
+ */
+function injectBrowserSnippet(file, primary) {
+  const source = readIfExists(file);
+  if (source === null) return skip(path.basename(file) + ' not found');
+  if (source.includes('dealmemory-api-key') || source.includes(BROWSER_TRACKER_URL) || source.includes(IMPORT_MARKER)) {
+    return skip(path.basename(file) + ' already tracks');
+  }
+  if (!primary) {
+    warn('Paste your ' + PRIMARY_KEY + '=pk_live_... into .env first — HTML pages need the key inlined.');
+    return false;
+  }
+  const snippet =
+    '    <meta name="dealmemory-api-key" content="' + primary + '">\n' +
+    '    <script type="module">\n' +
+    '      import "' + BROWSER_TRACKER_URL + '";\n' +
+    '    </script>\n  ';
+  if (/<\/head>/i.test(source)) {
+    fs.writeFileSync(file, source.replace(/<\/head>/i, snippet + '</head>'), 'utf8');
+  } else if (/<head[^>]*>/i.test(source)) {
+    fs.writeFileSync(file, source.replace(/<head[^>]*>/i, (m) => m + '\n' + snippet), 'utf8');
+  } else {
+    fs.writeFileSync(file, snippet + source, 'utf8');
+  }
+  ok('injected DealMemory tracker into ' + displayPath(file));
+  return true;
+}
+
+function setupStaticHtml(root, primary) {
+  const html = pickFile(root, HTML_CANDIDATES);
+  if (!html) return false;
+  return injectBrowserSnippet(html, primary);
+}
+
+/** Finds *.html under any `templates/` dir (Flask, Django, FastAPI+Jinja...). */
+function findTemplateFiles(root) {
+  const found = [];
+  const walk = (dir, depth) => {
+    if (depth > 3 || found.length > 25) return;
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith('.') || SKIP_DIRS.has(entry.name)) continue;
+      const abs = path.join(dir, entry.name);
+      if (entry.name === 'templates' || entry.name === 'template') {
+        collectHtml(abs, found);
+      } else {
+        walk(abs, depth + 1);
+      }
+    }
+  };
+  const collectHtml = (dir, out, depth = 0) => {
+    if (depth > 3) return;
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const abs = path.join(dir, entry.name);
+      if (entry.isDirectory()) collectHtml(abs, out, depth + 1);
+      else if (/\.html?$/i.test(entry.name)) out.push(abs);
+    }
+  };
+  walk(root, 0);
+  // Prefer the base/layout template — one injection covers every page.
+  const rank = (f) => (/base|layout|_?app|index/i.test(path.basename(f)) ? 0 : 1);
+  return found.sort((a, b) => rank(a) - rank(b)).slice(0, 3);
+}
+
+function looksLikePython(root) {
+  const check = (dir) => {
+    if (fs.existsSync(path.join(dir, 'manage.py'))) return true;
+    for (const rel of ['requirements.txt', 'pyproject.toml', 'Pipfile']) {
+      const text = readIfExists(path.join(dir, rel));
+      if (text && /flask|fastapi|django|jinja/i.test(text)) return true;
+    }
+    return false;
+  };
+  if (check(root)) return true;
+  // Monorepo: the Python service may live one level down (e.g. python_backend/).
+  try {
+    for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+      if (entry.isDirectory() && !entry.name.startsWith('.') && !SKIP_DIRS.has(entry.name)) {
+        if (check(path.join(root, entry.name))) return true;
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
+function setupPythonTemplates(root, primary) {
+  const templates = findTemplateFiles(root);
+  if (!templates.length) return false;
+  for (const file of templates) {
+    const source = readIfExists(file) ?? '';
+    if (!/<head[^>]*>/i.test(source)) continue;
+    if (source.includes('dealmemory-api-key') || source.includes(BROWSER_TRACKER_URL)) {
+      skip(path.basename(file) + ' already tracks');
+      return true;
+    }
+    // Base/layout template first — one injection covers every page.
+    return injectBrowserSnippet(file, primary);
+  }
+  warn('Found templates but none with a <head> tag — add the DealMemory snippet manually.');
+  return false;
+}
+
 function setupOther(root, primary) {
   log('');
-  log('  ⚠ Could not find a Next.js entry file automatically.');
+  log('  ⚠ Could not detect your app\'s entry file automatically.');
   log('');
-  log('  If this is a Next.js app, it may use a custom directory.');
-  log('  Otherwise, add these two lines yourself (this is everything):');
+  log('  DealMemory supports Next.js, Vite/React/Vue/Svelte, plain HTML,');
+  log('  and Python templates (Flask/Django/FastAPI). If yours is custom,');
+  log('  add these two lines yourself (this is everything):');
   log('');
   log('    # .env   ' + PRIMARY_KEY + '=pk_live_...');
   log("    // top of your app entry file");
   log("    import '" + IMPORT_MARKER + "'");
+  log('');
+  log('  For a plain HTML page, paste this inside <head> instead:');
+  log('    <meta name="dealmemory-api-key" content="pk_live_...">');
+  log('    <script type="module">import "' + BROWSER_TRACKER_URL + '";</script>');
   log('');
   if (!primary) {
     warn(PRIMARY_KEY + ' in .env is empty — paste your pk_live_... key there, then run `npx dealmemory init` again.');
@@ -302,6 +473,12 @@ function install() {
     wired = setupNextAppRouter(root, primary);
   } else if (pagesApp) {
     wired = setupNextPagesRouter(root, primary);
+  } else if (setupBundlerApp(root, primary)) {
+    wired = true;
+  } else if (setupStaticHtml(root, primary)) {
+    wired = true;
+  } else if (looksLikePython(root) && setupPythonTemplates(root, primary)) {
+    wired = true;
   } else {
     wired = setupOther(root, primary);
   }

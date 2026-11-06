@@ -81,7 +81,7 @@ export default function LoginClient() {
         />
 
         {error && (
-          <div className="flex items-start gap-2.5 rounded-lg border border-red-400/25 bg-red-400/10 p-3 text-[12px] text-red-200">
+          <div className="flex items-start gap-2.5 rounded-lg border border-red-400/25 bg-red-400/10 p-3 text-[12px] text-red-700">
             <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span className="leading-relaxed">{error}</span>
           </div>
@@ -102,13 +102,13 @@ export default function LoginClient() {
         </AuthButton>
       </form>
 
-      <p className="mt-6 border-t border-white/10 pt-5 text-center text-[12.5px] text-white/50">
+      <p className="mt-6 border-t border-black/10 pt-5 text-center text-[12.5px] text-[#555b61]">
         New to DealMemory?{' '}
-        <Link href="/signup" className="font-medium text-[#8ab4ff] hover:text-white">
+        <Link href="/signup" className="font-medium text-[#0562ef] hover:text-[#0446c9]">
           Create a free workspace
         </Link>
       </p>
-      <p className="mt-5 text-center text-[11px] leading-relaxed text-white/30">
+      <p className="mt-5 text-center text-[11px] leading-relaxed text-[#9b9ea2]">
         By continuing, you agree to our Terms and Privacy Policy.
       </p>
     </AuthShell>
